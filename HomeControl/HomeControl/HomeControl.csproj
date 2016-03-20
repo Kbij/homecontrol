@@ -45,18 +45,25 @@
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Comm\CommModel.cs" />
+    <Compile Include="Comm\GpsLocation.cs" />
+    <Compile Include="Comm\ICommObject.cs" />
+    <Compile Include="Comm\ICommReceiver.cs" />
+    <Compile Include="Comm\JsonSerialiser.cs" />
+    <Compile Include="Comm\MessageObject.cs" />
+    <Compile Include="Comm\RemoteLogClient.cs" />
     <Compile Include="MainActivity.cs" />
     <Compile Include="Resources\Resource.Designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="GettingStarted.Xamarin" />
-    <None Include="Resources\AboutResources.txt" />
-    <None Include="Assets\AboutAssets.txt" />
+    <Compile Include="HCService\BootCompleted.cs" />
+    <Compile Include="HCService\HCService.cs" />
+    <Compile Include="HCService\HCServiceBinder.cs" />
+    <Compile Include="HCService\HCServiceConnection.cs" />
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\layout\Main.axml" />
@@ -69,6 +76,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Properties\AndroidManifest.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Assets\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

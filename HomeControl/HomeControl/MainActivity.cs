@@ -5,13 +5,17 @@ using Android.Runtime;
 using Android.Views;
 using Android.Widget;
 using Android.OS;
+using HomeControl.HCService;
+using HomeControl.Comm;
 
 namespace HomeControl
 {
     [Activity(Label = "HomeControl", MainLauncher = true, Icon = "@drawable/icon")]
-    public class MainActivity : Activity
+    public class MainActivity : Activity, ICommReceiver
     {
-        int count = 1;
+        public HCServiceBinder binder;
+        public bool isBound;
+        HCServiceConnection hcServiceConnection;
 
         protected override void OnCreate(Bundle bundle)
         {
@@ -20,11 +24,29 @@ namespace HomeControl
             // Set our view from the "main" layout resource
             SetContentView(Resource.Layout.Main);
 
-            // Get our button from the layout resource,
-            // and attach an event to it
-            Button button = FindViewById<Button>(Resource.Id.MyButton);
+        }
 
-            button.Click += delegate { button.Text = string.Format("{0} clicks!", count++); };
+        public void onBind()
+        {
+            if (isBound)
+            {
+                binder.GetHCService().registerCommReceiver(this);
+            }
+        }
+
+        public void receiveObject(object obj)
+        {
+
+        }
+
+        public void connected()
+        {
+
+        }
+
+        public void disconnected()
+        {
+
         }
     }
 }
