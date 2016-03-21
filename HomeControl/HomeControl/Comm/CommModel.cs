@@ -15,7 +15,7 @@ namespace HomeControl.Comm
         NetworkStream mStream;
         ICommReceiver mReceiver = null;
         const string HEADER = "HCM";
-        System.Timers.Timer mTimer;
+       // System.Timers.Timer mTimer;
         int mOutstandingKeepAlives;
         enum CommState { Connecting, NameSend, Connected, Disconnected};
         CommState mCommState;
@@ -46,10 +46,10 @@ namespace HomeControl.Comm
             {
                 startThread();
 
-                mTimer = new System.Timers.Timer();
-                mTimer.Interval = KEEPALIVE_INTERVAL_SECONDS * 1000;
-                mTimer.Elapsed += new System.Timers.ElapsedEventHandler(sendKeepAlive);
-                mTimer.Start();
+                //mTimer = new System.Timers.Timer();
+                //mTimer.Interval = KEEPALIVE_INTERVAL_SECONDS * 1000;
+                //mTimer.Elapsed += new System.Timers.ElapsedEventHandler(sendKeepAlive);
+                //mTimer.Start();
                 mCommStarted = true;
                 mLog.SendToHost("CommModel started");
             }

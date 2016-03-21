@@ -20,7 +20,7 @@ namespace HomeControl.HCService
         {
             if (intent.Action == Intent.ActionBootCompleted)
             {
-                context.ApplicationContext.StartService(new Intent(context, typeof(HCService)));
+                context.ApplicationContext.StartService(new Intent(context, typeof(HomeControlService)));
             }
         }
     }

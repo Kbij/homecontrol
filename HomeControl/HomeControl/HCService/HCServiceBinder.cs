@@ -14,14 +14,14 @@ namespace HomeControl.HCService
 {
     public class HCServiceBinder: Binder
     {
-        HCService service;
+        HomeControlService service;
 
-        public HCServiceBinder(HCService service)
+        public HCServiceBinder(HomeControlService service)
         {
             this.service = service;
         }
 
-        public HCService GetHCService()
+        public HomeControlService GetHCService()
         {
             return service;
         }

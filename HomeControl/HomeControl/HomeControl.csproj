@@ -61,7 +61,7 @@
     <Compile Include="Resources\Resource.Designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="HCService\BootCompleted.cs" />
-    <Compile Include="HCService\HCService.cs" />
+    <Compile Include="HCService\HomeControlService.cs" />
     <Compile Include="HCService\HCServiceBinder.cs" />
     <Compile Include="HCService\HCServiceConnection.cs" />
   </ItemGroup>
