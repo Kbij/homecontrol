@@ -29,6 +29,7 @@ namespace HomeControl.Comm
 
         const int KEEPALIVE_INTERVAL_SECONDS = 30;
         const int MAX_LOST_KEEPALIVE = 4;
+
         public CommModel()
         {
             mSendQueue = new Queue<ICommObject>();
@@ -61,35 +62,6 @@ namespace HomeControl.Comm
             stopThread();
         }
 
-        protected void sendKeepAlive(object sender, System.Timers.ElapsedEventArgs e)
-        {
-            try
-            {
-                if (mClient != null && mClient.Connected)
-                {
-                    List<Byte> frame = new List<byte>();
-                    frame.AddRange(System.Text.Encoding.ASCII.GetBytes("HCM"));
-                    frame.Add(0);
-                    frame.Add(0);
-                    frame.Add(OBJ_KEEPALIVE);
-
-                    mStream.Write(frame.ToArray(), 0, frame.Count);
-                    ++mOutstandingKeepAlives;
-                    if (mOutstandingKeepAlives > MAX_LOST_KEEPALIVE)
-                    {
-                        Log.Debug("CommModel", "To many outstanding pings, closing connection");
-
-                        mOutstandingKeepAlives = 0;
-                        mClient.Close();
-                    }
-                }
-            }
-            catch(Exception ex)
-            {
-                Log.Debug("Comm", string.Format("Exception while sending keepalive:" ,  ex.ToString()));
-            }
-        }
-
         public bool sendObject(ICommObject obj)
         {
             try
@@ -119,17 +91,17 @@ namespace HomeControl.Comm
             return false;
         }
 
-        public void sendObjectWithQueue(ICommObject obj)
+        public void sendObjectQueued(ICommObject obj)
         {
             lock(mSendQueue)
             {
                 mSendQueue.Enqueue(obj);
             }
 
-            processQueue();
+            processSendQueue();
         }
 
-        private void processQueue()
+        private void processSendQueue()
         {
             bool success = true;
             while (success && mSendQueue.Count > 0)
@@ -163,6 +135,35 @@ namespace HomeControl.Comm
             {
                 Log.Debug("CommModel", string.Format("Exception while sending our name: {}", ex.ToString()));
                 mClient.Close();
+            }
+        }
+
+        private void sendKeepAlive(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            try
+            {
+                if (mClient != null && mClient.Connected)
+                {
+                    List<Byte> frame = new List<byte>();
+                    frame.AddRange(System.Text.Encoding.ASCII.GetBytes("HCM"));
+                    frame.Add(0);
+                    frame.Add(0);
+                    frame.Add(OBJ_KEEPALIVE);
+
+                    mStream.Write(frame.ToArray(), 0, frame.Count);
+                    ++mOutstandingKeepAlives;
+                    if (mOutstandingKeepAlives > MAX_LOST_KEEPALIVE)
+                    {
+                        Log.Debug("CommModel", "To many outstanding pings, closing connection");
+
+                        mOutstandingKeepAlives = 0;
+                        mClient.Close();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Debug("Comm", string.Format("Exception while sending keepalive:", ex.ToString()));
             }
         }
 
@@ -200,7 +201,49 @@ namespace HomeControl.Comm
             mThread.Join();
         }
 
-        private void processBuffer()
+        private void commThread()
+        {
+            while (mThreadRunning)
+            {
+                try
+                {
+                    Log.Debug("CommModel", "Restarting connection");
+
+                    mClient = new TcpClient("paradijs.mooo.com", 5678); //Try to Connect
+                    mStream = mClient.GetStream();
+                    mLog.SendToHost("Connected");
+
+                    Log.Debug("CommModel", "Connecting... Sending our name");
+                    mCommState = CommState.Connecting;
+                    sendName();
+                    mCommState = CommState.NameSend;
+
+                    int bytesReceived = 0;
+                    Byte[] bytes = new Byte[256];
+                    while ((bytesReceived = mStream.Read(bytes, 0, bytes.Length)) != 0)
+                    {
+                        mBuffer.AddRange(bytes.Take(bytesReceived).ToArray());
+                        processReceiveBuffer();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Debug("Comm", string.Format("Exception in comm thread: {0}", ex.Message));
+                    mLog.SendToHost(string.Format("Exception in comm thread: {0}", ex.Message));
+                }
+
+                mCommState = CommState.Disconnected;
+                if (mReceiver != null)
+                {
+                    mReceiver.disconnected();
+                }
+                Log.Debug("CommModel", "Disconnected, sleeping 5s...");
+                mLog.SendToHost("Disconnected");
+                Thread.Sleep(5000);
+            }
+        }
+
+        private void processReceiveBuffer()
         {
             bool frameFound = true;
             while (frameFound)
@@ -231,59 +274,18 @@ namespace HomeControl.Comm
                                 mCommState = CommState.Connected;
                                 Log.Debug("CommModel", string.Format("Connected with server: {0}", serverName));
 
-                                processQueue();
+                                processSendQueue();
                                 break;
                             default:
                                 string payload = System.Text.Encoding.ASCII.GetString(mBuffer.GetRange(HEADER.Length + 3, length).ToArray());
                                 break;
                         }
-                          
+
                         mBuffer.RemoveRange(0, length + HEADER.Length + 3);
                     }
                 }
             }
         }
 
-        private void commThread()
-        {
-            while (mThreadRunning)
-            {
-                try
-                {
-                    Log.Debug("CommModel", "Restarting connection");
-
-                    mClient = new TcpClient("paradijs.mooo.com", 5678); //Try to Connect
-                    mStream = mClient.GetStream();
-                    mLog.SendToHost("Connected");
-
-                    Log.Debug("CommModel", "Connecting... Sending our name");
-                    mCommState = CommState.Connecting;
-                    sendName();
-                    mCommState = CommState.NameSend;
-
-                    int bytesReceived = 0;
-                    Byte[] bytes = new Byte[256];
-                    while ((bytesReceived = mStream.Read(bytes, 0, bytes.Length)) != 0)
-                    {
-                        mBuffer.AddRange(bytes.Take(bytesReceived).ToArray());
-                        processBuffer();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Log.Debug("Comm", string.Format("Exception in comm thread: {0}", ex.Message));
-                    mLog.SendToHost(string.Format("Exception in comm thread: {0}", ex.Message));
-                }
-
-                mCommState = CommState.Disconnected;
-                if (mReceiver != null)
-                {
-                    mReceiver.disconnected();
-                }
-                Log.Debug("CommModel", "Disconnected, sleeping 5s...");
-                mLog.SendToHost("Disconnected");
-                Thread.Sleep(5000);
-            }
-        }
     }
 }

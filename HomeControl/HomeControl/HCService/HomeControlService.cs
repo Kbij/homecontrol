@@ -42,7 +42,6 @@ namespace HomeControl.HCService
             mCommModel.startComm();
 
             InitializeLocationManager();
-            _locationManager.RequestLocationUpdates("network", 1*60*1000, 0, this); // Min 1 minute
 
             return StartCommandResult.Sticky;
         }
@@ -81,10 +80,7 @@ namespace HomeControl.HCService
         void InitializeLocationManager()
         {
             _locationManager = (LocationManager)GetSystemService(LocationService);
-            Criteria criteriaForLocationService = new Criteria
-            {
-                Accuracy = Accuracy.Medium
-            };
+            Criteria criteriaForLocationService = new Criteria{Accuracy = Accuracy.Medium, PowerRequirement = Power.Low};
             IList<string> acceptableLocationProviders = _locationManager.GetProviders(criteriaForLocationService, true);
 
             foreach (var provider in acceptableLocationProviders)
@@ -101,6 +97,13 @@ namespace HomeControl.HCService
                 _locationProvider = string.Empty;
             }
             Log.Debug(TAG, "Using " + _locationProvider + ".");
+            mLog.SendToHost(string.Format("Location provider used: {0}", _locationProvider));
+            //_locationManager.RequestLocationUpdates(_locationProvider, 1 * 60 * 1000, 0, this); // Min 1 minute
+            _locationManager.RequestLocationUpdates(_locationProvider, 0, 0, this); // Min 1 minute
+
+            MessageObject msg = new MessageObject();
+            msg.Message = string.Format("Using location provider: {0}", _locationProvider);
+            mCommModel.sendObjectQueued(msg);
         }
 
         public void OnLocationChanged(Location location)
@@ -119,7 +122,7 @@ namespace HomeControl.HCService
                     if (isBetterLocation(location, lastLocation))
                     {
                         GpsLocation loc = new GpsLocation { Latitude = location.Latitude, Longitude = location.Longitude, Accuracy = location.Accuracy };
-                        mCommModel.sendObjectWithQueue(loc);
+                        mCommModel.sendObjectQueued(loc);
                     }
                     else
                     {
@@ -134,15 +137,24 @@ namespace HomeControl.HCService
         public void OnProviderDisabled(string provider)
         {
             Log.Debug(TAG, "Provider disabled");
+            MessageObject msg = new MessageObject();
+            msg.Message = "Provider disabled";
+            mCommModel.sendObjectQueued(msg);
         }
 
         public void OnProviderEnabled(string provider)
         {
             Log.Debug(TAG, "Provider enabled");
+            MessageObject msg = new MessageObject();
+            msg.Message = "Provider enabled";
+            mCommModel.sendObjectQueued(msg);
         }
 
         public void OnStatusChanged(string provider, Availability status, Bundle extras)
         {
+            MessageObject msg = new MessageObject();
+            msg.Message = string.Format("Provider status changed, provider: {0}, status: {1}", provider, status.ToString());
+            mCommModel.sendObjectQueued(msg);
         }
 
         /** Determines whether one Location reading is better than the current Location fix
