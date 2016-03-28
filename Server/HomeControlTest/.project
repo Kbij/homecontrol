@@ -3,6 +3,7 @@
 	<name>HomeControlTest</name>
 	<comment></comment>
 	<projects>
+		<project>HomeControlLib</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
