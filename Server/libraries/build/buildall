@@ -1,0 +1,7 @@
+
+boost:
+======
+tar -xvf /home/koen/Downloads/boost_1_60_0.tar.gz
+./bootstrap.sh 
+./b2 install --prefix=/home/koen/HomeControl/trunk/Server/libraries/x86
+

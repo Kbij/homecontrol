@@ -11,7 +11,7 @@
 
 GTEST_API_ int main(int argc, char **argv)
 {
-	google::InitGoogleLogging("Home Contron Test");
+	google::InitGoogleLogging("Home Control Test");
 	testing::InitGoogleTest(&argc, argv);
 //	testing::GTEST_FLAG(filter) = "SocketComm.*";
 
