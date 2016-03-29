@@ -182,18 +182,16 @@ namespace Server
 
         private void button2_Click(object sender, EventArgs e)
         {
-            string header = @"<Placemark>
-<name>Track</name>
-<description>
+            //string header = @"<Placemark>
+            //<name>Track</name>
+            //<description>
 
-</description>
-<styleUrl>#msn_ylw-pushpin_copy1</styleUrl>
-<LineString>
-<tessellate>1</tessellate>
-<coordinates>";
-            string foorter = @" </coordinates>
- </LineString>
-</Placemark>";
+            //</description>
+            //<styleUrl>#msn_ylw-pushpin_copy1</styleUrl>
+            //<LineString>
+            //<tessellate>1</tessellate>
+            //<coordinates>";
+            string foorter = @"</coordinates></LineString></Placemark>";
 
             lock (mLocations)
             {
@@ -201,7 +199,7 @@ namespace Server
                 {
                     using (System.IO.StreamWriter file = new System.IO.StreamWriter(string.Format("c:\\temp\\{0}.kml", client.Key)))
                     {
-                        file.Write(header);
+                        file.Write(header(client.Key));
                         foreach (var gpsloc in client.Value)
                         {
                             file.WriteLine(string.Format("{0},{1},0", gpsloc.Longitude.ToString(CultureInfo.InvariantCulture), gpsloc.Latitude.ToString(CultureInfo.InvariantCulture)));
@@ -210,6 +208,10 @@ namespace Server
                     }
                 }
             }
+        }
+        private string header(string name)
+        {
+            return string.Format("<Placemark><name>{0}</name><description></description><styleUrl>#msn_ylw-pushpin_copy1</styleUrl><LineString><tessellate>1</tessellate><coordinates>", name);
         }
 
         private void listSummary_DoubleClick(object sender, EventArgs e)
@@ -233,6 +235,14 @@ namespace Server
                         }
                     }
                 }
+            }
+        }
+
+        private void btnClearKML_Click(object sender, EventArgs e)
+        {
+            lock (mLocations)
+            {
+                mLocations.Clear();
             }
         }
     }

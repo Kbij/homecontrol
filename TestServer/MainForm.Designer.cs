@@ -38,6 +38,7 @@
             this.colName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colDist = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.collast = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.btnClearKML = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // txtLog
@@ -75,7 +76,7 @@
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(175, 13);
+            this.button2.Location = new System.Drawing.Point(256, 12);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(75, 23);
             this.button2.TabIndex = 4;
@@ -130,11 +131,22 @@
             this.collast.Text = "LastConnected";
             this.collast.Width = 120;
             // 
+            // btnClearKML
+            // 
+            this.btnClearKML.Location = new System.Drawing.Point(175, 13);
+            this.btnClearKML.Name = "btnClearKML";
+            this.btnClearKML.Size = new System.Drawing.Size(75, 23);
+            this.btnClearKML.TabIndex = 8;
+            this.btnClearKML.Text = "Clear KML";
+            this.btnClearKML.UseVisualStyleBackColor = true;
+            this.btnClearKML.Click += new System.EventHandler(this.btnClearKML_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(815, 435);
+            this.Controls.Add(this.btnClearKML);
             this.Controls.Add(this.listSummary);
             this.Controls.Add(this.lblLastConnection);
             this.Controls.Add(this.label1);
@@ -162,6 +174,7 @@
         private System.Windows.Forms.ColumnHeader colName;
         private System.Windows.Forms.ColumnHeader colDist;
         private System.Windows.Forms.ColumnHeader collast;
+        private System.Windows.Forms.Button btnClearKML;
     }
 }
 
