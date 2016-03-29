@@ -104,12 +104,15 @@ namespace HomeControl.Comm
         private void processSendQueue()
         {
             bool success = true;
-            while (success && mSendQueue.Count > 0)
+            lock (mSendQueue)
             {
-                success = sendObject(mSendQueue.Peek());
-                if (success)
+                while (success && mSendQueue.Count > 0)
                 {
-                    mSendQueue.Dequeue();
+                    success = sendObject(mSendQueue.Peek());
+                    if (success)
+                    {
+                        mSendQueue.Dequeue();
+                    }
                 }
             }
         }
@@ -134,6 +137,7 @@ namespace HomeControl.Comm
             catch(Exception ex)
             {
                 Log.Debug("CommModel", string.Format("Exception while sending our name: {}", ex.ToString()));
+                mLog.SendToHost(string.Format("Exception while sending our name: {}", ex.ToString());
                 mClient.Close();
             }
         }
@@ -155,7 +159,7 @@ namespace HomeControl.Comm
                     if (mOutstandingKeepAlives > MAX_LOST_KEEPALIVE)
                     {
                         Log.Debug("CommModel", "To many outstanding pings, closing connection");
-
+                        mLog.SendToHost("To many outstanding pings, closing connection");
                         mOutstandingKeepAlives = 0;
                         mClient.Close();
                     }
