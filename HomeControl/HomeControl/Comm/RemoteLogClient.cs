@@ -11,22 +11,22 @@ namespace HomeControl.Comm
 
         public RemoteLogClient(string ipAddress, int port)
         {
-            //try
-            //{
-            //    client = new UdpClient();
-            //    client.Connect(new IPEndPoint(IPAddress.Parse(ipAddress), port));
-            //}
-            //catch (Exception) { }
+            try
+            {
+                client = new UdpClient();
+                client.Connect(new IPEndPoint(IPAddress.Parse(ipAddress), port));
+            }
+            catch (Exception) { }
         }
 
         public void SendToHost(string message)
         {
-            //try
-            //{
-            //    byte[] data = Encoding.ASCII.GetBytes(string.Format("{0}: {1}", Android.OS.Build.Model, message));
-            //    client.Send(data, data.Length);
-            //}
-            //catch (Exception) { }
+            try
+            {
+                byte[] data = Encoding.ASCII.GetBytes(string.Format("{0}:{1}: {2}", DateTime.Now, Android.OS.Build.Model, message));
+                client.Send(data, data.Length);
+            }
+            catch (Exception) { }
         }
     }
 }
