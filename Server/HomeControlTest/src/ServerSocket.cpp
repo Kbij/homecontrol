@@ -16,9 +16,9 @@
 
 TEST(ServerSocket, Constructor)
 {
-	CommNs::ServerSocket* socket = new CommNs::ServerSocket(1234);
-
-	std::this_thread::sleep_for(std::chrono::seconds(10));
-
-	delete socket;
+//	CommNs::ServerSocket* socket = new CommNs::ServerSocket(1234);
+//
+//	std::this_thread::sleep_for(std::chrono::seconds(10));
+//
+//	delete socket;
 }

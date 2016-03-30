@@ -7,7 +7,7 @@
 
 #ifndef COMM_SERVERSOCKET_H_
 #define COMM_SERVERSOCKET_H_
-
+#include "ServerSocketIf.h"
 #include <boost/asio.hpp>
 #include <list>
 #include <thread>
@@ -16,20 +16,26 @@
 namespace CommNs
 {
 class ClientSocketIf;
+class Server;
+class Client;
 
-class ServerSocket {
+class ServerSocket: public ServerSocketIf
+{
 public:
-	ServerSocket(int port);
+	ServerSocket(boost::asio::io_service& ioService, Server* server, int port);
 	virtual ~ServerSocket();
-	void handleAccept(ClientSocketIf* client, const boost::system::error_code& error);
+
+	void close() {};
 private:
-	boost::asio::io_service mIoService;
+	boost::asio::io_service& mIoService;
+	Server* mServer;
 	boost::asio::ip::tcp::acceptor mAcceptor;
 	std::list<ClientSocketIf*> mClients;
 	bool mServerThreadRunning;
 	std::thread* mServerThread;
 	mutable std::recursive_mutex mDataMutex;
 
+	void handleAccept(Client* client, const boost::system::error_code& error);
 	void startServerThread();
 	void stopServerThread();
 	void serverThread();

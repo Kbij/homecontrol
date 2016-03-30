@@ -6,6 +6,8 @@
  */
 
 #include "ServerSocket.h"
+#include "Server.h"
+#include "Client.h"
 #include <glog/logging.h>
 #include "boost/bind.hpp"
 #include "ClientSocket.h"
@@ -13,8 +15,9 @@
 namespace CommNs
 {
 
-ServerSocket::ServerSocket(int port):
-	mIoService(),
+ServerSocket::ServerSocket(boost::asio::io_service& ioService, Server* server, int port):
+	mIoService(ioService),
+	mServer(server),
 	mAcceptor(mIoService, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port)),
 	mClients(),
 	mServerThreadRunning(false),
@@ -22,9 +25,8 @@ ServerSocket::ServerSocket(int port):
 	mDataMutex()
 {
 	VLOG(1) << "Server socket created";
-	ClientSocket* clientSocket = new ClientSocket(mIoService);
-	mClients.push_back(clientSocket);
-	mAcceptor.async_accept(clientSocket->socket(), boost::bind(&ServerSocket::handleAccept, this, clientSocket, boost::asio::placeholders::error));
+	Client* client = mServer->newClient();
+	mAcceptor.async_accept(client->socket(), boost::bind(&ServerSocket::handleAccept, this, client, boost::asio::placeholders::error));
 	startServerThread();
 }
 
@@ -33,14 +35,13 @@ ServerSocket::~ServerSocket()
 	stopServerThread();
 }
 
-void ServerSocket::handleAccept(ClientSocketIf* clientSocket, const boost::system::error_code& error)
+void ServerSocket::handleAccept(Client* client, const boost::system::error_code& error)
 {
 	if (!error)
 	{
 		VLOG(1) << "Connection accepted, staring listener";
-		clientSocket->start();
-		ClientSocket* client = new ClientSocket(mIoService);
-		mClients.push_back(client);
+		client->start();
+		Client* client = mServer->newClient();
 		mAcceptor.async_accept(client->socket(), boost::bind(&ServerSocket::handleAccept, this, client,boost::asio::placeholders::error));
 	}
 }
