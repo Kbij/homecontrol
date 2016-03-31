@@ -9,6 +9,7 @@
 #include "Client.h"
 #include "ServerSocketIf.h"
 #include "SocketFactoryIf.h"
+#include "ClientSocketIf.h"
 
 namespace CommNs {
 
@@ -26,7 +27,10 @@ Server::~Server()
 
 Client* Server::newClient()
 {
-	return new Client(mSocketFactory->createClientSocket());
+	Client* client = new Client(mSocketFactory->createClientSocket(), this);
+	ClientSocketIf* clientSocket = mSocketFactory->createClientSocket();
+	clientSocket->registerSocketListener(client);
+	return client;
 }
 
 void Server::receiveObject(const CommObjectIf& object)

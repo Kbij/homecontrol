@@ -10,8 +10,9 @@
 
 namespace CommNs {
 
-Client::Client(ClientSocketIf* clientSocket):
-	mClientSocket(clientSocket)
+Client::Client(ClientSocketIf* clientSocket, ClientListenerIf* clientListener):
+	mClientSocket(clientSocket),
+	mClientListener(clientListener)
 {
 
 }
@@ -29,4 +30,11 @@ void Client::start()
 {
 	mClientSocket->start();
 }
+
+void Client::receiveFrame(uint8_t objectId, const std::vector<uint8_t>& frame)
+{
+
+}
+
+
 } /* namespace CommNs */

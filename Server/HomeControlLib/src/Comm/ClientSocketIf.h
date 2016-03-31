@@ -11,6 +11,7 @@
 #include <string>
 
 namespace CommNs {
+class SocketListenerIf;
 
 class ClientSocketIf
 {
@@ -21,6 +22,7 @@ public:
 	virtual void start() = 0;
 	virtual std::string name() = 0;
 	virtual void close() = 0;
+	virtual void registerSocketListener(SocketListenerIf* socketListener) = 0;
 };
 
 } /* namespace CommNs */

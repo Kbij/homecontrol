@@ -7,12 +7,14 @@
 
 #ifndef COMM_CLIENTSOCKET_H_
 #define COMM_CLIENTSOCKET_H_
+#include "ClientSocketIf.h"
+#include "SocketListenerIf.h"
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
 #include <boost/system/system_error.hpp>
 #include <cstddef>
 #include <string>
-#include "ClientSocketIf.h"
+#include <vector>
 
 namespace CommNs {
 
@@ -26,11 +28,15 @@ public:
 	void start();
 	std::string name() {return "unknown";}
 	void close();
+	void registerSocketListener(SocketListenerIf* socketListener);
 
 private:
 	boost::asio::ip::tcp::tcp::socket mSocket;
-	boost::array<char, 1024> mBuffer;
+	boost::array<char, 1024> mSocketBuffer;
+	std::vector<uint8_t> mReceiveBuffer;
+	SocketListenerIf* mSocketListener;
 	void handleRead(const boost::system::error_code& error, size_t bytesTransferred);
+	void processBuffer();
 };
 
 } /* namespace CommNs */
