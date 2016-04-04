@@ -11,6 +11,7 @@
 #include <boost/bind.hpp>
 #include <glog/logging.h>
 #include <boost/system/error_code.hpp>
+#include <iostream>
 
 namespace
 {
@@ -58,6 +59,7 @@ void ClientSocket::close()
 
 void ClientSocket::registerSocketListener(SocketListenerIf* socketListener)
 {
+	VLOG(3) << "this: " << this << ", Registersocket listener: " << socketListener << std::endl;
 	mSocketListener = socketListener;
 }
 
@@ -120,12 +122,11 @@ void ClientSocket::processBuffer()
 		mReceiveBuffer.erase(mReceiveBuffer.begin(), itStartPosition + HEADER_TOTAL_LENGTH + dataLength);
 		packetFound = true;
 		VLOG(3) << "Buffer size: " << mReceiveBuffer.size();
-
+		VLOG(3) << "this: " << this << ", mSocketListener: " << mSocketListener;
 		if (mSocketListener)
 		{
 			VLOG(1) << "Payload received, length: " << hcmData.size();
 			mSocketListener->receiveFrame(objectId, hcmData);
-			//mCloudComm->receiveData(mux, cloudData);
 		}
 	}
 }

@@ -10,12 +10,15 @@
 #include "ServerSocketIf.h"
 #include "SocketFactoryIf.h"
 #include "ClientSocketIf.h"
+#include "ClientListenerIf.h"
+#include "CommListenerIf.h"
 
 namespace CommNs {
 
 Server::Server(SocketFactoryIf* factory, int port):
 	mSocketFactory(factory),
-	mServerSocket(factory->createServerSocket(this, port))
+	mServerSocket(factory->createServerSocket(this, port)),
+	mCommListeners()
 {
 
 }
@@ -25,17 +28,37 @@ Server::~Server()
 	delete mServerSocket;
 }
 
+void Server::registerCommListener(CommListenerIf* listener)
+{
+	if (listener)
+	{
+		std::lock_guard<std::mutex> lock(mDataMutex);
+		mCommListeners.insert(listener);
+	}
+}
+
+void Server::unRegisterCommListener(CommListenerIf* listener)
+{
+	if (listener)
+	{
+		std::lock_guard<std::mutex> lock(mDataMutex);
+		mCommListeners.erase(listener);
+	}
+}
+
 Client* Server::newClient()
 {
 	Client* client = new Client(mSocketFactory->createClientSocket(), this);
-	ClientSocketIf* clientSocket = mSocketFactory->createClientSocket();
-	clientSocket->registerSocketListener(client);
 	return client;
 }
 
 void Server::receiveObject(const CommObjectIf& object)
 {
-
+	std::lock_guard<std::mutex> lock(mDataMutex);
+	for(const auto& listener: mCommListeners)
+	{
+		listener->receiveObject(object);
+	}
 }
 
 
