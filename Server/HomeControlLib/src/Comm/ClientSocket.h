@@ -15,6 +15,7 @@
 #include <cstddef>
 #include <string>
 #include <vector>
+#include <stdint.h>
 
 namespace CommNs {
 
@@ -29,6 +30,7 @@ public:
 	std::string name() {return "unknown";}
 	void close();
 	void registerSocketListener(SocketListenerIf* socketListener);
+	void sendFrame(uint8_t objectId, const std::vector<uint8_t>& frame);
 
 private:
 	boost::asio::ip::tcp::tcp::socket mSocket;

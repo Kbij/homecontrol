@@ -26,7 +26,7 @@ public:
 	void registerCommListener(CommListenerIf* listener);
 	void unRegisterCommListener(CommListenerIf* listener);
 	Client* newClient();
-	void receiveObject(const CommObjectIf& object);
+	void receiveObject(const std::string name, const CommObjectIf& object);
 
 private:
 	SocketFactoryIf* mSocketFactory;

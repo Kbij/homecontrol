@@ -59,8 +59,24 @@ void ClientSocket::close()
 
 void ClientSocket::registerSocketListener(SocketListenerIf* socketListener)
 {
-	VLOG(3) << "this: " << this << ", Registersocket listener: " << socketListener << std::endl;
 	mSocketListener = socketListener;
+}
+
+void ClientSocket::sendFrame(uint8_t objectId, const std::vector<uint8_t>& frame)
+{
+	if (mSocket.is_open())
+	{
+		std::vector<uint8_t> dataFrame;
+        int length = frame.size();
+        uint8_t msb = (uint8_t)(length / 256);
+		uint8_t lsb = length - (msb * 256);
+		dataFrame.push_back(msb);
+		dataFrame.push_back(lsb);
+		dataFrame.push_back(objectId);
+		dataFrame.insert(dataFrame.end(), frame.begin(), frame.end());
+		boost::system::error_code error;
+		boost::asio::write(mSocket, boost::asio::buffer(dataFrame), boost::asio::transfer_all(), error);
+	}
 }
 
 void ClientSocket::handleRead(const boost::system::error_code& error, size_t bytesTransferred)
@@ -122,7 +138,6 @@ void ClientSocket::processBuffer()
 		mReceiveBuffer.erase(mReceiveBuffer.begin(), itStartPosition + HEADER_TOTAL_LENGTH + dataLength);
 		packetFound = true;
 		VLOG(3) << "Buffer size: " << mReceiveBuffer.size();
-		VLOG(3) << "this: " << this << ", mSocketListener: " << mSocketListener;
 		if (mSocketListener)
 		{
 			VLOG(1) << "Payload received, length: " << hcmData.size();

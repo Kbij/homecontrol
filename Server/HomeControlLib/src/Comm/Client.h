@@ -15,6 +15,7 @@ namespace CommNs
 {
 class ClientSocketIf;
 class ClientListenerIf;
+enum class ConnectionState {Initiated, Connected, Disconnected};
 
 class Client: public SocketListenerIf
 {
@@ -25,9 +26,13 @@ public:
 	boost::asio::ip::tcp::tcp::socket& socket();
 	void start();
 	void receiveFrame(uint8_t objectId, const std::vector<uint8_t>& frame);
+	std::string name() const {return mName;};
+	bool connected() {return mConnectionState == ConnectionState::Connected;};
 private:
 	ClientSocketIf* mClientSocket;
 	ClientListenerIf* mClientListener;
+	std::string mName;
+	ConnectionState mConnectionState;
 };
 
 } /* namespace CommNs */

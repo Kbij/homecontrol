@@ -13,11 +13,22 @@
 #include <stdint.h>
 #include <glog/logging.h>
 
+namespace
+{
+const std::string SERVERNAME = "HCM SERVER";
+
+const int OBJ_KEEPALIVE = 0;
+const int OBJ_HCNAME = 1;
+const int OBJ_SERVERNAME = 2;
+}
+
 namespace CommNs {
 
 Client::Client(ClientSocketIf* clientSocket, ClientListenerIf* clientListener):
 	mClientSocket(clientSocket),
-	mClientListener(clientListener)
+	mClientListener(clientListener),
+	mName(),
+	mConnectionState(ConnectionState::Initiated)
 {
 	mClientSocket->registerSocketListener(this);
 }
@@ -41,18 +52,37 @@ void Client::receiveFrame(uint8_t objectId, const std::vector<uint8_t>& frame)
 	VLOG(1) << "Frame received, size: " << frame.size();
 	if (mClientListener)
 	{
-		std::string json(frame.begin(), frame.end());
-		CommObjectIf* object = ObjectFactory::createObject(objectId, json);
-		if (object)
+		switch(mConnectionState)
 		{
-			std::cout << "object created" << std::endl;
-			mClientListener->receiveObject(*object);
-			delete object;
+			case ConnectionState::Initiated:
+			{
+				mName = std::string(frame.begin(), frame.end());
+				LOG(INFO) << "Received client name: " << mName;
+				mClientSocket->sendFrame(OBJ_SERVERNAME, {SERVERNAME.begin(), SERVERNAME.end()});
+				mConnectionState = ConnectionState::Connected;
+				break;
+			}
+			case ConnectionState::Connected:
+			{
+				std::string json(frame.begin(), frame.end());
+				CommObjectIf* object = ObjectFactory::createObject(objectId, json);
+				if (object)
+				{
+					mClientListener->receiveObject(mName, *object);
+					delete object;
+				}
+				else
+				{
+					LOG(ERROR) << "Unable to create object, objectId: " << (int) objectId;
+				}
+				break;
+			}
+			default:
+			{
+
+			}
 		}
-		else
-		{
-			LOG(ERROR) << "Unable to create object, objectId: " << objectId;
-		}
+
 	}
 }
 

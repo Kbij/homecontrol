@@ -23,6 +23,7 @@ public:
 	virtual std::string name() = 0;
 	virtual void close() = 0;
 	virtual void registerSocketListener(SocketListenerIf* socketListener) = 0;
+	virtual void sendFrame(uint8_t objectId, const std::vector<uint8_t>& frame) = 0;
 };
 
 } /* namespace CommNs */

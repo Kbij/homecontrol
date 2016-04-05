@@ -17,7 +17,7 @@ class CommListenerIf
 public:
 	virtual ~CommListenerIf() {};
 
-	virtual void receiveObject(const CommObjectIf& object) = 0;
+	virtual void receiveObject(const std::string name, const CommObjectIf& object) = 0;
 };
 
 } /* namespace CommNs */

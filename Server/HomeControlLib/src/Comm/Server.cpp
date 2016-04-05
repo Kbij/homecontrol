@@ -52,12 +52,12 @@ Client* Server::newClient()
 	return client;
 }
 
-void Server::receiveObject(const CommObjectIf& object)
+void Server::receiveObject(const std::string name, const CommObjectIf& object)
 {
 	std::lock_guard<std::mutex> lock(mDataMutex);
 	for(const auto& listener: mCommListeners)
 	{
-		listener->receiveObject(object);
+		listener->receiveObject(name, object);
 	}
 }
 

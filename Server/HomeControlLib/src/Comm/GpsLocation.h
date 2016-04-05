@@ -9,6 +9,7 @@
 #define COMM_GPSLOCATION_H_
 #include "CommObjectIf.h"
 #include <string>
+#include <ctime>
 
 namespace CommNs {
 
@@ -19,6 +20,12 @@ public:
 	virtual ~GpsLocation();
 
 	uint8_t objectId() const;
+	std::string toString() const;
+private:
+	double mLatitude;
+	double mLongitude;
+	double mAccuracy;
+	std::time_t mTimeStamp;
 };
 
 } /* namespace CommNs */
