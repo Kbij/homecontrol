@@ -87,9 +87,9 @@ TEST(Client, StartConnection)
 	ClientSocketStub* socketStub = new ClientSocketStub;
 	ClientListenerStub* clientListenerStub = new ClientListenerStub;
 	CommNs::Client* client = new CommNs::Client(socketStub, clientListenerStub);
-	//EXPECT_FALSE(client->connected());
-	std::string clientNameString = "Client1";
+	EXPECT_FALSE(client->connected());
 
+	std::string clientNameString = "Client1";
 	std::vector<uint8_t> clientNameFrame(clientNameString.begin(), clientNameString.end());
 	client->receiveFrame(1, clientNameFrame);
 
@@ -135,6 +135,44 @@ TEST(Client, ReceiveObject)
 
 	EXPECT_EQ(10, clientListenerStub->mReceivedObjectId);
 	std::cout << "Object: " << clientListenerStub->mReceivedObjectString << std::endl;
+	delete client;
+	delete clientListenerStub;
+	delete socketStub;
+}
+
+TEST(Client, TimeOuts)
+{
+	ClientSocketStub* socketStub = new ClientSocketStub;
+	ClientListenerStub* clientListenerStub = new ClientListenerStub;
+	CommNs::Client* client = new CommNs::Client(socketStub, clientListenerStub);
+	EXPECT_FALSE(client->connected());
+
+	//Connecting timeout is 1000 ms
+	EXPECT_FALSE(client->isInactive(100)); // Inactive after 100 ms ?
+	EXPECT_FALSE(client->isInactive(800)); // Inactive after additional 800 ms ?
+	EXPECT_TRUE(client->isInactive(150)); // Inactive after additional 150 ms ?
+
+	std::string clientNameString = "Client1";
+	std::vector<uint8_t> clientNameFrame(clientNameString.begin(), clientNameString.end());
+	client->receiveFrame(1, clientNameFrame);
+
+	EXPECT_EQ(clientNameString, client->name());
+	EXPECT_TRUE(client->connected());
+
+	//Connected timeout is 2 min
+	EXPECT_FALSE(client->isInactive(100)); // Inactive after 100 ms ?
+	EXPECT_FALSE(client->isInactive(2*60*1000-200)); // Inactive after additional 2 min (-200 ms) ?
+
+	EXPECT_TRUE(client->isInactive(150)); // Inactive after additional 150 ms
+
+	// Receive an object
+	std::string gpsJson(R"({"Accuracy":22,"Latitude":51.0535982,"Longitude":3.6440348,"TimeStamp":"\/Date(1459800687043+0200)\/"})");
+	std::vector<uint8_t> gpsFrame(gpsJson.begin(), gpsJson.end());
+	client->receiveFrame(10, gpsFrame);
+
+	// Is inactive will go away (in normal case, the server will aready have killed this client)
+	EXPECT_FALSE(client->isInactive(100)); // Inactive after additional 150 ms
+
 	delete client;
 	delete clientListenerStub;
 	delete socketStub;

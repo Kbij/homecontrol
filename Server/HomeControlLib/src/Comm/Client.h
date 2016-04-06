@@ -15,7 +15,7 @@ namespace CommNs
 {
 class ClientSocketIf;
 class ClientListenerIf;
-enum class ConnectionState {Initiated, Connected, Disconnected};
+enum class ConnectionState {Connecting, Connected, Disconnected};
 
 class Client: public SocketListenerIf
 {
@@ -28,11 +28,14 @@ public:
 	void receiveFrame(uint8_t objectId, const std::vector<uint8_t>& frame);
 	std::string name() const {return mName;};
 	bool connected() {return mConnectionState == ConnectionState::Connected;};
+	bool isInactive(int milliSecondsPassed);
 private:
 	ClientSocketIf* mClientSocket;
 	ClientListenerIf* mClientListener;
 	std::string mName;
 	ConnectionState mConnectionState;
+	int mConnectingTime;
+	int mLastFrameTime;
 };
 
 } /* namespace CommNs */
