@@ -5,7 +5,7 @@
  *      Author: koen
  */
 
-#include "Comm/GpsLocation.h"
+#include "CommObjects/GpsLocation.h"
 #include "gtest/gtest.h"
 #include "glog/stl_logging.h"
 #include "glog/logging.h"

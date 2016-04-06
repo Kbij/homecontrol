@@ -9,7 +9,7 @@
 #include "Comm/Server.h"
 #include "Comm/SocketFactory.h"
 #include "Comm/CommListenerIf.h"
-#include "Comm/CommObjectIf.h"
+#include "CommObjects/CommObjectIf.h"
 #include "gtest/gtest.h"
 #include "glog/stl_logging.h"
 #include "glog/logging.h"

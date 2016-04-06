@@ -7,7 +7,7 @@
 #include "Comm/Client.h"
 #include "Comm/ClientListenerIf.h"
 #include "Comm/ClientSocketIf.h"
-#include "Comm/CommObjectIf.h"
+#include "CommObjects/CommObjectIf.h"
 #include "gtest/gtest.h"
 #include "glog/stl_logging.h"
 #include "glog/logging.h"

@@ -8,8 +8,8 @@
 #include "Client.h"
 #include "ClientSocketIf.h"
 #include "ClientListenerIf.h"
-#include "CommObjectIf.h"
-#include "ObjectFactory.h"
+#include "CommObjects/CommObjectIf.h"
+#include "CommObjects/ObjectFactory.h"
 #include <stdint.h>
 #include <glog/logging.h>
 
