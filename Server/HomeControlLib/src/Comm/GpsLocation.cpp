@@ -8,6 +8,7 @@
 #include "GpsLocation.h"
 #include "json/json.h"
 #include <sstream>
+#include <iostream>
 
 namespace CommNs {
 
@@ -35,6 +36,17 @@ GpsLocation::GpsLocation(const std::string& json):
     	}
     	if (jsonRoot.isMember("TimeStamp"))
     	{
+    		// (1459800687043+
+    		std::string timeString = jsonRoot["TimeStamp"].asString();
+    		auto pos1 = timeString.find('(');
+    		auto pos2 = timeString.find('+');
+    		if (pos1 > 0 && pos2 > 0)
+    		{
+    			++pos1;
+    			//.NET Json time is milliseconds; ignoring timezone (we are in the same timezone)
+    			std::string epocSeconds = timeString.substr(pos1, pos2-pos1);
+    			mTimeStamp = std::stoll(epocSeconds) / 1000;
+    		}
     		//mTimeStamp = jsonRoot["TimeStamp"].asLargestInt();
     	}
     }

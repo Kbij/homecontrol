@@ -21,6 +21,10 @@ public:
 
 	uint8_t objectId() const;
 	std::string toString() const;
+	double latitude() const {return mLatitude;};
+	double longitude() const {return mLongitude;};
+	double accuracy() const {return mAccuracy;};
+	time_t timeStamp() const {return mTimeStamp;};
 private:
 	double mLatitude;
 	double mLongitude;
