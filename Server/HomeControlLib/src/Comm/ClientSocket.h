@@ -29,6 +29,7 @@ public:
 	void start();
 	std::string name() {return "unknown";}
 	void close();
+
 	void registerSocketListener(SocketListenerIf* socketListener);
 	void sendFrame(uint8_t objectId, const std::vector<uint8_t>& frame);
 

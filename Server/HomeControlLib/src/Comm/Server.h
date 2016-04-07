@@ -11,11 +11,14 @@
 #include "ClientListenerIf.h"
 #include <set>
 #include <mutex>
+#include <list>
+#include <thread>
 
 namespace CommNs {
 class ServerSocketIf;
 class SocketFactoryIf;
 class CommListenerIf;
+class Client;
 
 class Server: ClientListenerIf
 {
@@ -29,10 +32,19 @@ public:
 	void receiveObject(const std::string name, const CommObjectIf& object);
 
 private:
+	mutable std::mutex mDataMutex;
 	SocketFactoryIf* mSocketFactory;
 	ServerSocketIf* mServerSocket;
 	std::set<CommListenerIf*> mCommListeners;
-	mutable std::mutex mDataMutex;
+	std::list<Client*> mClients;
+	bool mMaintenancehreadRunning;
+	std::thread* mMaintenanceThread;
+
+
+	void startMaintenanceThread();
+	void stopMaintenanceThread();
+	void maintenanceThread();
+
 
 };
 

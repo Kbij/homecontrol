@@ -30,17 +30,20 @@ namespace CommNs {
 Client::Client(ClientSocketIf* clientSocket, ClientListenerIf* clientListener):
 	mClientSocket(clientSocket),
 	mClientListener(clientListener),
-	mName(),
-	mConnectionState(ConnectionState::Connecting),
+	mName("Unknown"),
+	mConnectionState(ConnectionState::Idle),
 	mConnectingTime(0),
 	mLastFrameTime(0)
 
 {
+	VLOG(1) << "Client created";
 	mClientSocket->registerSocketListener(this);
 }
 
 Client::~Client()
 {
+	mClientSocket->close();
+	delete mClientSocket;
 }
 
 boost::asio::ip::tcp::tcp::socket& Client::socket()
@@ -50,7 +53,13 @@ boost::asio::ip::tcp::tcp::socket& Client::socket()
 
 void Client::start()
 {
+	mConnectionState = ConnectionState::Connecting;
 	mClientSocket->start();
+}
+
+void Client::socketClosed()
+{
+	mConnectionState = ConnectionState::Disconnected;
 }
 
 void Client::receiveFrame(uint8_t objectId, const std::vector<uint8_t>& frame)
@@ -98,6 +107,11 @@ bool Client::isInactive(int milliSecondsPassed)
 {
 	switch(mConnectionState)
 	{
+		case ConnectionState::Idle:
+		{
+			return false;
+			break;
+		}
 		case ConnectionState::Connecting:
 		{
 			mConnectingTime += milliSecondsPassed;

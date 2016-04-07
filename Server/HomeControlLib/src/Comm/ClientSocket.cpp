@@ -93,6 +93,10 @@ void ClientSocket::handleRead(const boost::system::error_code& error, size_t byt
 	else
 	{
 		VLOG(1) << "Client socket error: " << error.category().name() << ':' << error.value();
+		if (mSocketListener)
+		{
+			mSocketListener->socketClosed();
+		}
 	}
 }
 

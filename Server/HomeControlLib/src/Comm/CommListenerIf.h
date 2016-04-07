@@ -7,7 +7,7 @@
 
 #ifndef COMM_COMMLISTENERIF_H_
 #define COMM_COMMLISTENERIF_H_
-
+#include <string>
 
 namespace CommNs {
 class CommObjectIf;
