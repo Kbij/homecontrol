@@ -33,10 +33,10 @@ public:
 	virtual ~ClientListenerStub() {};
 
 	CommNs::Client* newClient() {return nullptr;};
-	void receiveObject(const std::string name, const CommNs::CommObjectIf& object)
+	void receiveObject(const std::string name, const CommNs::CommObjectIf* object)
 	{
-		mReceivedObjectId = object.objectId();
-		mReceivedObjectString = object.toString();
+		mReceivedObjectId = object->objectId();
+		mReceivedObjectString = object->toString();
 	};
 	int mReceivedObjectId;
 	std::string mReceivedObjectString;

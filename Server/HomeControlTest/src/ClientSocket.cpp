@@ -24,6 +24,7 @@ public:
 	{} ;
 	void receiveFrame(uint8_t objectId, const std::vector<uint8_t>& frame) {mLastObjectId = objectId; mLastReceivedFrame = frame;};
 	std::string name() const {return "Stub";};
+	void socketClosed() {};
 	uint8_t mLastObjectId;
 	std::vector<uint8_t> mLastReceivedFrame;
 };

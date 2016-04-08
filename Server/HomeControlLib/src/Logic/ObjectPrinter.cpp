@@ -19,9 +19,12 @@ ObjectPrinter::~ObjectPrinter()
 {
 }
 
-void ObjectPrinter::receiveObject(const std::string name, const CommObjectIf& object)
+void ObjectPrinter::receiveObject(const std::string name, const CommObjectIf* object)
 {
-	LOG(INFO) << "Object: " << object.toString();
+	if (object)
+	{
+		LOG(INFO) << "Object: " << object->toString();
+	}
 }
 
 

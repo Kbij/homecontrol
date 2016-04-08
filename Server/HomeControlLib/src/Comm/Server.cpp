@@ -73,7 +73,7 @@ Client* Server::newClient()
 	return client;
 }
 
-void Server::receiveObject(const std::string name, const CommObjectIf& object)
+void Server::receiveObject(const std::string name, const CommObjectIf* object)
 {
 	std::lock_guard<std::mutex> lock(mDataMutex);
 

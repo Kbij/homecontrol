@@ -28,9 +28,9 @@ public:
 
 	}
 	~CommListenerStub() {};
-	void receiveObject(const std::string name, const CommNs::CommObjectIf& object)
+	void receiveObject(const std::string name, const CommNs::CommObjectIf* object)
 	{
-		mLastObjectId = object.objectId();
+		mLastObjectId = object->objectId();
 		mLastName = name;
 	};
 	uint8_t mLastObjectId;
@@ -58,7 +58,7 @@ TEST(Server, ReceiveFrame)
 	CommListenerStub* commListener = new CommListenerStub;
 	CommNs::GpsLocation* location = new CommNs::GpsLocation(R"({"Accuracy":22,"Latitude":51.0535982,"Longitude":3.6440348,"TimeStamp":"\/Date(1459800687043+0200)\/"})");
 	server->registerCommListener(commListener);
-	server->receiveObject("Client", *location);
+	server->receiveObject("Client", location);
 
 	EXPECT_EQ(10, commListener->mLastObjectId);
 	EXPECT_EQ("Client", commListener->mLastName);

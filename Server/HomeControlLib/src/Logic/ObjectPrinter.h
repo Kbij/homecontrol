@@ -16,7 +16,7 @@ class ObjectPrinter: public CommListenerIf
 public:
 	ObjectPrinter();
 	virtual ~ObjectPrinter();
-	void receiveObject(const std::string name, const CommObjectIf& object);
+	void receiveObject(const std::string name, const CommObjectIf* object);
 };
 
 } /* namespace CommNs */

@@ -22,9 +22,9 @@ class CommListenerStub: public CommNs::CommListenerIf
 public:
 	CommListenerStub() {};
 	~CommListenerStub() {};
-	void receiveObject(const std::string name, const CommNs::CommObjectIf& object)
+	void receiveObject(const std::string name, const CommNs::CommObjectIf* object)
 	{
-		std::cout << name << ": " << object.toString() << std::endl;
+		std::cout << name << ": " << object->toString() << std::endl;
 	};
 
 };

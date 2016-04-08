@@ -85,7 +85,7 @@ void Client::receiveFrame(uint8_t objectId, const std::vector<uint8_t>& frame)
 				CommObjectIf* object = ObjectFactory::createObject(objectId, json);
 				if (object)
 				{
-					mClientListener->receiveObject(mName, *object);
+					mClientListener->receiveObject(mName, object);
 					delete object;
 				}
 				else
