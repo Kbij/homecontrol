@@ -34,6 +34,7 @@ namespace Server
             mHome.Latitude = 51.0536328;
             mHome.Longitude = 3.6439627;
             mLocations = new Dictionary<string, List<GpsLocation>>();
+            
         }
 
         private void btnStart_Click(object sender, EventArgs e)
