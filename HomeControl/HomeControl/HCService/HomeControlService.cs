@@ -98,8 +98,8 @@ namespace HomeControl.HCService
             }
             Log.Debug(TAG, "Using " + _locationProvider + ".");
             mLog.SendToHost(string.Format("Location provider used: {0}", _locationProvider));
-            //_locationManager.RequestLocationUpdates(_locationProvider, 1 * 60 * 1000, 0, this); // Min 1 minute
-            _locationManager.RequestLocationUpdates(_locationProvider, 0, 0, this); // Min 1 minute
+            _locationManager.RequestLocationUpdates(_locationProvider, 1 * 60 * 1000, 0, this); // Min 1 minute
+            //_locationManager.RequestLocationUpdates(_locationProvider, 0, 0, this); // Min 1 minute
 
             MessageObject msg = new MessageObject();
             msg.Message = string.Format("Using location provider: {0}", _locationProvider);

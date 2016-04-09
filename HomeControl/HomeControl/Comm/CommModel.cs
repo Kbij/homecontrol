@@ -15,6 +15,8 @@ namespace HomeControl.Comm
         NetworkStream mStream;
         ICommReceiver mReceiver = null;
         const string HEADER = "HCM";
+        //const string SERVER_HOST = "paradijs.mooo.com";
+        const string SERVER_HOST = "192.168.10.142";
        // System.Timers.Timer mTimer;
         int mOutstandingKeepAlives;
         enum CommState { Connecting, NameSend, Connected, Disconnected};
@@ -137,7 +139,7 @@ namespace HomeControl.Comm
             catch(Exception ex)
             {
                 Log.Debug("CommModel", string.Format("Exception while sending our name: {}", ex.ToString()));
-                mLog.SendToHost(string.Format("Exception while sending our name: {}", ex.ToString());
+                mLog.SendToHost(string.Format("Exception while sending our name: {}", ex.ToString()));
                 mClient.Close();
             }
         }
@@ -213,7 +215,7 @@ namespace HomeControl.Comm
                 {
                     Log.Debug("CommModel", "Restarting connection");
 
-                    mClient = new TcpClient("paradijs.mooo.com", 5678); //Try to Connect
+                    mClient = new TcpClient(SERVER_HOST, 5678); //Try to Connect
                     mStream = mClient.GetStream();
                     mLog.SendToHost("Connected");
 
