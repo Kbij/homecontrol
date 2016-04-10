@@ -66,7 +66,8 @@ void ClientSocket::sendFrame(uint8_t objectId, const std::vector<uint8_t>& frame
 {
 	if (mSocket.is_open())
 	{
-		std::vector<uint8_t> dataFrame;
+		std::vector<uint8_t> dataFrame(HC_HEADER.begin(), HC_HEADER.end());
+
         int length = frame.size();
         uint8_t msb = (uint8_t)(length / 256);
 		uint8_t lsb = length - (msb * 256);
