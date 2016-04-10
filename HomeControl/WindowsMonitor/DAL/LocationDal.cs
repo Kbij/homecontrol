@@ -16,37 +16,42 @@ namespace WindowsMonitor.DAL
             Dictionary<string, List<GpsLocation>> result = new Dictionary<string, List<GpsLocation>>();
 
             const string DB_CONN_STR = "Server=192.168.10.142;Uid=hc;Pwd=bugs bunny;Database=HC_DB;";
-
-            using (MySqlConnection conn = new MySqlConnection(DB_CONN_STR))
+            try
             {
-                conn.Open();
-                string sqlCmd = string.Format("SELECT client, latitude, longitude, accuracy, timestamp FROM Locations WHERE latitude IS NOT NULL " +
-                                "  AND TIMESTAMPDIFF(HOUR, timestamp, NOW()) < {0}  ORDER BY timestamp", 6);
-                MySqlDataAdapter adapter = new MySqlDataAdapter(sqlCmd, conn);
-                adapter.SelectCommand.CommandType = CommandType.Text;
-                DataTable dt = new DataTable();
-                adapter.Fill(dt); //opens and closes the DB connection automatically !! (fetches from pool)
-
-                foreach (DataRow dr in dt.Rows)
+                using (MySqlConnection conn = new MySqlConnection(DB_CONN_STR))
                 {
-                    double latitude = (double) dr.Field<decimal>("latitude");
-                    double longitude = (double) dr.Field<decimal>("longitude");
-                    double accuracy = dr.Field<int>("accuracy");
-                    string client = dr.Field<string>("client");
-                    DateTime time = dr.Field<DateTime>("timestamp");
-                    GpsLocation location = new GpsLocation(latitude, longitude, accuracy, time);
+                    conn.Open();
+                    string sqlCmd = string.Format("SELECT client, latitude, longitude, accuracy, timestamp FROM Locations WHERE latitude IS NOT NULL " +
+                                    "  AND TIMESTAMPDIFF(HOUR, timestamp, NOW()) < {0}  ORDER BY timestamp", 6);
+                    MySqlDataAdapter adapter = new MySqlDataAdapter(sqlCmd, conn);
+                    adapter.SelectCommand.CommandType = CommandType.Text;
+                    DataTable dt = new DataTable();
+                    adapter.Fill(dt); //opens and closes the DB connection automatically !! (fetches from pool)
 
-                    if (!result.ContainsKey(client))
+                    foreach (DataRow dr in dt.Rows)
                     {
-                        result[client] = new List<GpsLocation>();
+                        double latitude = (double)dr.Field<decimal>("latitude");
+                        double longitude = (double)dr.Field<decimal>("longitude");
+                        double accuracy = dr.Field<int>("accuracy");
+                        string client = dr.Field<string>("client");
+                        DateTime time = dr.Field<DateTime>("timestamp");
+                        GpsLocation location = new GpsLocation(latitude, longitude, accuracy, time);
+
+                        if (!result.ContainsKey(client))
+                        {
+                            result[client] = new List<GpsLocation>();
+                        }
+
+                        result[dr.Field<string>("client")].Add(location);
+
+                        //                    Console.WriteLine(string.Format("user_id = {0}", dr["latitude"].ToString()));
                     }
-
-                    result[dr.Field<string>("client")].Add(location);
-
-//                    Console.WriteLine(string.Format("user_id = {0}", dr["latitude"].ToString()));
                 }
             }
+            catch (Exception ex)
+            {
 
+            }
             return result;
         }
     }
