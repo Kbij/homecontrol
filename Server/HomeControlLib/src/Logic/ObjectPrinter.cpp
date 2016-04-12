@@ -23,7 +23,7 @@ void ObjectPrinter::receiveObject(const std::string name, const CommObjectIf* ob
 {
 	if (object)
 	{
-		LOG(INFO) << "Object: " << object->toString();
+		LOG(INFO) << "Name: " << name << ", Object: " << object->toString();
 	}
 }
 

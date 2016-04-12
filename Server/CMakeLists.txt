@@ -16,7 +16,7 @@ else()
 endif()
  
 #set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin-${HCB_PLATFORM})
-set (SYSROOT ${CMAKE_CURRENT_SOURCE_DIR}/libraries/x86)
+set (SYSROOT ${CMAKE_CURRENT_SOURCE_DIR}/libraries/sysroot)
 message(STATUS "Sysroot: " ${SYSROOT})
 
 #set (gflags_BUILD_STATIC_LIBS ON)

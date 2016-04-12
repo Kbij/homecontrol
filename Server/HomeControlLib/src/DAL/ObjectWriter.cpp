@@ -79,7 +79,7 @@ void ObjectWriter::receiveObject(const std::string name, const CommNs::CommObjec
 
 			/* Create a connection */
 			driver = get_driver_instance();
-			con = driver->connect("tcp://127.0.0.1:3306", "root", "bugs bunny");
+			con = driver->connect("tcp://127.0.0.1:3306", "hc", "bugs bunny");
 			/* Connect to the MySQL test database */
 			con->setSchema("HC_DB");
 
