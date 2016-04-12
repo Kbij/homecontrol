@@ -42,7 +42,6 @@ Client::Client(ClientSocketIf* clientSocket, ClientListenerIf* clientListener):
 
 Client::~Client()
 {
-	mClientSocket->close();
 	delete mClientSocket;
 }
 
@@ -57,11 +56,35 @@ void Client::start()
 	mClientSocket->start();
 }
 
-void Client::socketClosed()
+bool Client::isInactive(int milliSecondsPassed)
 {
-	mConnectionState = ConnectionState::Disconnected;
-}
+	switch(mConnectionState)
+	{
+		case ConnectionState::Idle:
+		{
+			return false;
+			break;
+		}
+		case ConnectionState::Connecting:
+		{
+			mConnectingTime += milliSecondsPassed;
+			return mConnectingTime >= CONNECTING_TIMEOUT_MS;
+			break;
+		}
+		case ConnectionState::Connected:
+		{
+			mLastFrameTime += milliSecondsPassed;
+			return mLastFrameTime >= RECEIVE_TIMEOUT_MS;
+			break;
+		}
+		default:
+		{
+			return true;
+		}
+	}
 
+	return true;
+}
 void Client::receiveFrame(uint8_t objectId, const std::vector<uint8_t>& frame)
 {
 	VLOG(1) << "Frame received, size: " << frame.size();
@@ -103,34 +126,11 @@ void Client::receiveFrame(uint8_t objectId, const std::vector<uint8_t>& frame)
 	}
 }
 
-bool Client::isInactive(int milliSecondsPassed)
+void Client::socketClosed()
 {
-	switch(mConnectionState)
-	{
-		case ConnectionState::Idle:
-		{
-			return false;
-			break;
-		}
-		case ConnectionState::Connecting:
-		{
-			mConnectingTime += milliSecondsPassed;
-			return mConnectingTime >= CONNECTING_TIMEOUT_MS;
-			break;
-		}
-		case ConnectionState::Connected:
-		{
-			mLastFrameTime += milliSecondsPassed;
-			return mLastFrameTime >= RECEIVE_TIMEOUT_MS;
-			break;
-		}
-		default:
-		{
-			return true;
-		}
-	}
-
-	return true;
+	mConnectionState = ConnectionState::Disconnected;
 }
+
+
 
 } /* namespace CommNs */

@@ -30,7 +30,6 @@ private:
 	boost::asio::io_service& mIoService;
 	Server* mServer;
 	boost::asio::ip::tcp::acceptor mAcceptor;
-	std::list<ClientSocketIf*> mClients;
 	bool mServerThreadRunning;
 	std::thread* mServerThread;
 	mutable std::recursive_mutex mDataMutex;

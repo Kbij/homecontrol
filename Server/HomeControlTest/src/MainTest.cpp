@@ -13,8 +13,8 @@ GTEST_API_ int main(int argc, char **argv)
 {
 	google::InitGoogleLogging("Home Control Test");
 	testing::InitGoogleTest(&argc, argv);
-//	testing::GTEST_FLAG(filter) = "-LiveTest.*";
-	testing::GTEST_FLAG(filter) = "ObjectWriter.*";
+	testing::GTEST_FLAG(filter) = "-LiveTest.*";
+//	testing::GTEST_FLAG(filter) = "ObjectWriter.*";
 //	testing::GTEST_FLAG(filter) = "Client.TimeOuts";
 
 	FLAGS_logtostderr=1;

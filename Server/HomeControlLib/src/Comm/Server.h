@@ -28,6 +28,8 @@ public:
 
 	void registerCommListener(CommListenerIf* listener);
 	void unRegisterCommListener(CommListenerIf* listener);
+
+	// ClientListenerIf
 	Client* newClient();
 	void receiveObject(const std::string name, const CommObjectIf* object);
 

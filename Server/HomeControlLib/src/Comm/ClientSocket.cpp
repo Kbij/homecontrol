@@ -35,6 +35,11 @@ ClientSocket::ClientSocket(boost::asio::io_service& ioService):
 
 ClientSocket::~ClientSocket()
 {
+	if (mSocket.is_open())
+	{
+		VLOG(1) << "Closing client socket";
+		mSocket.close();
+	}
 }
 
 boost::asio::ip::tcp::tcp::socket& ClientSocket::socket()
@@ -46,15 +51,6 @@ void ClientSocket::start()
 {
 	mSocket.async_read_some(boost::asio::buffer(mSocketBuffer), boost::bind(&ClientSocket::handleRead, this,
 							boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
-}
-
-void ClientSocket::close()
-{
-	if (mSocket.is_open())
-	{
-		VLOG(1) << "Closing client socket";
-		mSocket.close();
-	}
 }
 
 void ClientSocket::registerSocketListener(SocketListenerIf* socketListener)

@@ -46,6 +46,8 @@ TEST(Server, Constructor)
 	server->registerCommListener(commListener);
 	std::this_thread::sleep_for(std::chrono::seconds(1));
 	server->unRegisterCommListener(commListener);
+
+	delete commListener;
 	delete server;
 	delete factory;
 }

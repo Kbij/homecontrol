@@ -20,17 +20,19 @@ enum class ConnectionState {Idle, Connecting, Connected, Disconnected};
 class Client: public SocketListenerIf
 {
 public:
+	// Client becomes owner of clientSocket
 	Client(ClientSocketIf* clientSocket, ClientListenerIf* clientListener);
 	virtual ~Client();
 
 	boost::asio::ip::tcp::tcp::socket& socket();
 	void start();
+	bool isInactive(int milliSecondsPassed);
+
+	//SocketListenerIf
+	std::string name() const {return mName;};
+	void receiveFrame(uint8_t objectId, const std::vector<uint8_t>& frame);
 	void socketClosed();
 
-	void receiveFrame(uint8_t objectId, const std::vector<uint8_t>& frame);
-	std::string name() const {return mName;};
-	bool connected() {return mConnectionState == ConnectionState::Connected;};
-	bool isInactive(int milliSecondsPassed);
 private:
 	ClientSocketIf* mClientSocket;
 	ClientListenerIf* mClientListener;

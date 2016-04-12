@@ -19,7 +19,6 @@ ServerSocket::ServerSocket(boost::asio::io_service& ioService, Server* server, i
 	mIoService(ioService),
 	mServer(server),
 	mAcceptor(mIoService, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port)),
-	mClients(),
 	mServerThreadRunning(false),
 	mServerThread(nullptr),
 	mDataMutex()
@@ -58,10 +57,10 @@ void ServerSocket::startServerThread()
 void ServerSocket::stopServerThread()
 {
 	mIoService.stop();
-	for(ClientSocketIf* client: mClients)
-	{
-		client->close();
-	}
+//	for(ClientSocketIf* client: mClients)
+//	{
+//		client->close();
+//	}
 
 	mServerThreadRunning = false;
 

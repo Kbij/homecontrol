@@ -17,8 +17,9 @@ class SocketListenerIf
 {
 public:
 	virtual ~SocketListenerIf() {};
-	virtual void receiveFrame(uint8_t objectId, const std::vector<uint8_t>& frame) = 0;
+
 	virtual std::string name() const = 0;
+	virtual void receiveFrame(uint8_t objectId, const std::vector<uint8_t>& frame) = 0;
 	virtual void socketClosed() = 0;
 };
 
