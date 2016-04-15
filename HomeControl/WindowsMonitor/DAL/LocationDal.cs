@@ -15,14 +15,15 @@ namespace WindowsMonitor.DAL
         {
             Dictionary<string, List<GpsLocation>> result = new Dictionary<string, List<GpsLocation>>();
 
-            const string DB_CONN_STR = "Server=192.168.10.142;Uid=hc;Pwd=bugs bunny;Database=HC_DB;";
+            //            const string DB_CONN_STR = "Server=192.168.10.142;Uid=hc;Pwd=bugs bunny;Database=HC_DB;";
+                        const string DB_CONN_STR = "Server=192.168.10.7;Uid=hc;Pwd=bugs bunny;Database=HC_DB;";
             try
             {
                 using (MySqlConnection conn = new MySqlConnection(DB_CONN_STR))
                 {
                     conn.Open();
                     string sqlCmd = string.Format("SELECT client, latitude, longitude, accuracy, timestamp FROM Locations WHERE latitude IS NOT NULL " +
-                                    "  AND TIMESTAMPDIFF(HOUR, timestamp, NOW()) < {0}  ORDER BY timestamp", 6);
+                                    "  AND TIMESTAMPDIFF(HOUR, timestamp, NOW()) < {0}  ORDER BY timestamp", timeFrameHours);
                     MySqlDataAdapter adapter = new MySqlDataAdapter(sqlCmd, conn);
                     adapter.SelectCommand.CommandType = CommandType.Text;
                     DataTable dt = new DataTable();

@@ -40,6 +40,7 @@ namespace WindowsMonitor
             cmbHours.Items.Add(new Item("6", 6));
             cmbHours.Items.Add(new Item("12", 12));
             cmbHours.Items.Add(new Item("24", 24));
+            cmbHours.Items.Add(new Item("48", 48));
             cmbHours.SelectedIndex = 0;
         }
 
