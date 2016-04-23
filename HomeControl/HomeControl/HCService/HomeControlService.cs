@@ -20,7 +20,7 @@ namespace HomeControl.HCService
     {
         HCServiceBinder mBinder;
         LocationManager _locationManager;
-        const string TAG =  "HCService";
+        const string TAG = "HomeControlService";
         string _locationProvider;
         CommModel mCommModel;
         RemoteLogClient mLog;
@@ -30,7 +30,7 @@ namespace HomeControl.HCService
         public HomeControlService()
         {
             mLog = new RemoteLogClient("192.168.10.10", 8001);
-            mLog.SendToHost("HCService constructor");
+            mLog.SendToHost("HomeControlService", "HCService constructor");
             mCommModel = new CommModel();
         }
 
@@ -38,7 +38,7 @@ namespace HomeControl.HCService
         public override StartCommandResult OnStartCommand(Android.Content.Intent intent, StartCommandFlags flags, int startId)
         {
            
-            mLog.SendToHost("HomeControlService started");
+            mLog.SendToHost("HomeControlService", "HomeControlService started");
             mCommModel.startComm();
 
             InitializeLocationManager();
@@ -48,12 +48,12 @@ namespace HomeControl.HCService
 
         public override void OnCreate()
         {
-            mLog.SendToHost("HomeControlService OnCreate");
+            mLog.SendToHost("HomeControlService", "HomeControlService OnCreate");
         }
 
         public override void OnDestroy()
         {
-            mLog.SendToHost("HomeControlService destroyed");
+            mLog.SendToHost("HomeControlService", "HomeControlService destroyed");
             mCommModel.Dispose();
             base.OnDestroy();
             // cleanup code
@@ -96,8 +96,7 @@ namespace HomeControl.HCService
             {
                 _locationProvider = string.Empty;
             }
-            Log.Debug(TAG, "Using " + _locationProvider + ".");
-            mLog.SendToHost(string.Format("Location provider used: {0}", _locationProvider));
+            mLog.SendToHost("HomeControlService", string.Format("Location provider used: {0}", _locationProvider));
             _locationManager.RequestLocationUpdates(_locationProvider, 1 * 60 * 1000, 0, this); // Min 1 minute
             //_locationManager.RequestLocationUpdates(_locationProvider, 0, 0, this); // Min 1 minute
 
@@ -112,7 +111,7 @@ namespace HomeControl.HCService
             //_currentLocation = location;
             if (location == null)
             {
-                Log.Debug(TAG, "Unable to determine your location. Try again in a short while.");
+                mLog.SendToHost(TAG, "Unable to determine your location. Try again in a short while.");
             }
             else
             {
@@ -126,7 +125,7 @@ namespace HomeControl.HCService
                     }
                     else
                     {
-                        mLog.SendToHost("Received location is worse than previous");
+                        mLog.SendToHost(TAG, "Received location is worse than previous");
                     }
                 }
 
@@ -136,7 +135,7 @@ namespace HomeControl.HCService
 
         public void OnProviderDisabled(string provider)
         {
-            Log.Debug(TAG, "Provider disabled");
+            mLog.SendToHost(TAG, "Provider disabled");
             MessageObject msg = new MessageObject();
             msg.Message = "Provider disabled";
             mCommModel.sendObjectQueued(msg);
@@ -144,7 +143,7 @@ namespace HomeControl.HCService
 
         public void OnProviderEnabled(string provider)
         {
-            Log.Debug(TAG, "Provider enabled");
+            mLog.SendToHost(TAG, "Provider enabled");
             MessageObject msg = new MessageObject();
             msg.Message = "Provider enabled";
             mCommModel.sendObjectQueued(msg);

@@ -7,90 +7,54 @@ using System.Threading;
 
 namespace HomeControl.Comm
 {
-    public class CommModel: IDisposable
+    public class CommModel: IDisposable, ICloudSocketListener
     {
-        Thread mThread;
-        bool mThreadRunning;
-        TcpClient mClient; // Creates a TCP Client
-        NetworkStream mStream;
         ICommReceiver mReceiver = null;
-        const string HEADER = "HCM";
-        //const string SERVER_HOST = "paradijs.mooo.com";
-        const string SERVER_HOST = "192.168.10.142";
-       // System.Timers.Timer mTimer;
-        int mOutstandingKeepAlives;
-        enum CommState { Connecting, NameSend, Connected, Disconnected};
+        enum CommState { Disconnected, Connecting, NameSend, Connected};
         CommState mCommState;
-        List<Byte> mBuffer;
+        int mConnectTimeoutSeconds;
         Queue<ICommObject> mSendQueue;
         RemoteLogClient mLog;
         bool mCommStarted;
+        int mOutstandingKeepAlives;
         const int OBJ_KEEPALIVE = 0;
         const int OBJ_HCNAME = 1;
         const int OBJ_SERVERNAME = 2;
 
         const int KEEPALIVE_INTERVAL_SECONDS = 30;
+        const int RECONNECT_SECONDS = 10;
         const int MAX_LOST_KEEPALIVE = 4;
+        CloudSocket mCloudSocket;
+        Thread mThread;
+        bool mThreadRunning = false;
+        const int CONNECT_TIMEOUT_SECONDS = 5;
 
         public CommModel()
         {
             mSendQueue = new Queue<ICommObject>();
-            mOutstandingKeepAlives = 0;
-            mCommState = CommState.Disconnected;
-            mBuffer = new List<byte>();
             mLog = new RemoteLogClient("192.168.10.10", 8001);
-            mLog.SendToHost("CommModel created");
+            mLog.SendToHost("CommModel", "CommModel created");
             mCommStarted = false;
         }
-
+        #region public
         public void startComm()
         {
             if (!mCommStarted)
             {
-                startThread();
-
-                //mTimer = new System.Timers.Timer();
-                //mTimer.Interval = KEEPALIVE_INTERVAL_SECONDS * 1000;
-                //mTimer.Elapsed += new System.Timers.ElapsedEventHandler(sendKeepAlive);
-                //mTimer.Start();
                 mCommStarted = true;
-                mLog.SendToHost("CommModel started");
+                startMaintenanceThread();
+                reconnect();
+                mLog.SendToHost("CommModel", "CommModel started");
             }
         }
-
         public void Dispose()
         {
-            mLog.SendToHost("Dispose");
-            stopThread();
-        }
-
-        public bool sendObject(ICommObject obj)
-        {
-            try
+            mLog.SendToHost("CommModel", "Dispose");
+            stopMaintenanceThread();
+            if (mCloudSocket != null)
             {
-                if (mClient != null && mClient.Connected)
-                {
-                    List<Byte> frame = new List<byte>();
-                    frame.AddRange(System.Text.Encoding.ASCII.GetBytes("HCM"));
-                    string json = obj.serialise();
-                    int length = json.Length;
-                    int msb = (int)(length / 256);
-                    int lsb = length - (msb * 256);
-                    frame.Add((byte)msb);
-                    frame.Add((byte)lsb);
-                    frame.Add(obj.objectId());
-                    frame.AddRange(System.Text.Encoding.ASCII.GetBytes(json));
-
-                    mStream.Write(frame.ToArray(), 0, frame.Count);
-                    return true;
-                }
+                mCloudSocket.Dispose();
             }
-            catch(Exception ex)
-            {
-                Log.Debug("Comm", string.Format("Exception while sending object:", ex.Message));
-            }
-
-            return false;
         }
 
         public void sendObjectQueued(ICommObject obj)
@@ -102,80 +66,109 @@ namespace HomeControl.Comm
 
             processSendQueue();
         }
+        #endregion
+
+        #region socketListener
+        public void receiveFrame(int objectId, List<byte> frame)
+        {
+            switch (objectId)
+            {
+                case OBJ_KEEPALIVE:
+                    mOutstandingKeepAlives = 0;
+                    break;
+                case OBJ_SERVERNAME:
+                    string serverName = System.Text.Encoding.ASCII.GetString(frame.ToArray());
+                    if (mCommState == CommState.NameSend)
+                    {
+                        if (mReceiver != null)
+                        {
+                            mReceiver.connected();
+                        }
+                    }
+                    mCommState = CommState.Connected;
+                    mLog.SendToHost("CommModel", string.Format("Connected with server: {0}", serverName));
+
+                    processSendQueue();
+                    break;
+                default:
+                    string payload = System.Text.Encoding.ASCII.GetString(frame.ToArray());
+                    mLog.SendToHost("CommModel", "Payload received");
+                    break;
+            }
+        }
+
+        public void socketDisconnected()
+        {
+            mLog.SendToHost("CloudComm", "Cloud disconnected, starting reconnect timer");
+            if (mReceiver != null)
+            {
+                mReceiver.disconnected();
+            }
+
+            reconnect();
+        }
+
+        public void socketConnected()
+        {
+            string modelName = Android.OS.Build.Model;
+            mCloudSocket.sendFrame(OBJ_HCNAME, System.Text.Encoding.ASCII.GetBytes(modelName).ToList());
+            mCommState = CommState.NameSend;
+        }
+        #endregion
+
+
+        private void reconnect()
+        {
+            mCommState = CommState.Disconnected;
+            mConnectTimeoutSeconds = CONNECT_TIMEOUT_SECONDS;
+        }
+
+        private void startConnect()
+        {
+            mCommState = CommState.Connecting;
+            if (mCloudSocket != null)
+            {
+                mCloudSocket.Dispose();
+            }
+            mCloudSocket = new CloudSocket(this);
+        }
 
         private void processSendQueue()
         {
-            bool success = true;
-            lock (mSendQueue)
+            if (mCommState == CommState.Connected)
             {
-                while (success && mSendQueue.Count > 0)
+                bool success = true;
+                lock (mSendQueue)
                 {
-                    success = sendObject(mSendQueue.Peek());
-                    if (success)
+                    while (success && mSendQueue.Count > 0)
                     {
-                        mSendQueue.Dequeue();
+                        success = sendObject(mSendQueue.Peek());
+                        if (success)
+                        {
+                            mSendQueue.Dequeue();
+                        }
                     }
                 }
             }
         }
 
-        private void sendName()
+        private bool sendObject(ICommObject obj)
         {
-            try
-            {
-                //Sending the model name first
-                List<byte> frame = new List<byte>();
-                frame.AddRange(System.Text.Encoding.ASCII.GetBytes("HCM"));
-                string modelName = Android.OS.Build.Model;
-                int length = modelName.Length;
-                int msb = (int)(length / 256);
-                int lsb = length - (msb * 256);
-                frame.Add((byte)msb);
-                frame.Add((byte)lsb);
-                frame.Add(OBJ_HCNAME);
-                frame.AddRange(System.Text.Encoding.ASCII.GetBytes(modelName));
-                mStream.Write(frame.ToArray(), 0, frame.Count);
-            }
-            catch(Exception ex)
-            {
-                Log.Debug("CommModel", string.Format("Exception while sending our name: {}", ex.ToString()));
-                mLog.SendToHost(string.Format("Exception while sending our name: {}", ex.ToString()));
-                mClient.Close();
-            }
+            string json = obj.serialise();
+            return mCloudSocket.sendFrame(obj.objectId(), System.Text.Encoding.ASCII.GetBytes(json).ToList());
         }
 
         private void sendKeepAlive(object sender, System.Timers.ElapsedEventArgs e)
         {
-            try
+            if (mCommState == CommState.Connected)
             {
-                if (mClient != null && mClient.Connected)
-                {
-                    List<Byte> frame = new List<byte>();
-                    frame.AddRange(System.Text.Encoding.ASCII.GetBytes("HCM"));
-                    frame.Add(0);
-                    frame.Add(0);
-                    frame.Add(OBJ_KEEPALIVE);
-
-                    mStream.Write(frame.ToArray(), 0, frame.Count);
-                    ++mOutstandingKeepAlives;
-                    if (mOutstandingKeepAlives > MAX_LOST_KEEPALIVE)
-                    {
-                        Log.Debug("CommModel", "To many outstanding pings, closing connection");
-                        mLog.SendToHost("To many outstanding pings, closing connection");
-                        mOutstandingKeepAlives = 0;
-                        mClient.Close();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Debug("Comm", string.Format("Exception while sending keepalive:", ex.ToString()));
+                mCloudSocket.sendFrame(OBJ_KEEPALIVE, new List<byte>());
             }
         }
 
         public void registerCommReceiver(ICommReceiver receiver)
         {
-            mLog.SendToHost("registerCommReceiver");
+            mLog.SendToHost("CommModel", "registerCommReceiver");
             mReceiver = receiver;
             // Sending the current state of the connection
             if (mCommState == CommState.Connected)
@@ -190,108 +183,42 @@ namespace HomeControl.Comm
 
         public void unRegisterCommReceiver()
         {
-            mLog.SendToHost("unRegisterCommReceiver");
+            mLog.SendToHost("CommModel", "unRegisterCommReceiver");
             mReceiver = null;
         }
 
-        private void startThread()
+        private void startMaintenanceThread()
         {
+            stopMaintenanceThread();
             mThreadRunning = true;
-            mThread = new Thread(commThread);
+            mThread = new Thread(maintenanceThread);
+            mThread.Name = "SocketThread";
             mThread.Start();
         }
 
-        private void stopThread()
+        private void stopMaintenanceThread()
         {
-            mThreadRunning = false;
-            mThread.Join();
+            if (mThreadRunning)
+            {
+                mThread.Join();
+                mThreadRunning = false;
+            }
         }
 
-        private void commThread()
+        private void maintenanceThread()
         {
             while (mThreadRunning)
             {
-                try
+                Thread.Sleep(1000);
+                if (mCommState == CommState.Disconnected)
                 {
-                    Log.Debug("CommModel", "Restarting connection");
-
-                    mClient = new TcpClient(SERVER_HOST, 5678); //Try to Connect
-                    mStream = mClient.GetStream();
-                    mLog.SendToHost("Connected");
-
-                    Log.Debug("CommModel", "Connecting... Sending our name");
-                    mCommState = CommState.Connecting;
-                    sendName();
-                    mCommState = CommState.NameSend;
-
-                    int bytesReceived = 0;
-                    Byte[] bytes = new Byte[256];
-                    while ((bytesReceived = mStream.Read(bytes, 0, bytes.Length)) != 0)
+                    --mConnectTimeoutSeconds;
+                    if (mConnectTimeoutSeconds <=0)
                     {
-                        mBuffer.AddRange(bytes.Take(bytesReceived).ToArray());
-                        processReceiveBuffer();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Log.Debug("Comm", string.Format("Exception in comm thread: {0}", ex.Message));
-                    mLog.SendToHost(string.Format("Exception in comm thread: {0}", ex.Message));
-                }
-
-                mCommState = CommState.Disconnected;
-                if (mReceiver != null)
-                {
-                    mReceiver.disconnected();
-                }
-                Log.Debug("CommModel", "Disconnected, sleeping 5s...");
-                mLog.SendToHost("Disconnected");
-                Thread.Sleep(5000);
-            }
-        }
-
-        private void processReceiveBuffer()
-        {
-            bool frameFound = true;
-            while (frameFound)
-            {
-                frameFound = false;
-                if (mBuffer.Count > (HEADER.Length + 3))
-                {
-                    int length = mBuffer[HEADER.Length] * 256;
-                    length += mBuffer[HEADER.Length + 1];
-                    int objectId = mBuffer[HEADER.Length + 2];
-                    if (mBuffer.Count >= (length + HEADER.Length + 3))
-                    {
-                        frameFound = true;
-                        switch (objectId)
-                        {
-                            case OBJ_KEEPALIVE:
-                                mOutstandingKeepAlives = 0;
-                                break;
-                            case OBJ_SERVERNAME:
-                                string serverName = System.Text.Encoding.ASCII.GetString(mBuffer.GetRange(HEADER.Length + 3, length).ToArray());
-                                if (mCommState == CommState.NameSend)
-                                {
-                                    if (mReceiver != null)
-                                    {
-                                        mReceiver.connected();
-                                    }
-                                }
-                                mCommState = CommState.Connected;
-                                Log.Debug("CommModel", string.Format("Connected with server: {0}", serverName));
-
-                                processSendQueue();
-                                break;
-                            default:
-                                string payload = System.Text.Encoding.ASCII.GetString(mBuffer.GetRange(HEADER.Length + 3, length).ToArray());
-                                break;
-                        }
-
-                        mBuffer.RemoveRange(0, length + HEADER.Length + 3);
+                        startConnect();
                     }
                 }
             }
         }
-
     }
 }
