@@ -23,6 +23,7 @@ namespace Server
         Thread mServerThread;
         bool mThreadRunning = false;
         TcpListener mServer = null;
+        List<TcpClient> mClients;
         //const string HEADER = "HCM";
         GpsLocation mHome;
         Dictionary<string, List<GpsLocation>> mLocations;
@@ -34,7 +35,7 @@ namespace Server
             mHome.Latitude = 51.0536328;
             mHome.Longitude = 3.6439627;
             mLocations = new Dictionary<string, List<GpsLocation>>();
-            
+            mClients = new List<TcpClient>();
         }
 
         private void btnStart_Click(object sender, EventArgs e)
@@ -157,6 +158,7 @@ namespace Server
                     writeLog("Waiting for a connection... ");
 
                     TcpClient client = mServer.AcceptTcpClient();
+                    mClients.Add(client);
                     writeLog("Connected!");
                     HCClient hcClient = new HCClient(client, this);
                 }
@@ -173,6 +175,12 @@ namespace Server
             {
                 mServer.Stop();
             }
+
+            foreach(TcpClient client in mClients)
+            {
+                client.Close();
+            }
+
             stopThread();
         }
 
