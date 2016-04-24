@@ -31,6 +31,7 @@ public:
 
 	// ClientListenerIf
 	Client* newClient();
+	void clientAuthenticated(const Client* client, const std::string& name);
 	void receiveObject(const std::string name, const CommObjectIf* object);
 
 private:

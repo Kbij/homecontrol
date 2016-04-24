@@ -179,20 +179,20 @@ int main (int argc, char* argv[])
 		LOG(INFO) << "Home Control ServerApp";
 		LOG(INFO) << "======================";
 
-		CommNs::ObjectPrinter* printer = new CommNs::ObjectPrinter;
+//		CommNs::ObjectPrinter* printer = new CommNs::ObjectPrinter;
 		DalNs::ObjectWriter* writer = new DalNs::ObjectWriter;
 		CommNs::SocketFactory* factory = new CommNs::SocketFactory;
 		CommNs::Server* server = new CommNs::Server(factory, 5678);
 
-		server->registerCommListener(printer);
+//		server->registerCommListener(printer);
 		server->registerCommListener(writer);
     	// Wait until application stopped by a signal handler
         std::unique_lock<std::mutex> lk(exitMutex);
         exitCv.wait(lk, []{return exitMain;});
-        server->unRegisterCommListener(printer);
+//        server->unRegisterCommListener(printer);
         server->unRegisterCommListener(writer);
 
-        delete printer;
+//        delete printer;
         delete writer;
         delete server;
         delete factory;

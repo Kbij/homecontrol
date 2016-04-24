@@ -17,6 +17,8 @@ class CommListenerIf
 public:
 	virtual ~CommListenerIf() {};
 
+	virtual void clientConnected(const std::string& name) = 0;
+	virtual void clientDisConnected(const std::string& name) = 0;
 	virtual void receiveObject(const std::string name, const CommObjectIf* object) = 0;
 };
 

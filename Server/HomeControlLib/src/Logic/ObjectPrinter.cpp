@@ -19,6 +19,16 @@ ObjectPrinter::~ObjectPrinter()
 {
 }
 
+void ObjectPrinter::clientConnected(const std::string& name)
+{
+	LOG(INFO) << "Client connected: " << name;
+}
+
+void ObjectPrinter::clientDisConnected(const std::string& name)
+{
+	LOG(INFO) << "Client disconnected: " << name;
+}
+
 void ObjectPrinter::receiveObject(const std::string name, const CommObjectIf* object)
 {
 	if (object)

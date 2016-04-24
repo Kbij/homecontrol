@@ -21,6 +21,10 @@ class ObjectWriter: public CommNs::CommListenerIf
 public:
 	ObjectWriter();
 	virtual ~ObjectWriter();
+
+	//CommListenerIf
+	void clientConnected(const std::string& name);
+	void clientDisConnected(const std::string& name);
 	void receiveObject(const std::string name, const CommNs::CommObjectIf* object);
 };
 

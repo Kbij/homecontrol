@@ -16,6 +16,9 @@ class ObjectPrinter: public CommListenerIf
 public:
 	ObjectPrinter();
 	virtual ~ObjectPrinter();
+
+	void clientConnected(const std::string& name);
+	void clientDisConnected(const std::string& name);
 	void receiveObject(const std::string name, const CommObjectIf* object);
 };
 

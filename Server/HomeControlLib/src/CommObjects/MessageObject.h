@@ -19,8 +19,10 @@ public:
 	MessageObject(const std::string& json);
 	virtual ~MessageObject();
 
+	// CommObjectIf
 	uint8_t objectId() const;
 	std::string toString() const;
+
 	std::string message() const {return mMessage;};
 	time_t timeStamp() const {return mTimeStamp;};
 

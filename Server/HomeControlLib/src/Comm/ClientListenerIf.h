@@ -19,6 +19,8 @@ public:
 	virtual ~ClientListenerIf() {};
 
 	virtual Client* newClient() = 0;
+
+	virtual void clientAuthenticated(const Client* client, const std::string& name) = 0;
 	virtual void receiveObject(const std::string name, const CommObjectIf* object) = 0;
 };
 

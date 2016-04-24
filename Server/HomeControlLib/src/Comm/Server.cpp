@@ -73,6 +73,30 @@ Client* Server::newClient()
 	return client;
 }
 
+void Server::clientAuthenticated(const Client* client, const std::string& name)
+{
+	std::lock_guard<std::mutex> lock(mDataMutex);
+	bool wasAlreadyConnected = false;
+	for(const auto& serverClient: mClients)
+	{
+		if (serverClient != client)
+		{
+			if (serverClient->name() == name)
+			{
+				wasAlreadyConnected = true;
+			}
+		}
+	}
+
+	if (!wasAlreadyConnected)
+	{
+		for(const auto& listener: mCommListeners)
+		{
+			listener->clientConnected(name);
+		}
+	}
+}
+
 void Server::receiveObject(const std::string name, const CommObjectIf* object)
 {
 	std::lock_guard<std::mutex> lock(mDataMutex);
@@ -82,6 +106,7 @@ void Server::receiveObject(const std::string name, const CommObjectIf* object)
 		listener->receiveObject(name, object);
 	}
 }
+
 void Server::startMaintenanceThread()
 {
 	if (!mMaintenancehreadRunning)
@@ -111,22 +136,47 @@ void Server::maintenanceThread()
 
 		{
 			std::lock_guard<std::mutex> lock(mDataMutex);
+			std::vector<std::string> deletedClients;
 			auto clientIt = mClients.begin();
 			while (clientIt !=  mClients.end())
 			{
 				if ((*clientIt)->isInactive(MAINTENANCE_INTERVAL_MS))
 				{
 					LOG(INFO) << "Deleting client: " << (*clientIt)->name() << " because it is inactive";
+					if ((*clientIt)->name() != "")
+					{
+						deletedClients.push_back((*clientIt)->name());
+					}
+
 					clientIt = mClients.erase(clientIt);
+
 				}
 				else
 				{
 					clientIt++;
 				}
 			}
+
+			for(const auto& deletedClient: deletedClients)
+			{
+				bool clientStillConnected = false;
+				for(const auto& client: mClients)
+				{
+					if (deletedClient == client->name())
+					{
+						clientStillConnected = true;
+					}
+				}
+
+				if (!clientStillConnected)
+				{
+					for(const auto& listener: mCommListeners)
+					{
+						listener->clientDisConnected(deletedClient);
+					}
+				}
+			}
 		}
 	}
 }
-
-
 } /* namespace CommNs */

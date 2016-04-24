@@ -30,8 +30,8 @@
 								<option id="gnu.cpp.compiler.option.dialect.std.1587425456" name="Language standard" superClass="gnu.cpp.compiler.option.dialect.std" value="gnu.cpp.compiler.dialect.c++11" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.other.other.963727501" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -fmax-errors=5" valueType="string"/>
 								<option id="gnu.cpp.compiler.option.include.paths.1826260587" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="/home/koen/HomeControl/trunk/Server/libraries/x86/include"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/HomeControlLib/src}&quot;"/>
+									<listOptionValue builtIn="false" value="/home/koen/HomeControl/trunk/Server/libraries/sysroot/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1347868872" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>

@@ -22,6 +22,9 @@ class CommListenerStub: public CommNs::CommListenerIf
 public:
 	CommListenerStub() {};
 	~CommListenerStub() {};
+	void clientConnected(const std::string& name) {};
+	void clientDisConnected(const std::string& name) {};
+
 	void receiveObject(const std::string name, const CommNs::CommObjectIf* object)
 	{
 		std::cout << name << ": " << object->toString() << std::endl;

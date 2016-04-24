@@ -85,6 +85,7 @@ bool Client::isInactive(int milliSecondsPassed)
 
 	return true;
 }
+
 void Client::receiveFrame(uint8_t objectId, const std::vector<uint8_t>& frame)
 {
 	VLOG(1) << "Frame received, size: " << frame.size();
@@ -99,6 +100,10 @@ void Client::receiveFrame(uint8_t objectId, const std::vector<uint8_t>& frame)
 				mClientSocket->sendFrame(OBJ_SERVERNAME, {SERVERNAME.begin(), SERVERNAME.end()});
 				mConnectionState = ConnectionState::Connected;
 				mConnectingTime = 0;
+				if (mClientListener)
+				{
+					mClientListener->clientAuthenticated(this, mName);
+				}
 				break;
 			}
 			case ConnectionState::Connected:
@@ -109,6 +114,11 @@ void Client::receiveFrame(uint8_t objectId, const std::vector<uint8_t>& frame)
 				if (object)
 				{
 					mClientListener->receiveObject(mName, object);
+
+					if (objectId == 0)
+					{// If keep alive; send it back
+						mClientSocket->sendFrame(0, frame);
+					}
 					delete object;
 				}
 				else

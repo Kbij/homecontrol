@@ -26,13 +26,18 @@ class ClientListenerStub: public CommNs::ClientListenerIf
 public:
 	ClientListenerStub():
 		mReceivedObjectId(),
-		mReceivedObjectString()
+		mReceivedObjectString(),
+		mAuthenticatedClient()
 	{
 
 	};
 	virtual ~ClientListenerStub() {};
 
 	CommNs::Client* newClient() {return nullptr;};
+	void clientAuthenticated(const CommNs::Client* client, const std::string& name)
+	{
+		mAuthenticatedClient = name;
+	}
 	void receiveObject(const std::string name, const CommNs::CommObjectIf* object)
 	{
 		mReceivedObjectId = object->objectId();
@@ -40,6 +45,7 @@ public:
 	};
 	int mReceivedObjectId;
 	std::string mReceivedObjectString;
+	std::string mAuthenticatedClient;
 };
 
 class ClientSocketStub: public CommNs::ClientSocketIf
@@ -101,6 +107,7 @@ TEST(Client, StartConnection)
 	// Server should respond with servername
 	EXPECT_EQ(2, socketStub->mLastSendObjectId);
 	EXPECT_EQ(expectedFrame, socketStub->mLastSendFrame);
+	EXPECT_EQ(clientListenerStub->mAuthenticatedClient, "Client1");
 
 	// Should be connected
 	//EXPECT_TRUE(client->connected());
@@ -128,6 +135,8 @@ TEST(Client, ReceiveObject)
 	// Server should respond with servername
 	EXPECT_EQ(2, socketStub->mLastSendObjectId);
 	EXPECT_EQ(expectedFrame, socketStub->mLastSendFrame);
+	EXPECT_EQ(clientListenerStub->mAuthenticatedClient, "Client1");
+
 
 	// Should be connected
 	//EXPECT_TRUE(client->connected());

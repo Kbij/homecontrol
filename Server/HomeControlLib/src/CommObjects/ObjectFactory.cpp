@@ -7,6 +7,7 @@
 
 #include "ObjectFactory.h"
 #include "GpsLocation.h"
+#include "KeepAlive.h"
 #include "MessageObject.h"
 
 namespace CommNs {
@@ -24,6 +25,7 @@ CommObjectIf* ObjectFactory::createObject(uint8_t objectId, const std::string& j
 
 	switch(objectId)
 	{
+		case 0: return new KeepAlive();
 		case 10: return new GpsLocation(json);
 		case 11: return new MessageObject(json);
 		default: return nullptr;
