@@ -29,6 +29,7 @@ namespace HomeControl.HCService
                 activity.binder = hcServiceBinder;
                 activity.isBound = true;
                 activity.onBind();
+                
             }
         }
 

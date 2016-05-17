@@ -15,8 +15,6 @@ namespace HomeControl.Comm
     public interface ICloudSocketListener
     {
         void socketConnected();
-        void socketDisconnected();
-
         void receiveFrame(int objectId, List<byte> frame);
     }
 }

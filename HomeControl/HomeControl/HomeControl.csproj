@@ -58,7 +58,7 @@
     <Compile Include="Comm\ICloudSocketListener.cs" />
     <Compile Include="Comm\JsonSerialiser.cs" />
     <Compile Include="Comm\MessageObject.cs" />
-    <Compile Include="Comm\RemoteLogClient.cs" />
+    <Compile Include="Comm\HCLogger.cs" />
     <Compile Include="MainActivity.cs" />
     <Compile Include="Resources\Resource.Designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

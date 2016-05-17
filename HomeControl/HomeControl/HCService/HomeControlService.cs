@@ -12,6 +12,7 @@ using Android.Widget;
 using Android.Util;
 using Android.Locations;
 using HomeControl.Comm;
+using System.IO;
 
 namespace HomeControl.HCService
 {
@@ -23,17 +24,28 @@ namespace HomeControl.HCService
         const string TAG = "HomeControlService";
         string _locationProvider;
         CommModel mCommModel;
-        RemoteLogClient mLog;
+        HCLogger mLog;
         Location lastLocation;
         private int TWO_MINUTES = 1000 * 60 * 2;
 
         public HomeControlService()
         {
-            mLog = new RemoteLogClient("192.168.10.10", 8001);
-            mLog.SendToHost("HomeControlService", "HCService constructor");
-            mCommModel = new CommModel();
-        }
+            AppDomain currentDomain = AppDomain.CurrentDomain;
+            currentDomain.UnhandledException += HandleExceptions;
 
+            mLog = new HCLogger("192.168.10.10", 8001);
+            mLog.SendToHost("HomeControlService", "HCService constructor");
+            mCommModel = new CommModel(mLog);
+        }
+        static void HandleExceptions(object sender, UnhandledExceptionEventArgs ex)
+        {
+            string fileName = "/sdcard/Android/data/HomeControl.HomeControl/files/HomeControlUnhandled.log";//Path.Combine(path, "HomeControl.log");
+
+            using (var streamWriter = new StreamWriter(fileName, true))
+            {
+                streamWriter.WriteLine(string.Format("{0}:{1}", DateTime.Now, ex.ToString()));
+            }
+        }
         #region lifetime
         public override StartCommandResult OnStartCommand(Android.Content.Intent intent, StartCommandFlags flags, int startId)
         {
@@ -85,7 +97,7 @@ namespace HomeControl.HCService
 
             foreach (var provider in acceptableLocationProviders)
             {
-                Log.Debug(TAG, "Provider: " + provider);
+                mLog.SendToHost(TAG, "Provider: " + provider);
             }
 
             if (acceptableLocationProviders.Any())
@@ -107,7 +119,7 @@ namespace HomeControl.HCService
 
         public void OnLocationChanged(Location location)
         {
-            Log.Debug(TAG, string.Format("Location:  ", location.ToString()));
+            mLog.SendToHost(TAG, string.Format("Location:  ", location.ToString()));
             //_currentLocation = location;
             if (location == null)
             {

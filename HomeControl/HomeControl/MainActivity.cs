@@ -7,6 +7,7 @@ using Android.Widget;
 using Android.OS;
 using HomeControl.HCService;
 using HomeControl.Comm;
+using System.IO;
 
 namespace HomeControl
 {
@@ -17,9 +18,22 @@ namespace HomeControl
         public bool isBound;
         HCServiceConnection hcServiceConnection;
 
+        static void HandleExceptions(object sender, UnhandledExceptionEventArgs ex)
+        {
+            string fileName = "/sdcard/Android/data/HomeControl.HomeControl/files/HomeControlUnhandled.log";//Path.Combine(path, "HomeControl.log");
+
+            using (var streamWriter = new StreamWriter(fileName, true))
+            {
+                streamWriter.WriteLine(string.Format("{0}:{1}", DateTime.Now, ex.ToString()));
+            }
+        }
+
         protected override void OnCreate(Bundle bundle)
         {
             base.OnCreate(bundle);
+
+            AppDomain currentDomain = AppDomain.CurrentDomain;
+            currentDomain.UnhandledException += HandleExceptions;
 
             // Set our view from the "main" layout resource
             SetContentView(Resource.Layout.Main);

@@ -14,7 +14,7 @@ namespace HomeControl.Comm
         CommState mCommState;
         int mConnectTimeoutSeconds;
         Queue<ICommObject> mSendQueue;
-        RemoteLogClient mLog;
+        HCLogger mLog;
         bool mCommStarted;
         int mOutstandingKeepAlives;
         const int OBJ_KEEPALIVE = 0;
@@ -27,12 +27,16 @@ namespace HomeControl.Comm
         CloudSocket mCloudSocket;
         Thread mThread;
         bool mThreadRunning = false;
-        const int CONNECT_TIMEOUT_SECONDS = 5;
+        const int CONNECT_TIMEOUT_SECONDS = 30;
+        int mLastObjectSendSeconds;
+        private Object mLock;
 
-        public CommModel()
+        public CommModel(HCLogger logger)
         {
+            mOutstandingKeepAlives = 0;
+            mLock = new Object();
             mSendQueue = new Queue<ICommObject>();
-            mLog = new RemoteLogClient("192.168.10.10", 8001);
+            mLog = logger;
             mLog.SendToHost("CommModel", "CommModel created");
             mCommStarted = false;
         }
@@ -42,11 +46,14 @@ namespace HomeControl.Comm
             if (!mCommStarted)
             {
                 mCommStarted = true;
+                mCommState = CommState.Disconnected;
+                mConnectTimeoutSeconds = CONNECT_TIMEOUT_SECONDS;
+
                 startMaintenanceThread();
-                reconnect();
                 mLog.SendToHost("CommModel", "CommModel started");
             }
         }
+
         public void Dispose()
         {
             mLog.SendToHost("CommModel", "Dispose");
@@ -74,7 +81,8 @@ namespace HomeControl.Comm
             switch (objectId)
             {
                 case OBJ_KEEPALIVE:
-                    mOutstandingKeepAlives = 0;
+                    mLog.SendToHost("CommModel", "keepalive received");
+                    --mOutstandingKeepAlives;
                     break;
                 case OBJ_SERVERNAME:
                     string serverName = System.Text.Encoding.ASCII.GetString(frame.ToArray());
@@ -97,40 +105,29 @@ namespace HomeControl.Comm
             }
         }
 
-        public void socketDisconnected()
-        {
-            mLog.SendToHost("CloudComm", "Cloud disconnected, starting reconnect timer");
-            if (mReceiver != null)
-            {
-                mReceiver.disconnected();
-            }
-
-            reconnect();
-        }
-
         public void socketConnected()
         {
-            string modelName = Android.OS.Build.Model;
-            mCloudSocket.sendFrame(OBJ_HCNAME, System.Text.Encoding.ASCII.GetBytes(modelName).ToList());
-            mCommState = CommState.NameSend;
+            lock (mLock)
+            {
+                mLastObjectSendSeconds = 0;
+                string modelName = Android.OS.Build.Model;
+                mCommState = CommState.NameSend;
+                mCloudSocket.sendFrame(OBJ_HCNAME, System.Text.Encoding.ASCII.GetBytes(modelName).ToList());
+            }
         }
         #endregion
 
-
-        private void reconnect()
-        {
-            mCommState = CommState.Disconnected;
-            mConnectTimeoutSeconds = CONNECT_TIMEOUT_SECONDS;
-        }
-
         private void startConnect()
         {
+            mLog.SendToHost("CommModel", "startConnect");
+            mOutstandingKeepAlives = 0;
+
             mCommState = CommState.Connecting;
             if (mCloudSocket != null)
             {
                 mCloudSocket.Dispose();
             }
-            mCloudSocket = new CloudSocket(this);
+            mCloudSocket = new CloudSocket(this, mLog);
         }
 
         private void processSendQueue()
@@ -147,6 +144,10 @@ namespace HomeControl.Comm
                         {
                             mSendQueue.Dequeue();
                         }
+                        else
+                        {
+                            mLog.SendToHost("CommModel", "Object not send, not removed from queue");
+                        }
                     }
                 }
             }
@@ -154,15 +155,33 @@ namespace HomeControl.Comm
 
         private bool sendObject(ICommObject obj)
         {
+            mLastObjectSendSeconds = 0;
             string json = obj.serialise();
             return mCloudSocket.sendFrame(obj.objectId(), System.Text.Encoding.ASCII.GetBytes(json).ToList());
         }
 
-        private void sendKeepAlive(object sender, System.Timers.ElapsedEventArgs e)
+        private void sendKeepAlive()
         {
             if (mCommState == CommState.Connected)
             {
-                mCloudSocket.sendFrame(OBJ_KEEPALIVE, new List<byte>());
+                if (mOutstandingKeepAlives > 0)
+                {
+                    mLog.SendToHost("CommModem", string.Format("Keepalive missing ({0}), reconnecting", mOutstandingKeepAlives));
+
+                    mCommState = CommState.Disconnected;
+                    mConnectTimeoutSeconds = CONNECT_TIMEOUT_SECONDS;
+                    if (mReceiver != null)
+                    {
+                        mReceiver.disconnected();
+                    }
+                }
+                else
+                {
+                    mLog.SendToHost("CommModem", "sending keepalive");
+                    mLastObjectSendSeconds = 0;
+                    mCloudSocket.sendFrame(OBJ_KEEPALIVE, new List<byte>());
+                    ++mOutstandingKeepAlives;
+                }
             }
         }
 
@@ -209,14 +228,53 @@ namespace HomeControl.Comm
         {
             while (mThreadRunning)
             {
-                Thread.Sleep(1000);
-                if (mCommState == CommState.Disconnected)
+                try
                 {
-                    --mConnectTimeoutSeconds;
-                    if (mConnectTimeoutSeconds <=0)
+                   Thread.Sleep(1000);
+                   lock (mLock)
                     {
-                        startConnect();
+
+                        if (mCommState == CommState.Disconnected)
+                        {
+                            --mConnectTimeoutSeconds;
+                            if (mConnectTimeoutSeconds <= 0)
+                            {
+                                startConnect();
+                            }
+                        }
+
+                        if (mCloudSocket != null)
+                        {
+                            if (mCommState == CommState.Connected && mCloudSocket.isActive())
+                            {
+                                ++mLastObjectSendSeconds;
+                                if (mLastObjectSendSeconds > KEEPALIVE_INTERVAL_SECONDS)
+                                {
+                                    sendKeepAlive();
+                                }
+                            }
+
+                            // No longer active (connected failed, or disconnected
+                            if (!mCloudSocket.isActive())
+                            {
+                                mLog.SendToHost("CommModel", "Cloudsocket no longer active, restarting connection");
+                                if (mReceiver != null)
+                                {
+                                    mReceiver.disconnected();
+                                }
+                                mCommState = CommState.Disconnected;
+                                mConnectTimeoutSeconds = CONNECT_TIMEOUT_SECONDS;
+
+                                mCloudSocket.Dispose();
+                                mCloudSocket = null;
+                            }
+                        }
                     }
+                }
+
+                catch (Exception ex )
+                {
+                    mLog.SendToHost("CommModel", "Maintenance thread exception:" + ex.Message);
                 }
             }
         }
