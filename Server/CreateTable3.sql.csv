@@ -1,0 +1,10 @@
+Table,"Create Table"
+Location,"CREATE TABLE `Location` (
+  `idLocation` int(11) NOT NULL AUTO_INCREMENT,
+  `idClient` int(11) NOT NULL,
+  `latitude` decimal(8,5) NOT NULL,
+  `longitude` decimal(8,5) NOT NULL,
+  `accuracy` int(11) NOT NULL,
+  `timestamp` datetime NOT NULL,
+  PRIMARY KEY (`idLocation`)
+) ENGINE=InnoDB AUTO_INCREMENT=193 DEFAULT CHARSET=utf8 COLLATE=utf8_bin"
