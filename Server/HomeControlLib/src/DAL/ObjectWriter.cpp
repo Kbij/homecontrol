@@ -9,6 +9,7 @@
 #include "CommObjects/CommObjectIf.h"
 #include "CommObjects/GpsLocation.h"
 #include "CommObjects/MessageObject.h"
+#include "CommObjects/KeepAlive.h"
 #include <cppconn/driver.h>
 #include <cppconn/exception.h>
 #include <cppconn/resultset.h>
@@ -78,6 +79,15 @@ void ObjectWriter::receiveObject(const std::string name, const CommNs::CommObjec
 	try
 	{
 		std::string insertCmd;
+
+		if (object->objectId() == 0)
+		{
+			if(const CommNs::KeepAlive* keepAlive = dynamic_cast<const CommNs::KeepAlive*> (object))
+			{
+				LOG(INFO) << "Keep alive received";
+			}
+		}
+
 		if (object->objectId() == 10)
 		{
 			if(const CommNs::GpsLocation* location = dynamic_cast<const CommNs::GpsLocation*> (object))
@@ -98,9 +108,11 @@ void ObjectWriter::receiveObject(const std::string name, const CommNs::CommObjec
 		{
 			if(const CommNs::MessageObject* message = dynamic_cast<const CommNs::MessageObject*> (object))
 			{
-				LOG(INFO) << "Keep alive received";
+				LOG(INFO) << "Message received";
 			}
 		}
+
+
 
 		sql::Driver *driver;
 		sql::Connection *con;

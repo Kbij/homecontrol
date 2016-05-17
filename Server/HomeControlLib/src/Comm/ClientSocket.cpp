@@ -62,6 +62,7 @@ void ClientSocket::sendFrame(uint8_t objectId, const std::vector<uint8_t>& frame
 {
 	if (mSocket.is_open())
 	{
+		VLOG(1) << "Send frame, length: " << frame.size() << ",objectId: " << (int) objectId;
 		std::vector<uint8_t> dataFrame(HC_HEADER.begin(), HC_HEADER.end());
 
         int length = frame.size();

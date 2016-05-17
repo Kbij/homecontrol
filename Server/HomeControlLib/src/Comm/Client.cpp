@@ -88,7 +88,7 @@ bool Client::isInactive(int milliSecondsPassed)
 
 void Client::receiveFrame(uint8_t objectId, const std::vector<uint8_t>& frame)
 {
-	VLOG(1) << "Frame received, size: " << frame.size();
+	VLOG(1) << "Frame received, size: " << frame.size() << ", objectId: " << (int) objectId;
 	if (mClientListener)
 	{
 		switch(mConnectionState)
@@ -113,6 +113,7 @@ void Client::receiveFrame(uint8_t objectId, const std::vector<uint8_t>& frame)
 				CommObjectIf* object = ObjectFactory::createObject(objectId, json);
 				if (object)
 				{
+					VLOG(1) << "Sending object to client";
 					mClientListener->receiveObject(mName, object);
 
 					if (objectId == 0)
