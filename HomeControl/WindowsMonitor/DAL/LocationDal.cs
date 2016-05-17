@@ -11,19 +11,20 @@ namespace WindowsMonitor.DAL
 {
     public class LocationDal
     {
-        public Dictionary<string, List<GpsLocation>> fillLastLocation(int timeFrameHours)
+        public Dictionary<Tuple<string, DateTime>, List<GpsLocation>> fillLastLocation(int timeFrameHours)
         {
-            Dictionary<string, List<GpsLocation>> result = new Dictionary<string, List<GpsLocation>>();
+            Dictionary<Tuple<string, DateTime>, List<GpsLocation>> result = new Dictionary<Tuple<string, DateTime>, List<GpsLocation>>();
 
-            //            const string DB_CONN_STR = "Server=192.168.10.142;Uid=hc;Pwd=bugs bunny;Database=HC_DB;";
-                        const string DB_CONN_STR = "Server=192.168.10.7;Uid=hc;Pwd=bugs bunny;Database=HC_DB;";
+            //const string DB_CONN_STR = "Server=192.168.10.142;Uid=hc;Pwd=bugs bunny;Database=HC_DB;";
+            const string DB_CONN_STR = "Server=192.168.10.7;Uid=hc;Pwd=bugs bunny;Database=HC_DB;";
             try
             {
                 using (MySqlConnection conn = new MySqlConnection(DB_CONN_STR))
                 {
                     conn.Open();
-                    string sqlCmd = string.Format("SELECT client, latitude, longitude, accuracy, timestamp FROM Locations WHERE latitude IS NOT NULL " +
-                                    "  AND TIMESTAMPDIFF(HOUR, timestamp, NOW()) < {0}  ORDER BY timestamp", timeFrameHours);
+                    string sqlCmd = string.Format("SELECT clientName, lastMessage, latitude, longitude, accuracy, timestamp FROM Client " +
+                                                  " INNER JOIN Location ON Client.idClient = Location.idClient " +
+                                                  " WHERE TIMESTAMPDIFF(HOUR, timestamp, NOW()) < {0}  ORDER BY timestamp", timeFrameHours);
                     MySqlDataAdapter adapter = new MySqlDataAdapter(sqlCmd, conn);
                     adapter.SelectCommand.CommandType = CommandType.Text;
                     DataTable dt = new DataTable();
@@ -34,18 +35,18 @@ namespace WindowsMonitor.DAL
                         double latitude = (double)dr.Field<decimal>("latitude");
                         double longitude = (double)dr.Field<decimal>("longitude");
                         double accuracy = dr.Field<int>("accuracy");
-                        string client = dr.Field<string>("client");
+                        string client = dr.Field<string>("clientName");
                         DateTime time = dr.Field<DateTime>("timestamp");
                         GpsLocation location = new GpsLocation(latitude, longitude, accuracy, time);
 
-                        if (!result.ContainsKey(client))
+                        Tuple<string, DateTime> clientTuple = new Tuple<string, DateTime>(dr.Field<string>("clientName"), dr.Field<DateTime>("lastMessage"));
+                        if (!result.ContainsKey(clientTuple))
                         {
-                            result[client] = new List<GpsLocation>();
+                            result[clientTuple] = new List<GpsLocation>();
                         }
 
-                        result[dr.Field<string>("client")].Add(location);
+                        result[clientTuple].Add(location);
 
-                        //                    Console.WriteLine(string.Format("user_id = {0}", dr["latitude"].ToString()));
                     }
                 }
             }

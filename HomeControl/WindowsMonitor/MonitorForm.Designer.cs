@@ -32,10 +32,11 @@
             this.listSummary = new System.Windows.Forms.ListView();
             this.colName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colDist = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.collast = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.collastConnected = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.tmrUpdate = new System.Windows.Forms.Timer(this.components);
             this.cmbHours = new System.Windows.Forms.ComboBox();
             this.btnKML = new System.Windows.Forms.Button();
+            this.colLastLocation = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.SuspendLayout();
             // 
             // listSummary
@@ -46,11 +47,12 @@
             this.listSummary.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.colName,
             this.colDist,
-            this.collast});
+            this.collastConnected,
+            this.colLastLocation});
             this.listSummary.FullRowSelect = true;
             this.listSummary.Location = new System.Drawing.Point(9, 12);
             this.listSummary.Name = "listSummary";
-            this.listSummary.Size = new System.Drawing.Size(395, 138);
+            this.listSummary.Size = new System.Drawing.Size(468, 147);
             this.listSummary.TabIndex = 8;
             this.listSummary.UseCompatibleStateImageBehavior = false;
             this.listSummary.View = System.Windows.Forms.View.Details;
@@ -64,10 +66,10 @@
             // 
             this.colDist.Text = "Distance";
             // 
-            // collast
+            // collastConnected
             // 
-            this.collast.Text = "LastConnected";
-            this.collast.Width = 120;
+            this.collastConnected.Text = "LastConnected";
+            this.collastConnected.Width = 120;
             // 
             // tmrUpdate
             // 
@@ -79,15 +81,16 @@
             this.cmbHours.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.cmbHours.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbHours.FormattingEnabled = true;
-            this.cmbHours.Location = new System.Drawing.Point(9, 156);
+            this.cmbHours.Location = new System.Drawing.Point(9, 165);
             this.cmbHours.Name = "cmbHours";
             this.cmbHours.Size = new System.Drawing.Size(94, 21);
             this.cmbHours.TabIndex = 9;
+            this.cmbHours.SelectionChangeCommitted += new System.EventHandler(this.cmbHours_SelectionChangeCommitted);
             // 
             // btnKML
             // 
             this.btnKML.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.btnKML.Location = new System.Drawing.Point(109, 154);
+            this.btnKML.Location = new System.Drawing.Point(109, 163);
             this.btnKML.Name = "btnKML";
             this.btnKML.Size = new System.Drawing.Size(75, 23);
             this.btnKML.TabIndex = 10;
@@ -95,11 +98,16 @@
             this.btnKML.UseVisualStyleBackColor = true;
             this.btnKML.Click += new System.EventHandler(this.btnKML_Click);
             // 
+            // colLastLocation
+            // 
+            this.colLastLocation.Text = "LastLocation";
+            this.colLastLocation.Width = 120;
+            // 
             // MonitorForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(416, 185);
+            this.ClientSize = new System.Drawing.Size(489, 194);
             this.Controls.Add(this.btnKML);
             this.Controls.Add(this.cmbHours);
             this.Controls.Add(this.listSummary);
@@ -113,10 +121,11 @@
         private System.Windows.Forms.ListView listSummary;
         private System.Windows.Forms.ColumnHeader colName;
         private System.Windows.Forms.ColumnHeader colDist;
-        private System.Windows.Forms.ColumnHeader collast;
+        private System.Windows.Forms.ColumnHeader collastConnected;
         private System.Windows.Forms.Timer tmrUpdate;
         private System.Windows.Forms.ComboBox cmbHours;
         private System.Windows.Forms.Button btnKML;
+        private System.Windows.Forms.ColumnHeader colLastLocation;
     }
 }
 
