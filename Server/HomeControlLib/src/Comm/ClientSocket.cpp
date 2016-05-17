@@ -62,7 +62,7 @@ void ClientSocket::sendFrame(uint8_t objectId, const std::vector<uint8_t>& frame
 {
 	if (mSocket.is_open())
 	{
-		VLOG(1) << "Send frame, length: " << frame.size() << ",objectId: " << (int) objectId;
+		VLOG(2) << "Send frame, length: " << frame.size() << ",objectId: " << (int) objectId;
 		std::vector<uint8_t> dataFrame(HC_HEADER.begin(), HC_HEADER.end());
 
         int length = frame.size();
@@ -81,7 +81,7 @@ void ClientSocket::handleRead(const boost::system::error_code& error, size_t byt
 {
 	if (!error)
 	{
-		VLOG(1) << "Bytes received: " << (int) bytesTransferred;
+		VLOG(2) << "Bytes received: " << (int) bytesTransferred;
 		mReceiveBuffer.insert(mReceiveBuffer.end(), mSocketBuffer.begin(), mSocketBuffer.begin() + bytesTransferred);
 		processBuffer();
 
@@ -90,7 +90,7 @@ void ClientSocket::handleRead(const boost::system::error_code& error, size_t byt
 	}
 	else
 	{
-		VLOG(1) << "Client socket error: " << error.category().name() << ':' << error.value();
+		LOG(ERROR) << "Client socket error: " << error.category().name() << ':' << error.value();
 		if (mSocketListener)
 		{
 			mSocketListener->socketClosed();
@@ -142,7 +142,7 @@ void ClientSocket::processBuffer()
 		VLOG(3) << "Buffer size: " << mReceiveBuffer.size();
 		if (mSocketListener)
 		{
-			VLOG(1) << "Payload received, length: " << hcmData.size();
+			VLOG(2) << "Payload received, length: " << hcmData.size();
 			mSocketListener->receiveFrame(objectId, hcmData);
 		}
 	}
