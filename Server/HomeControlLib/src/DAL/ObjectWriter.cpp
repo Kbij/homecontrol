@@ -84,7 +84,7 @@ void ObjectWriter::receiveObject(const std::string name, const CommNs::CommObjec
 		{
 			if(const CommNs::KeepAlive* keepAlive = dynamic_cast<const CommNs::KeepAlive*> (object))
 			{
-				LOG(INFO) << "Keep alive received";
+				VLOG(1) << name << ", keep alive received";
 			}
 		}
 
@@ -92,6 +92,7 @@ void ObjectWriter::receiveObject(const std::string name, const CommNs::CommObjec
 		{
 			if(const CommNs::GpsLocation* location = dynamic_cast<const CommNs::GpsLocation*> (object))
 			{
+				VLOG(1) << name << ", location received: " << location->toString();
 				std::stringstream ss;
 				time_t time = location->timeStamp();
 				std::tm *tm = std::localtime(&time);
@@ -108,7 +109,7 @@ void ObjectWriter::receiveObject(const std::string name, const CommNs::CommObjec
 		{
 			if(const CommNs::MessageObject* message = dynamic_cast<const CommNs::MessageObject*> (object))
 			{
-				LOG(INFO) << "Message received";
+				VLOG(1) << name << ", message received";
 			}
 		}
 
