@@ -66,6 +66,17 @@ namespace HomeControl
             base.OnStop();
         }
 
+        //protected override void OnDestroy()
+        //{
+        //  //  if (isBound)
+        //    {
+        //        binder.GetHCService().unRegisterCommReceiver();
+        //        UnbindService(hcServiceConnection);
+        //        isBound = false;
+        //    }
+        //    base.OnDestroy();
+        //}
+
         public void onBind()
         {
             if (isBound)

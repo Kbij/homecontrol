@@ -14,11 +14,12 @@ namespace HomeControl.HCService
 {
     [BroadcastReceiver]
     [IntentFilter(new[] { Intent.ActionBootCompleted })]
+    [IntentFilter(new[] { "RestartHCService" })]
     class BootCompleted : BroadcastReceiver
     {
         public override void OnReceive(Context context, Intent intent)
         {
-            if (intent.Action == Intent.ActionBootCompleted)
+            if (intent.Action == Intent.ActionBootCompleted || intent.Action == "RestartHCService")
             {
                 context.ApplicationContext.StartService(new Intent(context, typeof(HomeControlService)));
             }

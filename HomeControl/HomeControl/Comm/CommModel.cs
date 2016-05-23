@@ -1,8 +1,6 @@
-using Android.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Sockets;
 using System.Threading;
 
 namespace HomeControl.Comm
@@ -10,8 +8,8 @@ namespace HomeControl.Comm
     public class CommModel: IDisposable, ICloudSocketListener
     {
         ICommReceiver mReceiver = null;
-        enum CommState { Disconnected, Connecting, NameSend, Connected};
-        CommState mCommState;
+        enum CommState {Init, Disconnected, Connecting, NameSend, Connected};
+        CommState mCommState = CommState.Init;
         int mConnectTimeoutSeconds;
         Queue<ICommObject> mSendQueue;
         HCLogger mLog;
@@ -46,8 +44,7 @@ namespace HomeControl.Comm
             if (!mCommStarted)
             {
                 mCommStarted = true;
-                mCommState = CommState.Disconnected;
-                mConnectTimeoutSeconds = CONNECT_TIMEOUT_SECONDS;
+                changeState(CommState.Disconnected);
 
                 startMaintenanceThread();
                 mLog.SendToHost("CommModel", "CommModel started");
@@ -78,30 +75,26 @@ namespace HomeControl.Comm
         #region socketListener
         public void receiveFrame(int objectId, List<byte> frame)
         {
-            switch (objectId)
+            lock (mLock)
             {
-                case OBJ_KEEPALIVE:
-                    mLog.SendToHost("CommModel", "keepalive received");
-                    --mOutstandingKeepAlives;
-                    break;
-                case OBJ_SERVERNAME:
-                    string serverName = System.Text.Encoding.ASCII.GetString(frame.ToArray());
-                    if (mCommState == CommState.NameSend)
-                    {
-                        if (mReceiver != null)
-                        {
-                            mReceiver.connected();
-                        }
-                    }
-                    mCommState = CommState.Connected;
-                    mLog.SendToHost("CommModel", string.Format("Connected with server: {0}", serverName));
+                switch (objectId)
+                {
+                    case OBJ_KEEPALIVE:
+                        mLog.SendToHost("CommModel", "keepalive received");
+                        --mOutstandingKeepAlives;
+                        break;
+                    case OBJ_SERVERNAME:
+                        string serverName = System.Text.Encoding.ASCII.GetString(frame.ToArray());
+                        changeState(CommState.Connected);
 
-                    processSendQueue();
-                    break;
-                default:
-                    string payload = System.Text.Encoding.ASCII.GetString(frame.ToArray());
-                    mLog.SendToHost("CommModel", "Payload received");
-                    break;
+                        mLog.SendToHost("CommModel", string.Format("Connected with server: {0}", serverName));
+                        processSendQueue();
+                        break;
+                    default:
+                        string payload = System.Text.Encoding.ASCII.GetString(frame.ToArray());
+                        mLog.SendToHost("CommModel", "Payload received");
+                        break;
+                }
             }
         }
 
@@ -111,18 +104,84 @@ namespace HomeControl.Comm
             {
                 mLastObjectSendSeconds = 0;
                 string modelName = Android.OS.Build.Model;
-                mCommState = CommState.NameSend;
+                changeState(mCommState = CommState.NameSend);
                 mCloudSocket.sendFrame(OBJ_HCNAME, System.Text.Encoding.ASCII.GetBytes(modelName).ToList());
             }
         }
         #endregion
+
+        private void changeState(CommState newState)
+        {
+            mLog.SendToHost("CommModel", string.Format("State change, from: {0} to: {1}", mCommState, newState));
+            switch (mCommState)
+            {
+                case CommState.Init:
+                    {
+                        switch (newState)
+                        {
+                            case CommState.Disconnected:
+                                {
+                                    mConnectTimeoutSeconds = CONNECT_TIMEOUT_SECONDS;
+                                    break;
+                                }
+                            default:
+                                {
+                                    mLog.SendToHost("CommModel", string.Format("Unknown state change, from: {0} to: {1}", mCommState, newState));
+                                    break;
+                                }
+                        }
+                        break;
+                    }
+                case CommState.NameSend:
+                    {
+                        break;
+                    }
+                case CommState.Connected:
+                    {
+                        switch (newState)
+                        {
+                            case CommState.Disconnected:
+                                {
+                                    mConnectTimeoutSeconds = CONNECT_TIMEOUT_SECONDS;
+                                    if (mReceiver != null)
+                                    {
+                                        mReceiver.disconnected();
+                                    }
+                                    if (mCloudSocket != null)
+                                    {
+                                        mCloudSocket.Dispose();
+                                    }
+                                    break;
+                                }
+                        }
+                        break;
+                    }
+                case CommState.Connecting:
+                    {
+                        switch (newState)
+                        {
+                            case CommState.Connected:
+                                {
+                                    if (mReceiver != null)
+                                    {
+                                        mReceiver.connected();
+                                    }
+                                    break;
+                                }
+                        }
+                        break;
+                    }
+            }
+
+            mCommState = newState;
+        }
 
         private void startConnect()
         {
             mLog.SendToHost("CommModel", "startConnect");
             mOutstandingKeepAlives = 0;
 
-            mCommState = CommState.Connecting;
+            changeState(CommState.Connecting);
             if (mCloudSocket != null)
             {
                 mCloudSocket.Dispose();
@@ -155,9 +214,12 @@ namespace HomeControl.Comm
 
         private bool sendObject(ICommObject obj)
         {
-            mLastObjectSendSeconds = 0;
-            string json = obj.serialise();
-            return mCloudSocket.sendFrame(obj.objectId(), System.Text.Encoding.ASCII.GetBytes(json).ToList());
+            lock (mLock)
+            {
+                mLastObjectSendSeconds = 0;
+                string json = obj.serialise();
+                return mCloudSocket.sendFrame(obj.objectId(), System.Text.Encoding.ASCII.GetBytes(json).ToList());
+            }
         }
 
         private void sendKeepAlive()
@@ -168,18 +230,16 @@ namespace HomeControl.Comm
                 {
                     mLog.SendToHost("CommModem", string.Format("Keepalive missing ({0}), reconnecting", mOutstandingKeepAlives));
 
-                    mCommState = CommState.Disconnected;
-                    mConnectTimeoutSeconds = CONNECT_TIMEOUT_SECONDS;
-                    if (mReceiver != null)
-                    {
-                        mReceiver.disconnected();
-                    }
+                    changeState(CommState.Disconnected);
                 }
                 else
                 {
                     mLog.SendToHost("CommModem", "sending keepalive");
                     mLastObjectSendSeconds = 0;
-                    mCloudSocket.sendFrame(OBJ_KEEPALIVE, new List<byte>());
+                    lock (mLock)
+                    {
+                        mCloudSocket.sendFrame(OBJ_KEEPALIVE, new List<byte>());
+                    }
                     ++mOutstandingKeepAlives;
                 }
             }
@@ -258,15 +318,7 @@ namespace HomeControl.Comm
                             if (!mCloudSocket.isActive())
                             {
                                 mLog.SendToHost("CommModel", "Cloudsocket no longer active, restarting connection");
-                                if (mReceiver != null)
-                                {
-                                    mReceiver.disconnected();
-                                }
-                                mCommState = CommState.Disconnected;
-                                mConnectTimeoutSeconds = CONNECT_TIMEOUT_SECONDS;
-
-                                mCloudSocket.Dispose();
-                                mCloudSocket = null;
+                                changeState(CommState.Disconnected);
                             }
                         }
                     }

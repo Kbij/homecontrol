@@ -1,4 +1,3 @@
-using Android.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +20,7 @@ namespace HomeControl.Comm
         //const string SERVER_HOST = "192.168.10.142";
         HCLogger mLog;
         Socket mSocket;
+        Object mLock;
 
         public CloudSocket(ICloudSocketListener listener, HCLogger logger)
         {
@@ -42,7 +42,10 @@ namespace HomeControl.Comm
 
         public bool isActive()
         {
-            return (mSocketState == SocketState.Connecting) || (mSocketState == SocketState.Connected);
+            lock (mLock)
+            {
+                return (mSocketState == SocketState.Connecting) || (mSocketState == SocketState.Connected);
+            }
         }
 
         public bool sendFrame(byte objectId, List<byte> frame)
@@ -69,8 +72,11 @@ namespace HomeControl.Comm
                 catch (Exception ex)
                 {
                     mLog.SendToHost("CloudSocket", string.Format("Exception in sendFrame: {0}", ex.Message));
-                    mSocketState = SocketState.Disconnected;
-                    mSocket.Close();
+                    lock (mLock)
+                    {
+                        mSocketState = SocketState.Disconnected;
+                        mSocket.Close();
+                    }
                 }
 
             }
@@ -126,7 +132,10 @@ namespace HomeControl.Comm
             try
             {
                 mSocket.Connect(SERVER_HOST, SERVER_PORT);
-                mSocketState = SocketState.Connected;
+                lock (mLock)
+                {
+                    mSocketState = SocketState.Connected;
+                }
 
                 mLog.SendToHost("CloudSocket", "Connected with server");
                 mListener.socketConnected();
@@ -147,7 +156,7 @@ namespace HomeControl.Comm
             mSocketState = SocketState.Disconnected;
 
             mLog.SendToHost("CloudSocket", "Done");
-
+ 
             //Cleaning up
             try
             {

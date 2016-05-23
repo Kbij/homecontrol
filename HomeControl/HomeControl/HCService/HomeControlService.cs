@@ -37,6 +37,7 @@ namespace HomeControl.HCService
             mLog.SendToHost("HomeControlService", "HCService constructor");
             mCommModel = new CommModel(mLog);
         }
+
         static void HandleExceptions(object sender, UnhandledExceptionEventArgs ex)
         {
             string fileName = "/sdcard/Android/data/HomeControl.HomeControl/files/HomeControlUnhandled.log";//Path.Combine(path, "HomeControl.log");
@@ -46,6 +47,7 @@ namespace HomeControl.HCService
                 streamWriter.WriteLine(string.Format("{0}:{1}", DateTime.Now, ex.ToString()));
             }
         }
+
         #region lifetime
         public override StartCommandResult OnStartCommand(Android.Content.Intent intent, StartCommandFlags flags, int startId)
         {
@@ -65,10 +67,13 @@ namespace HomeControl.HCService
 
         public override void OnDestroy()
         {
+            ////Service is destroyed; restart it...
+            //var intent = new Intent("RestartHCService");
+            //SendBroadcast(intent);
+
             mLog.SendToHost("HomeControlService", "HomeControlService destroyed");
             mCommModel.Dispose();
             base.OnDestroy();
-            // cleanup code
         }
 
         public override IBinder OnBind(Intent intent)
