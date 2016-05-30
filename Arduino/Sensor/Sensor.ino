@@ -1,87 +1,118 @@
 #include "lib/OneWire/OneWire.h"
 #include "lib/DallasTemperature/DallasTemperature.h"
 #include "lib/U8glib/U8glib.h"
+#include "lib/Touch/CapacitiveSensor.h"
 #include <stdlib.h>
+
+// LCD Setup
 U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_DEV_0|U8G_I2C_OPT_NO_ACK|U8G_I2C_OPT_FAST);  // Fast I2C / TWI 
 
-// Data wire is plugged into pin 2 on the Arduino
-#define ONE_WIRE_BUS 2
-
-// Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
-OneWire oneWire(ONE_WIRE_BUS);
-
-// Pass our oneWire reference to Dallas Temperature. 
+// DS18S20 Setup
+OneWire oneWire(2);
 DallasTemperature sensors(&oneWire);
 
+// Touch buttons
+CapacitiveSensor touchUp   = CapacitiveSensor(3, 4);
+CapacitiveSensor touchDown = CapacitiveSensor(3, 5);
 
-int i; 
+const int TEMP_INTERVAL_SECONDS = 30;
+const int TEMP_MEASURE_TIME_SECONDS = 1;
 
-void draw(const char* temp) {
+char ADDR_STR[16];
+float tempSet = 0;
+float tempCurrent = 0;
+unsigned long startTime = millis();
+bool tempRequested = false;
+bool bootFlag = true;
+
+void serialPrintf(const char *format, ...)
+{
+  char buf[80];
+  va_list ap;
+  va_start(ap, format);
+  vsnprintf(buf, sizeof(buf), format, ap);
+  Serial.print(buf);
+  va_end(ap);
+}
+
+void writeMid(int vert, const char* str)
+{
+  int width = u8g.getStrWidth(str);  
+  u8g.drawStr( (128 - width)/2, vert, str);  
+}
+
+void draw()
+{
   // graphic commands to redraw the complete screen should be placed here  
   u8g.setFont(u8g_font_unifont);
-  u8g.drawStr( 2, 18, "Temperatuur:");
-  u8g.drawStr( 50, 50, temp);
-  u8g.drawStr( 85,50,"\260C");
- // u8g.drawFrame(0, 0, 128, 64);
+
+  writeMid(18, "Temp:");
+
+  char tempStr[4];
+  dtostrf(tempCurrent, 2, 1, tempStr);
+  char fullTempStr[20];
+  sprintf(fullTempStr, "%s \260C", tempStr);
+
+  writeMid(50, fullTempStr);  
+
+  u8g.drawFrame(0, 0, 128, 64);
 }
 
-void setup() {
+void setup()
+{
   // start serial port
   Serial.begin(9600);
-  Serial.println("Dallas Temperature IC Control Library Demo");
-
+  
+  touchUp.set_CS_AutocaL_Millis(1000);
+  touchDown.set_CS_AutocaL_Millis(1000);
   // Start up the library
   sensors.begin(); // IC Default 9 bit. If you have troubles consider upping it 12. Ups the delay giving the IC more time to process the temperature measurement
-
-  if ( u8g.getMode() == U8G_MODE_R3G3B2 ) {
-    u8g.setColorIndex(1);     // white
-  }
-  else if ( u8g.getMode() == U8G_MODE_GRAY2BIT ) {
-    u8g.setColorIndex(3);         // max intensity
-  }
-  else if ( u8g.getMode() == U8G_MODE_BW ) {
-    u8g.setColorIndex(1);         // pixel on
-  }
-  else if ( u8g.getMode() == U8G_MODE_HICOLOR ) {
-    u8g.setHiColorByRGB(100,10,10);
-  }
+  uint8_t sensorAddr[8];
+  sensors.getAddress(sensorAddr, 0);
+  sprintf(ADDR_STR, "%02X%02X%02X%02X%02X%02X%02X%02X", sensorAddr[0], sensorAddr[1], sensorAddr[2], sensorAddr[3], sensorAddr[4], sensorAddr[5], sensorAddr[6], sensorAddr[7]);
+  serialPrintf("[%s:1]\n", ADDR_STR);
   
-  pinMode(8, OUTPUT);
-  i = 0;  
+  startTime = millis();
+  if ( u8g.getMode() == U8G_MODE_BW )
+  {
+    u8g.setColorIndex(1);
+  }
 }
 
-void loop() {
-  // call sensors.requestTemperatures() to issue a global temperature 
-  // request to all devices on the bus
-  char temp[30];
-  Serial.print("Requesting temperatures...");
-  sensors.requestTemperatures(); // Send the command to get temperatures
-  Serial.println("DONE");
+void loop()
+{
+  unsigned long currentTime = millis();
+  if (touchUp.capacitiveSensor(30) > 100)
+  {
+    serialPrintf("[%s:3]\n", ADDR_STR); 
+  }
+  if (touchDown.capacitiveSensor(30) > 100)
+  {
+    serialPrintf("[%s:4]\n", ADDR_STR); 
+  }
   
-  Serial.print("Temperature for Device 1 is: ");
-  Serial.println(sensors.getTempCByIndex(0)); // Why "byIndex"? You can have more than one IC on the same bus. 0 refers to the first IC on the wire
-  char tempVal[10];
-  dtostrf(sensors.getTempCByIndex(0), 2, 1, tempVal);
-  //floatToString(tempVal,sensors.getTempCByIndex(0),0,7,true);
-  sprintf(temp, "%s", tempVal);
-  
-  Serial.println(temp); 
+  if (!tempRequested && (((currentTime - startTime) > TEMP_INTERVAL_SECONDS * 1000) || bootFlag))
+  {
+    startTime = millis();
+    sensors.requestTemperatures(); // Send the command to get temperatures
+    tempRequested = true;
+    bootFlag = false;
+  }
+  if (tempRequested && ((currentTime - startTime) > TEMP_MEASURE_TIME_SECONDS * 1000))
+  {
+    startTime = millis();
+    tempRequested = false;
+    tempCurrent = sensors.getTempCByIndex(0);    
+    char tempStr[4];
+    dtostrf(tempCurrent, 2, 1, tempStr);
+    serialPrintf("[%s:2:%s]\n", ADDR_STR, tempStr);
+  }
+ 
   u8g.firstPage();  
   do {
-    draw(temp);
-    //u8g.drawStr( 2, 32, "Temperatuur:");
-    
-    char buffer [33];
-    itoa(i, buffer, 10);
-   // u8g.setFont(u8g_font_gdr25);
-  //  u8g.drawStr( 50, 50, buffer);
-    //delay(500);
-    
+    draw();
   } while( u8g.nextPage() );
 
-  ++i;
-   if (i > 32) i = 0;
-  
   // rebuild the picture after some delay
-  delay(2000);
+  delay(50);
 }
