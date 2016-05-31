@@ -104,7 +104,7 @@ void loop()
     tempRequested = false;
     tempCurrent = sensors.getTempCByIndex(0);    
     char tempStr[4];
-    dtostrf(tempCurrent, 2, 1, tempStr);
+    dtostrf(tempCurrent, 2, 2, tempStr);
     serialPrintf("[%s:2:%s]\n", ADDR_STR, tempStr);
   }
  
