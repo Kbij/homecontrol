@@ -9,6 +9,9 @@
 
 #include "Comm/Server.h"
 #include "Comm/SocketFactory.h"
+#include "Comm/Serial.h"
+#include "Comm/TemperatureSensors.h"
+#include "DAL/TemperatureWriter.h"
 #include "Logic/ObjectPrinter.h"
 #include "DAL/ObjectWriter.h"
 #include <string>
@@ -186,9 +189,21 @@ int main (int argc, char* argv[])
 
 //		server->registerCommListener(printer);
 		server->registerCommListener(writer);
+
+		CommNs::Serial* serial = new CommNs::Serial("/dev/ttyAMA0", 9600);
+		CommNs::TemperatureSensors* sensors = new CommNs::TemperatureSensors(serial);
+		DalNs::TemperatureWriter* tempWriter = new DalNs::TemperatureWriter;
+		sensors->registerTemperatureListener(tempWriter);
+
     	// Wait until application stopped by a signal handler
         std::unique_lock<std::mutex> lk(exitMutex);
         exitCv.wait(lk, []{return exitMain;});
+
+        sensors->unRegisterTemperatureListener(tempWriter);
+        delete tempWriter;
+        delete sensors;
+        delete serial;
+
 //        server->unRegisterCommListener(printer);
         server->unRegisterCommListener(writer);
 

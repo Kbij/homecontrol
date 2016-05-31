@@ -15,7 +15,7 @@
 namespace CommNs {
 class SerialListenerIf;
 
-class Serial: SerialIf
+class Serial: public SerialIf
 {
 public:
 	Serial(std::string port, unsigned int baudRate);
