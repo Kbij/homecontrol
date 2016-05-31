@@ -6,12 +6,16 @@
  */
 
 #include <Comm/Serial.h>
+#include <Comm/SerialListenerIf.h>
 
 namespace CommNs {
 
 Serial::Serial(std::string port, unsigned int baudRate):
-		mIo(),
-		mSerial(mIo,port)
+	mListener(nullptr),
+	mIo(),
+	mSerial(mIo,port),
+	mSerialThreadRunning(false),
+	mSerialThread(nullptr)
 {
 	mSerial.set_option(boost::asio::serial_port_base::baud_rate(baudRate));
 }
@@ -19,14 +23,24 @@ Serial::Serial(std::string port, unsigned int baudRate):
 Serial::~Serial()
 {
 }
+
+void Serial::registerSerialListener(SerialListenerIf* listener)
+{
+	mListener = listener;
+}
+
+void Serial::unRegisterSerialListener()
+{
+	mListener = nullptr;
+}
 /**
  * Write a string to the serial device.
  * \param s string to write
  * \throws boost::system::system_error on failure
  */
-void Serial::writeString(std::string s)
+void Serial::writeLine(const std::string& line)
 {
-    boost::asio::write(mSerial,boost::asio::buffer(s.c_str(),s.size()));
+    boost::asio::write(mSerial,boost::asio::buffer(line.c_str(),line.size()));
 }
 
 /**
@@ -55,4 +69,42 @@ std::string Serial::readLine()
         }
     }
 }
+
+void Serial::startSerialThread()
+{
+	if (!mSerialThreadRunning)
+	{
+		mSerialThreadRunning = true;
+		mSerialThread = new std::thread(&Serial::serialThread, this);
+	}
+}
+
+void Serial::stopSerialThread()
+{
+	mSerialThreadRunning = false;
+
+    if (mSerialThreadRunning)
+    {
+    	mSerialThread->join();
+    	delete mSerialThread;
+    	mSerialThread = nullptr;
+    }
+}
+
+void Serial::serialThread()
+{
+	while(mSerialThreadRunning)
+	{
+		std::string line = readLine();
+		if (line.size() > 0)
+		{
+			if (mListener)
+			{
+				mListener->receiveLine(line);
+			}
+		}
+
+	}
+}
+
 } /* namespace CommNs */

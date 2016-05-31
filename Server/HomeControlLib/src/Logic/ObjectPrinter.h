@@ -9,9 +9,9 @@
 #define LOGIC_OBJECTPRINTER_H_
 #include "Comm/CommListenerIf.h"
 
-namespace CommNs {
+namespace LogicNs {
 
-class ObjectPrinter: public CommListenerIf
+class ObjectPrinter: public CommNs::CommListenerIf
 {
 public:
 	ObjectPrinter();
@@ -19,9 +19,9 @@ public:
 
 	void clientConnected(const std::string& name);
 	void clientDisConnected(const std::string& name);
-	void receiveObject(const std::string name, const CommObjectIf* object);
+	void receiveObject(const std::string name, const CommNs::CommObjectIf* object);
 };
 
-} /* namespace CommNs */
+} /* namespace LogicNs */
 
 #endif /* LOGIC_OBJECTPRINTER_H_ */

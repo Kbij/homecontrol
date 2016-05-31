@@ -7,20 +7,36 @@
 
 
 #include "Comm/Serial.h"
+#include "Comm/SerialListenerIf.h"
 #include "gtest/gtest.h"
 #include "glog/stl_logging.h"
 #include "glog/logging.h"
 #include <string>
 #include <thread>
+#include <atomic>
+
+class SerialListener: public CommNs::SerialListenerIf
+{
+public:
+	SerialListener(): mLastLine(), mLineCount() {} ;
+	~SerialListener() {};
+
+	void receiveLine(const std::string& line)
+	{
+		mLastLine = line;
+		++mLineCount;
+	}
+	std::string mLastLine;
+	std::atomic_int mLineCount;
+};
 
 TEST(Serial, Receive)
 {
 	CommNs::Serial* serial = new CommNs::Serial("/dev/ttyAMA0", 9600);
-	int i = 0;
-	while (i < 10)
-	{
-		LOG(INFO) << serial->readLine();
-		++i;
-	}
+	SerialListener serialListener;
+	serial->registerSerialListener(&serialListener);
+	std::this_thread::sleep_for(std::chrono::seconds(60));
+
+	serial->unRegisterSerialListener();
 	delete serial;
 }

@@ -9,7 +9,7 @@
 #include "CommObjects/CommObjectIf.h"
 #include "glog/logging.h"
 
-namespace CommNs {
+namespace LogicNs {
 
 ObjectPrinter::ObjectPrinter()
 {
@@ -29,7 +29,7 @@ void ObjectPrinter::clientDisConnected(const std::string& name)
 	LOG(INFO) << "Client disconnected: " << name;
 }
 
-void ObjectPrinter::receiveObject(const std::string name, const CommObjectIf* object)
+void ObjectPrinter::receiveObject(const std::string name, const CommNs::CommObjectIf* object)
 {
 	if (object)
 	{
@@ -38,4 +38,4 @@ void ObjectPrinter::receiveObject(const std::string name, const CommObjectIf* ob
 }
 
 
-} /* namespace CommNs */
+} /* namespace LogicNs */
