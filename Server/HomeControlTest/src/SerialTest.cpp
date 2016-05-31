@@ -23,6 +23,7 @@ public:
 
 	void receiveLine(const std::string& line)
 	{
+		LOG(INFO) << "Received: " << line;
 		mLastLine = line;
 		++mLineCount;
 	}
