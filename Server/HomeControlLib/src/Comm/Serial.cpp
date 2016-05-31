@@ -18,10 +18,12 @@ Serial::Serial(std::string port, unsigned int baudRate):
 	mSerialThread(nullptr)
 {
 	mSerial.set_option(boost::asio::serial_port_base::baud_rate(baudRate));
+	startSerialThread();
 }
 
 Serial::~Serial()
 {
+	stopSerialThread();
 }
 
 void Serial::registerSerialListener(SerialListenerIf* listener)
