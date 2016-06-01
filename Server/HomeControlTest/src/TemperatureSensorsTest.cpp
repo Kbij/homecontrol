@@ -129,13 +129,13 @@ TEST(TemperatureSensors, ReceiveInvalidTemperature)
 	delete sensors;
 }
 
-TEST(TemperatureSensors, Filter)
+void filter(const std::string& inputFile, const std::string& outputFile)
 {
 	TemperatureSensorStub tempSensorStub;
 	LogicNs::TemperatureFilter* filter = new LogicNs::TemperatureFilter(&tempSensorStub);
-	std::remove("Processed.csv");
-	std::ifstream inFile("../testdata/LivingTemperatuur.csv");
-	std::ofstream ofFile("Processed.csv");
+	std::remove(outputFile.c_str());
+	std::ifstream inFile(inputFile);
+	std::ofstream ofFile(outputFile);
 	std::string line;
 	while (std::getline(inFile, line))
 	{
@@ -159,4 +159,10 @@ TEST(TemperatureSensors, Filter)
 	}
 	ofFile.close();
 	delete filter;
+}
+
+TEST(TemperatureSensors, Filter)
+{
+	filter("../testdata/LivingTemperatuur.csv", "Processed.csv");
+	filter("../testdata/LivingTemperatuur2.csv", "Processed2.csv");
 }
