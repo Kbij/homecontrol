@@ -18,7 +18,7 @@ public:
 	virtual ~TemperatureWriter();
 
 	void sensorStarted(const std::string& sensorId);
-	void sensorTemperature(const std::string& sensorId, float temperature);
+	void sensorTemperature(const std::string& sensorId, double temperature);
 	void sensorSetTemperatureUp(const std::string& sensorId);
 	void sensorSetTemperatureDown(const std::string& sensorId);
 };

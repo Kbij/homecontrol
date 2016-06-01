@@ -13,6 +13,7 @@
 #include "Comm/TemperatureSensors.h"
 #include "DAL/TemperatureWriter.h"
 #include "Logic/ObjectPrinter.h"
+#include "Logic/TemperatureFilter.h"
 #include "DAL/ObjectWriter.h"
 #include <string>
 #include <glog/logging.h>
@@ -193,13 +194,15 @@ int main (int argc, char* argv[])
 		CommNs::Serial* serial = new CommNs::Serial("/dev/ttyAMA0", 9600);
 		CommNs::TemperatureSensors* sensors = new CommNs::TemperatureSensors(serial);
 		DalNs::TemperatureWriter* tempWriter = new DalNs::TemperatureWriter;
-		sensors->registerTemperatureListener(tempWriter);
+		LogicNs::TemperatureFilter* filter = new LogicNs::TemperatureFilter(tempWriter);
+		sensors->registerTemperatureListener(filter);
 
     	// Wait until application stopped by a signal handler
         std::unique_lock<std::mutex> lk(exitMutex);
         exitCv.wait(lk, []{return exitMain;});
 
-        sensors->unRegisterTemperatureListener(tempWriter);
+        sensors->unRegisterTemperatureListener(filter);
+        delete filter;
         delete tempWriter;
         delete sensors;
         delete serial;

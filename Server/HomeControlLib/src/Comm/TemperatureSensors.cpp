@@ -10,6 +10,7 @@
 #include "Logic/TemperatureListenerIf.h"
 #include <glog/logging.h>
 #include <boost/algorithm/string.hpp>
+
 namespace
 {
 const int SERIAL_POS = 0;

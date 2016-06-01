@@ -17,7 +17,7 @@ public:
 	virtual ~TemperatureListenerIf() {};
 
 	virtual void sensorStarted(const std::string& sensorId) = 0;
-	virtual void sensorTemperature(const std::string& sensorId, float temperature) = 0;
+	virtual void sensorTemperature(const std::string& sensorId, double temperature) = 0;
 	virtual void sensorSetTemperatureUp(const std::string& sensorId) = 0;
 	virtual void sensorSetTemperatureDown(const std::string& sensorId) = 0;
 };

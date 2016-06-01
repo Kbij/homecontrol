@@ -31,7 +31,7 @@ void TemperatureWriter::sensorStarted(const std::string& sensorId)
 
 }
 
-void TemperatureWriter::sensorTemperature(const std::string& sensorId, float temperature)
+void TemperatureWriter::sensorTemperature(const std::string& sensorId, double temperature)
 {
 	try
 	{

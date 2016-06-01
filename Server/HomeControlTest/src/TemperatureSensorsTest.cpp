@@ -10,11 +10,15 @@
 #include "Comm/SerialListenerIf.h"
 #include "Comm/TemperatureSensors.h"
 #include "Logic/TemperatureListenerIf.h"
+#include "Logic/TemperatureFilter.h"
 #include "gtest/gtest.h"
 #include "glog/stl_logging.h"
 #include "glog/logging.h"
+#include <algorithm>
 #include <string>
 #include <thread>
+#include <fstream>
+#include <boost/algorithm/string.hpp>
 
 class TemperatureSensorStub: public LogicNs::TemperatureListenerIf
 {
@@ -26,7 +30,7 @@ public:
 	{
 		mLastId = sensorId;
 	}
-	void sensorTemperature(const std::string& sensorId, float temperature)
+	void sensorTemperature(const std::string& sensorId, double temperature)
 	{
 		mLastId = sensorId;
 		mLastTemperature = temperature;
@@ -40,7 +44,7 @@ public:
 		mLastId = sensorId;
 	}
 	std::string mLastId;
-	float mLastTemperature;
+	double mLastTemperature;
 };
 
 TEST(TemperatureSensors, Constructor)
@@ -123,4 +127,36 @@ TEST(TemperatureSensors, ReceiveInvalidTemperature)
 
 	sensors->unRegisterTemperatureListener(&tempSensorStub);
 	delete sensors;
+}
+
+TEST(TemperatureSensors, Filter)
+{
+	TemperatureSensorStub tempSensorStub;
+	LogicNs::TemperatureFilter* filter = new LogicNs::TemperatureFilter(&tempSensorStub);
+	std::remove("Processed.csv");
+	std::ifstream inFile("../testdata/LivingTemperatuur.csv");
+	std::ofstream ofFile("Processed.csv");
+	std::string line;
+	while (std::getline(inFile, line))
+	{
+		std::vector<std::string> lineParts;
+		boost::split(lineParts, line, boost::is_any_of(";"));
+		if (lineParts.size() < 2 )
+		{
+			LOG(ERROR) << "Invalid line: " << line;
+			continue;
+		}
+		std::cout << line << std::endl;
+		try
+		{
+			std::string tempString = lineParts[2];
+			std::replace(tempString.begin(), tempString.end(), ',', '.');
+			float tempRead = std::stof(tempString);
+			filter->sensorTemperature("MYSENSOR", tempRead);
+			ofFile << lineParts[0] << ";" << lineParts[1] << ";" << tempRead << ";" << tempSensorStub.mLastTemperature << "\n";
+		}
+		catch (...) {};
+	}
+	ofFile.close();
+	delete filter;
 }
