@@ -36,8 +36,10 @@ void TemperatureWriter::sensorTemperature(const std::string& sensorId, double te
 	try
 	{
 		std::stringstream insert;
-		insert << "INSERT INTO TempTemperatures (date, temp)";
-		insert << " VALUES (NOW(), '" << temperature << "'); ";
+		insert << "INSERT INTO Temperature (idSensor, temperature, date) ";
+		insert << " SELECT TemperatureSensor.idTemperatureSensor, " << temperature << ", NOW() ";
+		insert << " FROM TemperatureSensor where sensorAddress = '" << sensorId << "'";
+
 		sql::Driver *driver;
 		sql::Connection *con;
 		sql::Statement *stmt;
