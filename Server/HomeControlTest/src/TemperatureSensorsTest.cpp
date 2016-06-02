@@ -19,6 +19,7 @@
 #include <thread>
 #include <fstream>
 #include <boost/algorithm/string.hpp>
+#include <sstream>
 
 class TemperatureSensorStub: public LogicNs::TemperatureListenerIf
 {
@@ -132,7 +133,7 @@ TEST(TemperatureSensors, ReceiveInvalidTemperature)
 void filter(const std::string& inputFile, const std::string& outputFile)
 {
 	TemperatureSensorStub tempSensorStub;
-	LogicNs::TemperatureFilter* filter = new LogicNs::TemperatureFilter(&tempSensorStub);
+	LogicNs::TemperatureFilter* filter = new LogicNs::TemperatureFilter(&tempSensorStub, 10);
 	std::remove(outputFile.c_str());
 	std::ifstream inFile(inputFile);
 	std::ofstream ofFile(outputFile);
@@ -153,7 +154,16 @@ void filter(const std::string& inputFile, const std::string& outputFile)
 			std::replace(tempString.begin(), tempString.end(), ',', '.');
 			float tempRead = std::stof(tempString);
 			filter->sensorTemperature("MYSENSOR", tempRead);
-			ofFile << lineParts[0] << ";" << lineParts[1] << ";" << tempRead << ";" << tempSensorStub.mLastTemperature << "\n";
+
+			if (tempSensorStub.mLastTemperature)
+			{
+
+				std::stringstream ss;
+				ss << lineParts[0] << ";" << lineParts[1] << ";" << tempRead << ";" << tempSensorStub.mLastTemperature << "\n";
+				std::string outputLine = ss.str();
+				std::replace(outputLine.begin(), outputLine.end(), '.', ',');
+				ofFile << outputLine;
+			}
 		}
 		catch (...) {};
 	}

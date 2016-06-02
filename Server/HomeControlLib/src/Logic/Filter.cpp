@@ -44,6 +44,7 @@
 Filter::Filter(filterType filt_t, int num_taps, double Fs, double Fx)
 {
 	m_error_flag = 0;
+	m_sampleCount = 0;
 	m_filt_t = filt_t;
 	m_num_taps = num_taps;
 	m_Fs = Fs;
@@ -73,6 +74,7 @@ Filter::Filter(filterType filt_t, int num_taps, double Fs, double Fl,
                double Fu)
 {
 	m_error_flag = 0;
+	m_sampleCount = 0;
 	m_filt_t = filt_t;
 	m_num_taps = num_taps;
 	m_Fs = Fs;
@@ -260,5 +262,15 @@ Filter::do_sample(double data_sample)
 	result = 0;
 	for(i = 0; i < m_num_taps; i++) result += m_sr[i] * m_taps[i];
 
+	if (m_sampleCount < m_num_taps)
+	{
+		++m_sampleCount;
+	}
+
 	return result;
+}
+
+bool Filter::hasEnoughSamples()
+{
+	return (m_sampleCount >= m_num_taps);
 }

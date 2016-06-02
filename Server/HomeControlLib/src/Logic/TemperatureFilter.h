@@ -10,13 +10,14 @@
 #include "TemperatureListenerIf.h"
 #include "Filter.h"
 #include <map>
+#include <vector>
 
 namespace LogicNs {
 
 class TemperatureFilter: public TemperatureListenerIf
 {
 public:
-	TemperatureFilter(TemperatureListenerIf* listener);
+	TemperatureFilter(TemperatureListenerIf* listener, size_t sampleCount);
 	virtual ~TemperatureFilter();
 
 	void sensorStarted(const std::string& sensorId);
@@ -25,8 +26,9 @@ public:
 	void sensorSetTemperatureDown(const std::string& sensorId);
 private:
 	TemperatureListenerIf* mListener;
-	std::map<std::string, Filter*> mFilters;
-	Filter* getFilter(const std::string& sensorId);
+	const size_t mSampleCount;
+	std::map<std::string, std::vector<double>> mTemperatureHistory;
+//	Filter* getFilter(const std::string& sensorId);
 };
 
 } /* namespace LogicNs */
