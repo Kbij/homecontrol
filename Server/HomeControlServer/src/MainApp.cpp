@@ -194,7 +194,7 @@ int main (int argc, char* argv[])
 		CommNs::Serial* serial = new CommNs::Serial("/dev/ttyAMA0", 9600);
 		CommNs::TemperatureSensors* sensors = new CommNs::TemperatureSensors(serial);
 		DalNs::TemperatureWriter* tempWriter = new DalNs::TemperatureWriter;
-		LogicNs::TemperatureFilter* filter = new LogicNs::TemperatureFilter(tempWriter);
+		LogicNs::TemperatureFilter* filter = new LogicNs::TemperatureFilter(tempWriter, 10);
 		sensors->registerTemperatureListener(filter);
 
     	// Wait until application stopped by a signal handler
