@@ -28,7 +28,33 @@ TemperatureWriter::~TemperatureWriter()
 
 void TemperatureWriter::sensorStarted(const std::string& sensorId)
 {
+	try
+	{
+		std::stringstream insert;
+		insert << "INSERT IGNORE INTO TemperatureSensor (sensorAddress)";
+		insert << " VALUES ('" << sensorId << "'); ";
 
+		sql::Driver *driver;
+		sql::Connection *con;
+		sql::Statement *stmt;
+
+		/* Create a connection */
+		driver = get_driver_instance();
+		con = driver->connect("tcp://127.0.0.1:3306", "hc", "bugs bunny");
+
+		con->setSchema("HC_DB");
+
+		stmt = con->createStatement();
+		stmt->execute(insert.str());
+		delete stmt;
+
+		con->close();
+		delete con;
+	}
+	catch (sql::SQLException &ex)
+	{
+		LOG(ERROR) << "clientConnected, SQLExceptin: " << ex.what() << ", MySQL error code: " << ex.getErrorCode() << ", SQLState: " << ex.getSQLState();
+	}
 }
 
 void TemperatureWriter::sensorTemperature(const std::string& sensorId, double temperature)
@@ -47,7 +73,7 @@ void TemperatureWriter::sensorTemperature(const std::string& sensorId, double te
 		/* Create a connection */
 		driver = get_driver_instance();
 		con = driver->connect("tcp://127.0.0.1:3306", "hc", "bugs bunny");
-		/* Connect to the MySQL test database */
+
 		con->setSchema("HC_DB");
 
 		stmt = con->createStatement();
