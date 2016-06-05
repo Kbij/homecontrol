@@ -13,17 +13,27 @@
 #include <string>
 #include <set>
 #include <mutex>
+#include <tuple>
+#include <list>
+#include <vector>
 
+namespace CommNs
+{
+class Server;
+class Serial;
+}
 namespace DalNs
 {
 class HomeControlDalIf;
 }
 namespace LogicNs {
+class RoomControl;
+
 
 class HomeControl: public RoomListenerIf, public CommNs::CommListenerIf, public TemperatureListenerIf
 {
 public:
-	HomeControl(DalNs::HomeControlDalIf* dal);
+	HomeControl(DalNs::HomeControlDalIf* dal, CommNs::Server* server);
 	virtual ~HomeControl();
 
 	//RoomListenerIf
@@ -44,8 +54,13 @@ public:
 	void sensorSetTemperatureDown(const std::string& sensorId);
 private:
 	DalNs::HomeControlDalIf* mDal;
+	CommNs::Server* mCommServer;
 	std::set<std::string> mConnnectedClients;
 	std::mutex mDataMutex;
+	//std::list<std::tuple<std::vector<std::string>, RoomControl*>> mRooms;
+
+	RoomControl* findRoomByRoomId(const std::string& roomId);
+	RoomControl* findRoomBySensorId(const std::string& sensorId);
 };
 
 } /* namespace LogicNs */

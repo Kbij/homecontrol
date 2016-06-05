@@ -6,18 +6,23 @@
  */
 
 #include <Logic/HomeControl.h>
+#include "Comm/Server.h"
+#include "Comm/Serial.h"
 
 namespace LogicNs {
 
-HomeControl::HomeControl(DalNs::HomeControlDalIf* dal):
+HomeControl::HomeControl(DalNs::HomeControlDalIf* dal, CommNs::Server* server):
 	mDal(dal),
+	mCommServer(server),
 	mConnnectedClients(),
 	mDataMutex()
 {
+	if (mCommServer) mCommServer->registerCommListener(this);
 }
 
 HomeControl::~HomeControl()
 {
+	if (mCommServer) mCommServer->unRegisterCommListener(this);
 }
 
 void HomeControl::temperatureChanged(const std::string& roomId, double temperature)
@@ -76,4 +81,20 @@ void HomeControl::sensorSetTemperatureDown(const std::string& sensorId)
 {
 
 }
+
+RoomControl* HomeControl::findRoomByRoomId(const std::string& roomId)
+{
+	std::lock_guard<std::mutex> lg(mDataMutex);
+	//for (const auto& room: mRooms)
+	{
+	//	if (room-)
+	}
+//	std::list<std::vector<std::string>, RoomControl*> mRooms;
+}
+
+RoomControl* findRoomBySensorId(const std::string& sensorId)
+{
+
+}
+
 } /* namespace LogicNs */

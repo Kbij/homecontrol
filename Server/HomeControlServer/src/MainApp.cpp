@@ -14,6 +14,7 @@
 #include "DAL/TemperatureWriter.h"
 #include "Logic/ObjectPrinter.h"
 #include "Logic/TemperatureFilter.h"
+#include "Logic/HomeControl.h"
 #include "DAL/ObjectWriter.h"
 #include <string>
 #include <glog/logging.h>
@@ -183,18 +184,17 @@ int main (int argc, char* argv[])
 		LOG(INFO) << "Home Control ServerApp";
 		LOG(INFO) << "======================";
 
-//		CommNs::ObjectPrinter* printer = new CommNs::ObjectPrinter;
 		DalNs::ObjectWriter* writer = new DalNs::ObjectWriter;
 		CommNs::SocketFactory* factory = new CommNs::SocketFactory;
 		CommNs::Server* server = new CommNs::Server(factory, 5678);
 
-//		server->registerCommListener(printer);
 		server->registerCommListener(writer);
-
 		CommNs::Serial* serial = new CommNs::Serial("/dev/ttyAMA0", 9600);
+
+		LogicNs::HomeControl* homeControl = new LogicNs::HomeControl(nullptr, server, serial);
 		CommNs::TemperatureSensors* sensors = new CommNs::TemperatureSensors(serial);
 		DalNs::TemperatureWriter* tempWriter = new DalNs::TemperatureWriter;
-		LogicNs::TemperatureFilter* filter = new LogicNs::TemperatureFilter(tempWriter, 10);
+		LogicNs::TemperatureFilter* filter = new LogicNs::TemperatureFilter(homeControl, 10);
 		sensors->registerTemperatureListener(filter);
 
     	// Wait until application stopped by a signal handler
@@ -205,12 +205,11 @@ int main (int argc, char* argv[])
         delete filter;
         delete tempWriter;
         delete sensors;
+        delete homeControl
         delete serial;
 
-//        server->unRegisterCommListener(printer);
         server->unRegisterCommListener(writer);
 
-//        delete printer;
         delete writer;
         delete server;
         delete factory;
