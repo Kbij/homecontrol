@@ -10,6 +10,7 @@
 #include "Logic/TemperatureListenerIf.h"
 #include <glog/logging.h>
 #include <boost/algorithm/string.hpp>
+#include <iomanip>
 
 namespace
 {
@@ -49,6 +50,18 @@ void TemperatureSensors::unRegisterTemperatureListener(LogicNs::TemperatureListe
 {
 	std::lock_guard<std::mutex> lg(mDataMutex);
 	mListeners.erase(listener);
+}
+
+void TemperatureSensors::writeSetTemperature(const std::string& sensorId, double temperature)
+{
+	if (mSerial)
+	{
+		std::stringstream ss;
+		ss << "[" << sensorId << ":5:"  << std::fixed << std::setprecision(2) << temperature << "]";
+		std::string outputLine = ss.str();
+		std::replace(outputLine.begin(), outputLine.end(), '.', ',');
+		mSerial->writeLine(outputLine);
+	}
 }
 
 void TemperatureSensors::receiveLine(const std::string& line)

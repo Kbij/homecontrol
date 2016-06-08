@@ -7,7 +7,7 @@
 
 #ifndef COMM_SERVER_H_
 #define COMM_SERVER_H_
-
+#include "CommServerIf.h"
 #include "ClientListenerIf.h"
 #include <set>
 #include <mutex>
@@ -20,14 +20,17 @@ class SocketFactoryIf;
 class CommListenerIf;
 class Client;
 
-class Server: ClientListenerIf
+class Server: public ClientListenerIf, public CommServerIf
 {
 public:
 	Server(SocketFactoryIf* factory, int port);
 	virtual ~Server();
 
+	//CommServerIf
 	void registerCommListener(CommListenerIf* listener);
 	void unRegisterCommListener(CommListenerIf* listener);
+	// Server takes ownership
+	void sendObject(const std::string name, CommObjectIf* object);
 
 	// ClientListenerIf
 	Client* newClient();

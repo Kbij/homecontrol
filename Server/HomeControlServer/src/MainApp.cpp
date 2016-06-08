@@ -14,7 +14,7 @@
 #include "DAL/TemperatureWriter.h"
 #include "Logic/ObjectPrinter.h"
 #include "Logic/TemperatureFilter.h"
-#include "Logic/HomeControl.h"
+#include "Logic/CommRouter.h"
 #include "DAL/ObjectWriter.h"
 #include <string>
 #include <glog/logging.h>
@@ -191,21 +191,21 @@ int main (int argc, char* argv[])
 		server->registerCommListener(writer);
 		CommNs::Serial* serial = new CommNs::Serial("/dev/ttyAMA0", 9600);
 
-		LogicNs::HomeControl* homeControl = new LogicNs::HomeControl(nullptr, server, serial);
+	//	LogicNs::CommRouter* commRouter = new LogicNs::CommRouter(nullptr, server, serial);
 		CommNs::TemperatureSensors* sensors = new CommNs::TemperatureSensors(serial);
 		DalNs::TemperatureWriter* tempWriter = new DalNs::TemperatureWriter;
-		LogicNs::TemperatureFilter* filter = new LogicNs::TemperatureFilter(homeControl, 10);
-		sensors->registerTemperatureListener(filter);
+	//	LogicNs::TemperatureFilter* filter = new LogicNs::TemperatureFilter(tempWriter, 10);
+		sensors->registerTemperatureListener(tempWriter);
 
     	// Wait until application stopped by a signal handler
         std::unique_lock<std::mutex> lk(exitMutex);
         exitCv.wait(lk, []{return exitMain;});
 
-        sensors->unRegisterTemperatureListener(filter);
-        delete filter;
-        delete tempWriter;
+        sensors->unRegisterTemperatureListener(tempWriter);
+    //    delete filter;
+    //    delete tempWriter;
         delete sensors;
-        delete homeControl
+    //    delete commRouter;
         delete serial;
 
         server->unRegisterCommListener(writer);

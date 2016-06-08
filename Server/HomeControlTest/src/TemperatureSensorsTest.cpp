@@ -48,6 +48,22 @@ public:
 	double mLastTemperature;
 };
 
+class SerialStub: public CommNs::SerialIf
+{
+public:
+	SerialStub(): mLastSend() {};
+	virtual ~SerialStub() {};
+
+	void registerSerialListener(CommNs::SerialListenerIf* listener) {};
+	void unRegisterSerialListener() {};
+
+	void writeLine(const std::string& line)
+	{
+		mLastSend = line;
+	}
+	std::string mLastSend;
+};
+
 TEST(TemperatureSensors, Constructor)
 {
 	CommNs::TemperatureSensors* sensors = new CommNs::TemperatureSensors(nullptr);
@@ -147,7 +163,7 @@ void filter(const std::string& inputFile, const std::string& outputFile)
 			LOG(ERROR) << "Invalid line: " << line;
 			continue;
 		}
-		std::cout << line << std::endl;
+
 		try
 		{
 			std::string tempString = lineParts[2];
@@ -175,4 +191,14 @@ TEST(TemperatureSensors, Filter)
 {
 	filter("../testdata/LivingTemperatuur.csv", "Processed.csv");
 	filter("../testdata/LivingTemperatuur2.csv", "Processed2.csv");
+}
+
+TEST(TemperatureSensors, SendSetTemperature)
+{
+	SerialStub serialStub;
+	CommNs::TemperatureSensors* sensors = new CommNs::TemperatureSensors(&serialStub);
+
+	sensors->writeSetTemperature("mySensor", 25.6);
+	EXPECT_EQ(serialStub.mLastSend, "[mySensor:5:25,60]");
+	delete sensors;
 }

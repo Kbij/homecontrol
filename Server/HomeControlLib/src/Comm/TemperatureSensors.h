@@ -8,6 +8,7 @@
 #ifndef COMM_TEMPERATURESENSORS_H_
 #define COMM_TEMPERATURESENSORS_H_
 #include "SerialListenerIf.h"
+#include "TemperatureSensorsIf.h"
 #include <set>
 #include <mutex>
 
@@ -19,7 +20,7 @@ class TemperatureListenerIf;
 namespace CommNs {
 class SerialIf;
 
-class TemperatureSensors: SerialListenerIf
+class TemperatureSensors: public SerialListenerIf, public TemperatureSensorsIf
 {
 public:
 	TemperatureSensors(SerialIf* serial);
@@ -28,8 +29,11 @@ public:
 	//SerialListenerIf
 	void receiveLine(const std::string& line);
 
+	//TemperatureSensorsIf
 	void registerTemperatureListener(LogicNs::TemperatureListenerIf* listener);
 	void unRegisterTemperatureListener(LogicNs::TemperatureListenerIf* listener);
+
+	void writeSetTemperature(const std::string& sensorId, double temperature);
 private:
 	SerialIf* mSerial;
 	std::set<LogicNs::TemperatureListenerIf*> mListeners;

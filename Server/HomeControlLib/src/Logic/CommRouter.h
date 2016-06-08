@@ -13,14 +13,14 @@
 #include <string>
 #include <set>
 #include <mutex>
-#include <tuple>
+#include <utility>
 #include <list>
-#include <vector>
+#include <set>
 
 namespace CommNs
 {
-class Server;
-class Serial;
+class CommServerIf;
+class TemperatureSensorsIf;
 }
 namespace DalNs
 {
@@ -30,11 +30,11 @@ namespace LogicNs {
 class RoomControl;
 
 
-class HomeControl: public RoomListenerIf, public CommNs::CommListenerIf, public TemperatureListenerIf
+class CommRouter: public RoomListenerIf, public CommNs::CommListenerIf, public TemperatureListenerIf
 {
 public:
-	HomeControl(DalNs::HomeControlDalIf* dal, CommNs::Server* server);
-	virtual ~HomeControl();
+	CommRouter(DalNs::HomeControlDalIf* dal, CommNs::CommServerIf* server, CommNs::TemperatureSensorsIf* sensors);
+	virtual ~CommRouter();
 
 	//RoomListenerIf
 	void temperatureChanged(const std::string& roomId, double temperature);
@@ -54,13 +54,15 @@ public:
 	void sensorSetTemperatureDown(const std::string& sensorId);
 private:
 	DalNs::HomeControlDalIf* mDal;
-	CommNs::Server* mCommServer;
+	CommNs::CommServerIf* mCommServer;
+	CommNs::TemperatureSensorsIf* mSensors;
 	std::set<std::string> mConnnectedClients;
 	std::mutex mDataMutex;
-	//std::list<std::tuple<std::vector<std::string>, RoomControl*>> mRooms;
+	std::list<std::pair<std::set<std::string>, RoomControl*>> mRooms;
 
-	RoomControl* findRoomByRoomId(const std::string& roomId);
+	RoomControl* findRoomByRoomId(const std::string& roomId, bool useDatabase);
 	RoomControl* findRoomBySensorId(const std::string& sensorId);
+	void addSensorToRoom(const std::string& roomId, const std::string& sensorId);
 };
 
 } /* namespace LogicNs */

@@ -8,6 +8,7 @@
 #ifndef DAL_HOMECONTROLDALIF_H_
 #define DAL_HOMECONTROLDALIF_H_
 #include <string>
+#include <vector>
 
 namespace DalNs {
 struct RoomConfig
@@ -15,18 +16,18 @@ struct RoomConfig
 	std::string RoomId;
 	std::string RoomName;
 	std::vector<std::string> mSensorIds;
-}
+};
 
 class HomeControlDalIf
 {
 public:
 	virtual ~HomeControlDalIf() {};
 
-	RoomConfig* findRoomByRoomId(const std::string& roomId);
-	RoomConfig* findRoomBySensorId(const std::string& sensorId);
+	virtual RoomConfig* findRoomByRoomId(const std::string& roomId) = 0;
+	virtual RoomConfig* findRoomBySensorId(const std::string& sensorId) = 0;
 };
 
-} /* namespace CommNs */
+} /* namespace DalNs */
 
 
 

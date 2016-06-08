@@ -23,6 +23,7 @@ public:
 
 	void registerSerialListener(SerialListenerIf* listener);
 	void unRegisterSerialListener();
+
 	void writeLine(const std::string& line);
 private:
 	SerialListenerIf* mListener;

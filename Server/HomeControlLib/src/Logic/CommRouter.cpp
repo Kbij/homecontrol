@@ -5,96 +5,193 @@
  *      Author: koen
  */
 
-#include <Logic/HomeControl.h>
-#include "Comm/Server.h"
-#include "Comm/Serial.h"
+#include <Logic/CommRouter.h>
+#include "Comm/CommServerIf.h"
+#include "Comm/TemperatureSensorsIf.h"
+#include "Logic/RoomControl.h"
+#include "DAL/HomeControlDalIf.h"
+#include <glog/logging.h>
+#include <algorithm>
 
 namespace LogicNs {
 
-HomeControl::HomeControl(DalNs::HomeControlDalIf* dal, CommNs::Server* server):
+CommRouter::CommRouter(DalNs::HomeControlDalIf* dal, CommNs::CommServerIf* server, CommNs::TemperatureSensorsIf* sensors):
 	mDal(dal),
 	mCommServer(server),
+	mSensors(sensors),
 	mConnnectedClients(),
-	mDataMutex()
+	mDataMutex(),
+	mRooms()
 {
 	if (mCommServer) mCommServer->registerCommListener(this);
+	if (mSensors) mSensors->registerTemperatureListener(this);
 }
 
-HomeControl::~HomeControl()
+CommRouter::~CommRouter()
 {
+	if (mSensors) mSensors->unRegisterTemperatureListener(this);
 	if (mCommServer) mCommServer->unRegisterCommListener(this);
+
+	for (const auto& room: mRooms)
+	{
+		delete room.second;
+	}
 }
 
-void HomeControl::temperatureChanged(const std::string& roomId, double temperature)
+void CommRouter::temperatureChanged(const std::string& roomId, double temperature)
 {
 
 }
 
-void HomeControl::setPointChanged(const std::string& roomId, double setTemperature)
+void CommRouter::setPointChanged(const std::string& roomId, double setTemperature)
 {
 
 }
 
-void HomeControl::heaterOn(const std::string& roomId)
+void CommRouter::heaterOn(const std::string& roomId)
 {
 
 }
 
-void HomeControl::heaterOff(const std::string& roomId)
+void CommRouter::heaterOff(const std::string& roomId)
 {
 
 }
 
-void HomeControl::clientConnected(const std::string& name)
+void CommRouter::clientConnected(const std::string& name)
 {
 	std::lock_guard<std::mutex> lg(mDataMutex);
 	mConnnectedClients.insert(name);
 }
 
-void HomeControl::clientDisConnected(const std::string& name)
+void CommRouter::clientDisConnected(const std::string& name)
 {
 	std::lock_guard<std::mutex> lg(mDataMutex);
 	mConnnectedClients.erase(name);
 }
 
-void HomeControl::receiveObject(const std::string name, const CommNs::CommObjectIf* object)
+void CommRouter::receiveObject(const std::string name, const CommNs::CommObjectIf* object)
 {
 
 }
 
-void HomeControl::sensorStarted(const std::string& sensorId)
-{
-
-}
-
-void HomeControl::sensorTemperature(const std::string& sensorId, double temperature)
-{
-
-}
-
-void HomeControl::sensorSetTemperatureUp(const std::string& sensorId)
-{
-
-}
-
-void HomeControl::sensorSetTemperatureDown(const std::string& sensorId)
-{
-
-}
-
-RoomControl* HomeControl::findRoomByRoomId(const std::string& roomId)
+void CommRouter::sensorStarted(const std::string& sensorId)
 {
 	std::lock_guard<std::mutex> lg(mDataMutex);
-	//for (const auto& room: mRooms)
+
+	RoomControl* room = findRoomBySensorId(sensorId);
+	if (room)
 	{
-	//	if (room-)
+		LOG(INFO) << "Sensor for room: '" << room->roomName() << "' started";
 	}
-//	std::list<std::vector<std::string>, RoomControl*> mRooms;
 }
 
-RoomControl* findRoomBySensorId(const std::string& sensorId)
+void CommRouter::sensorTemperature(const std::string& sensorId, double temperature)
 {
+	std::lock_guard<std::mutex> lg(mDataMutex);
 
+	RoomControl* room = findRoomBySensorId(sensorId);
+	if (room)
+	{
+		room->roomTemperature(temperature);
+	}
 }
 
+void CommRouter::sensorSetTemperatureUp(const std::string& sensorId)
+{
+	std::lock_guard<std::mutex> lg(mDataMutex);
+
+	RoomControl* room = findRoomBySensorId(sensorId);
+	if (room)
+	{
+		room->setPointUp();
+	}
+}
+
+void CommRouter::sensorSetTemperatureDown(const std::string& sensorId)
+{
+	std::lock_guard<std::mutex> lg(mDataMutex);
+
+	RoomControl* room = findRoomBySensorId(sensorId);
+	if (room)
+	{
+		room->setPointDown();
+	}
+}
+
+RoomControl* CommRouter::findRoomByRoomId(const std::string& roomId, bool useDatabase)
+{
+	for (const auto& room: mRooms)
+	{
+		if (room.second->roomId() == roomId)
+		{
+			return room.second;
+		}
+	}
+
+	if (mDal && useDatabase)
+	{
+		LOG(INFO) << "RoomId: '" << roomId << "' not found, trying database";
+		DalNs::RoomConfig* roomConfig = mDal->findRoomByRoomId(roomId);
+		if (roomConfig)
+		{
+			RoomControl* roomControl = new RoomControl(roomConfig->RoomId, roomConfig->RoomName, this);
+			mRooms.push_back(std::make_pair(std::set<std::string>(), roomControl));
+
+			delete roomConfig;
+			return roomControl;
+		}
+		else
+		{
+			LOG(ERROR) << "Room config not found in database";
+		}
+	}
+
+	return nullptr;
+}
+
+RoomControl* CommRouter::findRoomBySensorId(const std::string& sensorId)
+{
+	for (const auto& room: mRooms)
+	{
+		if (std::find(room.first.cbegin(), room.first.cend(), sensorId) != room.first.cend())
+		{
+			return room.second;
+		}
+	}
+	LOG(INFO) << "No room found for SensorId: '" << sensorId << "' not found, trying database";
+
+	DalNs::RoomConfig* roomConfig = mDal->findRoomBySensorId(sensorId);
+	if (roomConfig)
+	{
+		// Could be that the room was already created, but not with our sensorId (Room with multiple sensors)
+		RoomControl* roomControl = findRoomByRoomId(roomConfig->RoomId, false);
+		if (roomControl == nullptr)
+		{   // Room does not exist; construct the room
+			roomControl = new RoomControl(roomConfig->RoomId, roomConfig->RoomName, this);
+			mRooms.push_back(std::make_pair(std::set<std::string>(), roomControl));
+		}
+		addSensorToRoom(roomConfig->RoomId, sensorId);
+
+		delete roomConfig;
+		return roomControl;
+	}
+	else
+	{
+		LOG(ERROR) << "Room config not found in database";
+	}
+
+	return nullptr;
+}
+
+void CommRouter::addSensorToRoom(const std::string& roomId, const std::string& sensorId)
+{
+	for (auto& room: mRooms)
+	{
+		if (room.second->roomId() == roomId)
+		{
+			room.first.insert(sensorId);
+		}
+	}
+}
 } /* namespace LogicNs */

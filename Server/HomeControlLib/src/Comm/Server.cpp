@@ -64,6 +64,11 @@ void Server::unRegisterCommListener(CommListenerIf* listener)
 	}
 }
 
+void Server::sendObject(const std::string name, CommObjectIf* object)
+{
+
+}
+
 Client* Server::newClient()
 {
 	std::lock_guard<std::mutex> lock(mDataMutex);
