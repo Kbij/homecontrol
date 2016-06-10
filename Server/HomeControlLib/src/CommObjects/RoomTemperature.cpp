@@ -7,15 +7,18 @@
 
 #include <CommObjects/RoomTemperature.h>
 #include <sstream>
+#include <json/json.h>
 
 namespace CommNs {
 
-RoomTemperature::RoomTemperature(double temperature):
+RoomTemperature::RoomTemperature(const std::string& roomId, double temperature):
+	mRoomId(roomId),
 	mRoomTemperature(temperature)
 {
 
 }
 RoomTemperature::RoomTemperature(const std::string& json):
+	mRoomId(""),
 	mRoomTemperature(0)
 {
 }
@@ -38,6 +41,11 @@ std::string RoomTemperature::toString() const
 
 std::string RoomTemperature::json() const
 {
-	return "";
+	Json::Value root;
+	root["roomId"] = mRoomId;
+	root["roomTemperature"] = mRoomTemperature;
+
+	Json::FastWriter writer;
+	return writer.write(root);
 }
 } /* namespace CommNs */

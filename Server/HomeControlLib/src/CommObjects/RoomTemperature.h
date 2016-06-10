@@ -17,7 +17,7 @@ namespace CommNs {
 class RoomTemperature: public CommObjectIf
 {
 public:
-	RoomTemperature(double temperature);
+	RoomTemperature(const std::string& roomId, double temperature);
 	RoomTemperature(const std::string& json);
 	virtual ~RoomTemperature();
 
@@ -29,6 +29,7 @@ public:
 	double temperature() const {return mRoomTemperature;};
 
 private:
+	std::string mRoomId;
 	double mRoomTemperature;
 };
 

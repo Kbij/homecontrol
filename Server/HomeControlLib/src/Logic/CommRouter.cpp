@@ -9,6 +9,7 @@
 #include "Comm/CommServerIf.h"
 #include "Comm/TemperatureSensorsIf.h"
 #include "CommObjects/RoomTemperature.h"
+#include "CommObjects/RoomList.h"
 #include "Logic/RoomControl.h"
 #include "DAL/HomeControlDalIf.h"
 #include <glog/logging.h>
@@ -47,7 +48,7 @@ void CommRouter::temperatureChanged(const std::string& roomId, double temperatur
 		std::lock_guard<std::recursive_mutex> lg(mDataMutex);
 		for(const auto& client: mConnnectedClients)
 		{
-			CommNs::RoomTemperature* roomTemperature = new CommNs::RoomTemperature(temperature);
+			CommNs::RoomTemperature* roomTemperature = new CommNs::RoomTemperature(roomId, temperature);
 
 			//CommServer takes ownership of the object (and free's the object)
 			mCommServer->sendObject(client, roomTemperature);
@@ -74,6 +75,8 @@ void CommRouter::clientConnected(const std::string& name)
 {
 	std::lock_guard<std::recursive_mutex> lg(mDataMutex);
 	mConnnectedClients.insert(name);
+	LOG(INFO) << "Client connected: " << name;
+	sendRooms();
 }
 
 void CommRouter::clientDisConnected(const std::string& name)
@@ -150,6 +153,7 @@ RoomControl* CommRouter::findRoomByRoomId(const std::string& roomId, bool useDat
 			RoomControl* roomControl = new RoomControl(roomConfig->RoomId, roomConfig->RoomName, this);
 			mRooms.push_back(std::make_pair(std::set<std::string>(), roomControl));
 
+			sendRooms();
 			delete roomConfig;
 			return roomControl;
 		}
@@ -185,6 +189,7 @@ RoomControl* CommRouter::findRoomBySensorId(const std::string& sensorId)
 		}
 		addSensorToRoom(roomConfig->RoomId, sensorId);
 
+		sendRooms();
 		delete roomConfig;
 		return roomControl;
 	}
@@ -203,6 +208,29 @@ void CommRouter::addSensorToRoom(const std::string& roomId, const std::string& s
 		if (room.second->roomId() == roomId)
 		{
 			room.first.insert(sensorId);
+		}
+	}
+}
+
+void CommRouter::sendRooms()
+{
+	if (mCommServer)
+	{
+		for(const auto& client: mConnnectedClients)
+		{
+			CommNs::RoomList* roomList = new CommNs::RoomList();
+			for (auto& room: mRooms)
+			{
+				CommNs::Room newRoom;
+				newRoom.RoomId = room.second->roomId();
+				newRoom.RoomName = room.second->roomName();
+				newRoom.RoomTemperature = room.second->roomTemperature();
+				newRoom.SetTemperature = room.second->setTemperature();
+				roomList->addRoom(newRoom);
+			}
+
+			//CommServer takes ownership of the object (and free's the object)
+			mCommServer->sendObject(client, roomList);
 		}
 	}
 }

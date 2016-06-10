@@ -6,6 +6,7 @@
  */
 
 #include <CommObjects/RoomList.h>
+#include <json/json.h>
 
 namespace CommNs {
 
@@ -36,6 +37,27 @@ std::string RoomList::toString() const
 
 std::string RoomList::json() const
 {
+	Json::Value root;
+	Json::Value roomArray;
+	for(const auto& room: mRooms)
+	{
+		Json::Value jsonRoom;
+		jsonRoom["roomId"] = room.RoomId;
+		jsonRoom["name"] = room.RoomName;
+		jsonRoom["roomTemperature"] = room.RoomTemperature;
+		jsonRoom["setTemperature"] = room.SetTemperature;
+		roomArray.append(jsonRoom);
+	}
+
+	root["rooms"] = roomArray;
+
+	Json::FastWriter writer;
+	return writer.write(root);
 	return "";
+}
+
+void RoomList::addRoom(Room room)
+{
+	mRooms.push_back(room);
 }
 } /* namespace CommNs */

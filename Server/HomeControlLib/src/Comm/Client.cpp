@@ -86,6 +86,14 @@ bool Client::isInactive(int milliSecondsPassed)
 	return true;
 }
 
+void Client::sendFrame(uint8_t objectId, const std::vector<uint8_t>& frame)
+{
+	if (mConnectionState == ConnectionState::Connected)
+	{
+		mClientSocket->sendFrame(objectId, frame);
+	}
+}
+
 void Client::receiveFrame(uint8_t objectId, const std::vector<uint8_t>& frame)
 {
 	VLOG(2) << "Frame received, size: " << frame.size() << ", objectId: " << (int) objectId;

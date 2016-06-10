@@ -63,6 +63,7 @@ private:
 	RoomControl* findRoomByRoomId(const std::string& roomId, bool useDatabase);
 	RoomControl* findRoomBySensorId(const std::string& sensorId);
 	void addSensorToRoom(const std::string& roomId, const std::string& sensorId);
+	void sendRooms();
 };
 
 } /* namespace LogicNs */

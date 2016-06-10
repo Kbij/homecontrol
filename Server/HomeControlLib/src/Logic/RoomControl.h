@@ -22,6 +22,8 @@ public:
 	std::string roomId() const {return mRoomId; };
 	std::string roomName() const {return mRoomName; };
 	void roomTemperature(double temperature);
+	double roomTemperature() {return mRoomTemperature;};
+	double setTemperature() {return mSetTemperature;};
 	void setPointUp();
 	void setPointDown();
 private:

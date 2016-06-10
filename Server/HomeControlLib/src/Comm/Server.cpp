@@ -12,7 +12,9 @@
 #include "ClientSocketIf.h"
 #include "ClientListenerIf.h"
 #include "CommListenerIf.h"
+#include "CommObjects/CommObjectIf.h"
 #include <glog/logging.h>
+
 
 namespace
 {
@@ -66,7 +68,18 @@ void Server::unRegisterCommListener(CommListenerIf* listener)
 
 void Server::sendObject(const std::string name, CommObjectIf* object)
 {
-
+	if (object)
+	{
+		std::string json = object->json();
+		std::vector<uint8_t> jsonFrame(json.begin(),json.end());
+		for(auto client: mClients)
+		{
+			if (client->name() == name)
+			{
+				client->sendFrame(object->objectId(), jsonFrame);
+			}
+		}
+	}
 }
 
 Client* Server::newClient()

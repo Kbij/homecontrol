@@ -10,9 +10,16 @@
 #include "CommObjectIf.h"
 #include <string>
 #include <stdint.h>
-
+#include <vector>
 
 namespace CommNs {
+struct Room
+{
+	std::string RoomName;
+	std::string RoomId;
+	double RoomTemperature;
+	double SetTemperature;
+};
 
 class RoomList: public CommObjectIf
 {
@@ -26,10 +33,10 @@ public:
 	std::string toString() const;
 	std::string json() const;
 
-//	double temperature() const {return mRoomTemperature;};
+	void addRoom(Room room);
 
 private:
-//	double mRoomTemperature;
+	std::vector<Room> mRooms;
 };
 
 } /* namespace CommNs */

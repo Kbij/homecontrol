@@ -27,6 +27,7 @@ public:
 	boost::asio::ip::tcp::tcp::socket& socket();
 	void start();
 	bool isInactive(int milliSecondsPassed);
+	void sendFrame(uint8_t objectId, const std::vector<uint8_t>& frame);
 
 	//SocketListenerIf
 	std::string name() const {return mName;};
