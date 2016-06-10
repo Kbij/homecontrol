@@ -11,7 +11,9 @@
 #include "Comm/SocketFactory.h"
 #include "Comm/Serial.h"
 #include "Comm/TemperatureSensors.h"
+#include "Comm/TemperatureSensorsSimulator.h"
 #include "DAL/TemperatureWriter.h"
+#include "DAL/HomeControlDal.h"
 #include "Logic/ObjectPrinter.h"
 #include "Logic/TemperatureFilter.h"
 #include "Logic/CommRouter.h"
@@ -31,6 +33,7 @@
 
 DEFINE_bool(daemon, false, "Run Server as Daemon");
 DEFINE_string(pidfile,"","Pid file when running as Daemon");
+DEFINE_int32(simulate, 0, "The number of simulation sensors");
 
 void signal_handler(int sig);
 void daemonize();
@@ -189,10 +192,21 @@ int main (int argc, char* argv[])
 		CommNs::Server* server = new CommNs::Server(factory, 5678);
 
 		server->registerCommListener(writer);
-		CommNs::Serial* serial = new CommNs::Serial("/dev/ttyAMA0", 9600);
 
-	//	LogicNs::CommRouter* commRouter = new LogicNs::CommRouter(nullptr, server, serial);
-		CommNs::TemperatureSensors* sensors = new CommNs::TemperatureSensors(serial);
+		CommNs::Serial* serial = nullptr;
+		CommNs::TemperatureSensorsIf* sensors = nullptr;
+
+		if (FLAGS_simulate == 0)
+		{
+			serial = new CommNs::Serial("/dev/ttyAMA0", 9600);
+			sensors = new CommNs::TemperatureSensors(serial);
+		}
+		else
+		{
+			sensors = new CommNs::TemperatureSensorsSimulator(FLAGS_simulate);
+		}
+		DalNs::HomeControlDal* dal = new DalNs::HomeControlDal;
+		LogicNs::CommRouter* commRouter = new LogicNs::CommRouter(dal, server, sensors);
 		DalNs::TemperatureWriter* tempWriter = new DalNs::TemperatureWriter;
 	//	LogicNs::TemperatureFilter* filter = new LogicNs::TemperatureFilter(tempWriter, 10);
 		sensors->registerTemperatureListener(tempWriter);
@@ -203,11 +217,15 @@ int main (int argc, char* argv[])
 
         sensors->unRegisterTemperatureListener(tempWriter);
     //    delete filter;
-    //    delete tempWriter;
+        delete tempWriter;
+        delete commRouter;
         delete sensors;
-    //    delete commRouter;
-        delete serial;
+        delete dal;
 
+        if (serial != nullptr)
+        {
+        	delete serial;
+        }
         server->unRegisterCommListener(writer);
 
         delete writer;

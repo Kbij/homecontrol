@@ -57,7 +57,7 @@ private:
 	CommNs::CommServerIf* mCommServer;
 	CommNs::TemperatureSensorsIf* mSensors;
 	std::set<std::string> mConnnectedClients;
-	std::mutex mDataMutex;
+	std::recursive_mutex mDataMutex;
 	std::list<std::pair<std::set<std::string>, RoomControl*>> mRooms;
 
 	RoomControl* findRoomByRoomId(const std::string& roomId, bool useDatabase);

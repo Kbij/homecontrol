@@ -18,6 +18,8 @@ public:
 	virtual ~CommObjectIf() {};
 	virtual uint8_t objectId() const = 0;
 	virtual std::string toString() const = 0;
+
+	virtual std::string json() const = 0;
 };
 
 } /* namespace CommNs */

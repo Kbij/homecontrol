@@ -21,6 +21,8 @@ public:
 
 	uint8_t objectId() const;
 	std::string toString() const;
+	std::string json() const {return "";};
+
 	double latitude() const {return mLatitude;};
 	double longitude() const {return mLongitude;};
 	double accuracy() const {return mAccuracy;};

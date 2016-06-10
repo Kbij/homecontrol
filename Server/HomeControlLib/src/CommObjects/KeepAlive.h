@@ -23,6 +23,7 @@ public:
 	// CommObjectIf
 	uint8_t objectId() const;
 	std::string toString() const;
+	std::string json() const {return "";};
 
 	time_t timeStamp() const {return mTimeStamp;};
 

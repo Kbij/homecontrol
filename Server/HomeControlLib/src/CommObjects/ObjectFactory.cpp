@@ -9,6 +9,8 @@
 #include "GpsLocation.h"
 #include "KeepAlive.h"
 #include "MessageObject.h"
+#include "RoomTemperature.h"
+#include "RoomList.h"
 
 namespace CommNs {
 
@@ -28,6 +30,10 @@ CommObjectIf* ObjectFactory::createObject(uint8_t objectId, const std::string& j
 		case 0: return new KeepAlive();
 		case 10: return new GpsLocation(json);
 		case 11: return new MessageObject(json);
+
+		// Will not receive this; only send
+		case 20: return new RoomTemperature(json);
+		case 21: return new RoomList(json);
 		default: return nullptr;
 	}
 

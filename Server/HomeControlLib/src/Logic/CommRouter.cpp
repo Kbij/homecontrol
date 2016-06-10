@@ -8,6 +8,7 @@
 #include <Logic/CommRouter.h>
 #include "Comm/CommServerIf.h"
 #include "Comm/TemperatureSensorsIf.h"
+#include "CommObjects/RoomTemperature.h"
 #include "Logic/RoomControl.h"
 #include "DAL/HomeControlDalIf.h"
 #include <glog/logging.h>
@@ -40,7 +41,18 @@ CommRouter::~CommRouter()
 
 void CommRouter::temperatureChanged(const std::string& roomId, double temperature)
 {
+	if (mCommServer)
+	{
+		// Temperature has changed in the room; send it to all connected CommClients
+		std::lock_guard<std::recursive_mutex> lg(mDataMutex);
+		for(const auto& client: mConnnectedClients)
+		{
+			CommNs::RoomTemperature* roomTemperature = new CommNs::RoomTemperature(temperature);
 
+			//CommServer takes ownership of the object (and free's the object)
+			mCommServer->sendObject(client, roomTemperature);
+		}
+	}
 }
 
 void CommRouter::setPointChanged(const std::string& roomId, double setTemperature)
@@ -60,13 +72,13 @@ void CommRouter::heaterOff(const std::string& roomId)
 
 void CommRouter::clientConnected(const std::string& name)
 {
-	std::lock_guard<std::mutex> lg(mDataMutex);
+	std::lock_guard<std::recursive_mutex> lg(mDataMutex);
 	mConnnectedClients.insert(name);
 }
 
 void CommRouter::clientDisConnected(const std::string& name)
 {
-	std::lock_guard<std::mutex> lg(mDataMutex);
+	std::lock_guard<std::recursive_mutex> lg(mDataMutex);
 	mConnnectedClients.erase(name);
 }
 
@@ -77,7 +89,7 @@ void CommRouter::receiveObject(const std::string name, const CommNs::CommObjectI
 
 void CommRouter::sensorStarted(const std::string& sensorId)
 {
-	std::lock_guard<std::mutex> lg(mDataMutex);
+	std::lock_guard<std::recursive_mutex> lg(mDataMutex);
 
 	RoomControl* room = findRoomBySensorId(sensorId);
 	if (room)
@@ -88,7 +100,7 @@ void CommRouter::sensorStarted(const std::string& sensorId)
 
 void CommRouter::sensorTemperature(const std::string& sensorId, double temperature)
 {
-	std::lock_guard<std::mutex> lg(mDataMutex);
+	std::lock_guard<std::recursive_mutex> lg(mDataMutex);
 
 	RoomControl* room = findRoomBySensorId(sensorId);
 	if (room)
@@ -99,7 +111,7 @@ void CommRouter::sensorTemperature(const std::string& sensorId, double temperatu
 
 void CommRouter::sensorSetTemperatureUp(const std::string& sensorId)
 {
-	std::lock_guard<std::mutex> lg(mDataMutex);
+	std::lock_guard<std::recursive_mutex> lg(mDataMutex);
 
 	RoomControl* room = findRoomBySensorId(sensorId);
 	if (room)
@@ -110,7 +122,7 @@ void CommRouter::sensorSetTemperatureUp(const std::string& sensorId)
 
 void CommRouter::sensorSetTemperatureDown(const std::string& sensorId)
 {
-	std::lock_guard<std::mutex> lg(mDataMutex);
+	std::lock_guard<std::recursive_mutex> lg(mDataMutex);
 
 	RoomControl* room = findRoomBySensorId(sensorId);
 	if (room)
