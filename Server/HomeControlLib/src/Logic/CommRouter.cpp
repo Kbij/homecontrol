@@ -101,9 +101,9 @@ void CommRouter::receiveObject(const std::string name, const CommNs::CommObjectI
 			}
 			else
 			{
+				LOG(INFO) << "Disable monitoring for: " << name;
 				mConnnectedClients.erase(name);
 			}
-			LOG(INFO) << "Disable monitoring for: " << name;
 		}
 	}
 }
