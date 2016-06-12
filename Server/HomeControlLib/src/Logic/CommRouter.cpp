@@ -96,7 +96,6 @@ void CommRouter::receiveObject(const std::string name, const CommNs::CommObjectI
 			{
 				LOG(INFO) << "Enable monitoring for: " << name;
 				mConnnectedClients.insert(name);
-				LOG(INFO) << "Client connected: " << name;
 				sendRooms();
 			}
 			else
