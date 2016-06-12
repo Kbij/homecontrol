@@ -29,7 +29,7 @@ RoomTemperature::~RoomTemperature()
 
 uint8_t RoomTemperature::objectId() const
 {
-	return 20;
+	return 22;
 }
 
 std::string RoomTemperature::toString() const

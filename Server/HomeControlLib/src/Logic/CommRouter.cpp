@@ -10,6 +10,7 @@
 #include "Comm/TemperatureSensorsIf.h"
 #include "CommObjects/RoomTemperature.h"
 #include "CommObjects/RoomList.h"
+#include "CommObjects/TemperatureMonitoring.h"
 #include "Logic/RoomControl.h"
 #include "DAL/HomeControlDalIf.h"
 #include <glog/logging.h>
@@ -73,21 +74,38 @@ void CommRouter::heaterOff(const std::string& roomId)
 
 void CommRouter::clientConnected(const std::string& name)
 {
-	std::lock_guard<std::recursive_mutex> lg(mDataMutex);
-	mConnnectedClients.insert(name);
-	LOG(INFO) << "Client connected: " << name;
-	sendRooms();
+
 }
 
 void CommRouter::clientDisConnected(const std::string& name)
 {
 	std::lock_guard<std::recursive_mutex> lg(mDataMutex);
+	LOG(INFO) << "Client disconnected, disable monitoring for: " << name;
+
 	mConnnectedClients.erase(name);
 }
 
 void CommRouter::receiveObject(const std::string name, const CommNs::CommObjectIf* object)
 {
-
+	if (object->objectId() == 20)
+	{
+		if(const CommNs::TemperatureMonitoring* monitoring = dynamic_cast<const CommNs::TemperatureMonitoring*> (object))
+		{
+			std::lock_guard<std::recursive_mutex> lg(mDataMutex);
+			if (monitoring->monitoringEnabled())
+			{
+				LOG(INFO) << "Enable monitoring for: " << name;
+				mConnnectedClients.insert(name);
+				LOG(INFO) << "Client connected: " << name;
+				sendRooms();
+			}
+			else
+			{
+				mConnnectedClients.erase(name);
+			}
+			LOG(INFO) << "Disable monitoring for: " << name;
+		}
+	}
 }
 
 void CommRouter::sensorStarted(const std::string& sensorId)

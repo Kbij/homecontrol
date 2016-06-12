@@ -11,6 +11,7 @@
 #include "MessageObject.h"
 #include "RoomTemperature.h"
 #include "RoomList.h"
+#include "TemperatureMonitoring.h"
 
 namespace CommNs {
 
@@ -32,8 +33,9 @@ CommObjectIf* ObjectFactory::createObject(uint8_t objectId, const std::string& j
 		case 11: return new MessageObject(json);
 
 		// Will not receive this; only send
-		case 20: return new RoomTemperature(json);
+		case 20: return new TemperatureMonitoring(json);
 		case 21: return new RoomList(json);
+		case 22: return new RoomTemperature(json);
 		default: return nullptr;
 	}
 
