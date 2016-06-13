@@ -7,7 +7,7 @@ namespace HomeControl.Comm
 {
     public class CommModel: IDisposable, ICloudSocketListener
     {
-        ICommReceiver mReceiver = null;
+        List<ICommReceiver> mReceivers;
         enum CommState {Init, Disconnected, Connecting, NameSend, Connected};
         CommState mCommState = CommState.Init;
         int mConnectTimeoutSeconds;
@@ -18,6 +18,9 @@ namespace HomeControl.Comm
         const int OBJ_KEEPALIVE = 0;
         const int OBJ_HCNAME = 1;
         const int OBJ_SERVERNAME = 2;
+
+        const int OBJ_ROOMLIST = 21;
+        const int OBJ_TEMPERATURE = 22;
 
         const int KEEPALIVE_INTERVAL_SECONDS = 30;
         const int RECONNECT_SECONDS = 10;
@@ -34,6 +37,7 @@ namespace HomeControl.Comm
             mOutstandingKeepAlives = 0;
             mLock = new Object();
             mSendQueue = new Queue<ICommObject>();
+            mReceivers = new List<ICommReceiver>();
             mLog = logger;
             mLog.SendToHost("CommModel", "CommModel created");
             mCommStarted = false;
@@ -44,7 +48,7 @@ namespace HomeControl.Comm
             if (!mCommStarted)
             {
                 mCommStarted = true;
-                changeState(CommState.Disconnected);
+                mCommState = CommState.Disconnected;
 
                 startMaintenanceThread();
                 mLog.SendToHost("CommModel", "CommModel started");
@@ -90,6 +94,30 @@ namespace HomeControl.Comm
                         mLog.SendToHost("CommModel", string.Format("Connected with server: {0}", serverName));
                         processSendQueue();
                         break;
+                    case OBJ_TEMPERATURE:
+                        {
+                            string json = System.Text.Encoding.ASCII.GetString(frame.ToArray());
+                            RoomTemperature temp = new RoomTemperature();
+                            temp.deserialise(json);
+                            foreach (var receiver in mReceivers)
+                            {
+                                receiver.receiveObject(temp);
+                            }
+
+                        }
+                        break;
+                    case OBJ_ROOMLIST:
+                        { 
+                            string json = System.Text.Encoding.ASCII.GetString(frame.ToArray());
+                            RoomList roomList = new RoomList();
+                            roomList.deserialise(json);
+                            foreach (var receiver in mReceivers)
+                            {
+                                receiver.receiveObject(roomList);
+                            }
+                        }
+
+                        break;
                     default:
                         string payload = System.Text.Encoding.ASCII.GetString(frame.ToArray());
                         mLog.SendToHost("CommModel", "Payload received");
@@ -121,7 +149,7 @@ namespace HomeControl.Comm
                         {
                             case CommState.Disconnected:
                                 {
-                                    mConnectTimeoutSeconds = CONNECT_TIMEOUT_SECONDS;
+                                    mConnectTimeoutSeconds = RECONNECT_SECONDS;
                                     break;
                                 }
                             default:
@@ -134,6 +162,17 @@ namespace HomeControl.Comm
                     }
                 case CommState.NameSend:
                     {
+                        switch (newState)
+                        {
+                            case CommState.Connected:
+                                {
+                                    foreach (var receiver in mReceivers)
+                                    {
+                                        receiver.connected();
+                                    }
+                                    break;
+                                }
+                        }
                         break;
                     }
                 case CommState.Connected:
@@ -142,10 +181,10 @@ namespace HomeControl.Comm
                         {
                             case CommState.Disconnected:
                                 {
-                                    mConnectTimeoutSeconds = CONNECT_TIMEOUT_SECONDS;
-                                    if (mReceiver != null)
+                                    mConnectTimeoutSeconds = RECONNECT_SECONDS;
+                                    foreach (var receiver in mReceivers)
                                     {
-                                        mReceiver.disconnected();
+                                        receiver.disconnected();
                                     }
                                     if (mCloudSocket != null)
                                     {
@@ -158,17 +197,7 @@ namespace HomeControl.Comm
                     }
                 case CommState.Connecting:
                     {
-                        switch (newState)
-                        {
-                            case CommState.Connected:
-                                {
-                                    if (mReceiver != null)
-                                    {
-                                        mReceiver.connected();
-                                    }
-                                    break;
-                                }
-                        }
+
                         break;
                     }
             }
@@ -248,22 +277,28 @@ namespace HomeControl.Comm
         public void registerCommReceiver(ICommReceiver receiver)
         {
             mLog.SendToHost("CommModel", "registerCommReceiver");
-            mReceiver = receiver;
+            mReceivers.Add(receiver);
             // Sending the current state of the connection
             if (mCommState == CommState.Connected)
             {
-                mReceiver.connected();
+                foreach(var receiverItem in mReceivers)
+                {
+                    receiverItem.connected();
+                }
             }
             else
             {
-                mReceiver.disconnected();
+                foreach (var receiverItem in mReceivers)
+                {
+                    receiverItem.disconnected();
+                }
             }
         }
 
-        public void unRegisterCommReceiver()
+        public void unRegisterCommReceiver(ICommReceiver receiver)
         {
             mLog.SendToHost("CommModel", "unRegisterCommReceiver");
-            mReceiver = null;
+            mReceivers.Remove(receiver);
         }
 
         private void startMaintenanceThread()

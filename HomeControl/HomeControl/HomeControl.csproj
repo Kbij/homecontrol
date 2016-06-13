@@ -59,6 +59,12 @@
     <Compile Include="Comm\JsonSerialiser.cs" />
     <Compile Include="Comm\MessageObject.cs" />
     <Compile Include="Comm\HCLogger.cs" />
+    <Compile Include="Comm\RoomList.cs" />
+    <Compile Include="Comm\RoomTemperature.cs" />
+    <Compile Include="Comm\TemperatureMonitoring.cs" />
+    <Compile Include="Logic\ITemperatureListener.cs" />
+    <Compile Include="Logic\TemperatureAdapter.cs" />
+    <Compile Include="Logic\TemperatureModel.cs" />
     <Compile Include="MainActivity.cs" />
     <Compile Include="Resources\Resource.Designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -77,11 +83,12 @@
     <AndroidResource Include="Resources\drawable\Icon.png" />
   </ItemGroup>
   <ItemGroup>
+    <AndroidAsset Include="Assets\DS-DIGIB.TTF" />
     <None Include="Properties\AndroidManifest.xml" />
+    <AndroidResource Include="Resources\layout\ChangeTemperature.axml" />
+    <AndroidResource Include="Resources\layout\TemperatureItem.axml" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Assets\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
      Other similar extension points exist, see Microsoft.Common.targets.

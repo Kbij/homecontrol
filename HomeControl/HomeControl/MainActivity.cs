@@ -8,15 +8,18 @@ using Android.OS;
 using HomeControl.HCService;
 using HomeControl.Comm;
 using System.IO;
+using HomeControl.Logic;
 
 namespace HomeControl
 {
     [Activity(Label = "Home Control", MainLauncher = true, Icon = "@drawable/icon")]
     public class MainActivity : Activity, ICommReceiver
     {
-        public HCServiceBinder binder;
-        public bool isBound;
-        HCServiceConnection hcServiceConnection;
+        private HCServiceBinder mBinder;
+        private bool mIsBound;
+        private HCServiceConnection mServiceConnection;
+        private GridView mGridView;
+        private TemperatureModel mTemperatureModel;
 
         static void HandleExceptions(object sender, UnhandledExceptionEventArgs ex)
         {
@@ -37,6 +40,10 @@ namespace HomeControl
 
             // Set our view from the "main" layout resource
             SetContentView(Resource.Layout.Main);
+            mTemperatureModel = new TemperatureModel();
+            mGridView = FindViewById<GridView>(Resource.Id.gridView);
+            mGridView.Adapter = new TemperatureAdapter(this, mTemperatureModel);
+
             StartService(new Intent(this, typeof(HomeControlService)));
         }
         protected override void OnStart()
@@ -44,8 +51,8 @@ namespace HomeControl
             base.OnStart();
             Intent hcServiceIntent = new Intent(this, typeof(HomeControlService));
 
-            hcServiceConnection = new HCServiceConnection(this);
-            if (BindService(hcServiceIntent, hcServiceConnection, Bind.AutoCreate))
+            mServiceConnection = new HCServiceConnection(this);
+            if (BindService(hcServiceIntent, mServiceConnection, Bind.AutoCreate))
             {
                // Log.Debug(TAG, "Service binded");
             }
@@ -57,11 +64,13 @@ namespace HomeControl
 
         protected override void OnStop()
         {
-            if (isBound)
+            if (mIsBound)
             {
-                binder.GetHCService().unRegisterCommReceiver();
-                UnbindService(hcServiceConnection);
-                isBound = false;
+                mBinder.GetHCService().unRegisterCommReceiver(mTemperatureModel);
+                mBinder.GetHCService().unRegisterCommReceiver(this);
+                mTemperatureModel.unsetCommService();
+                UnbindService(mServiceConnection);
+                mIsBound = false;
             }
             base.OnStop();
         }
@@ -79,10 +88,23 @@ namespace HomeControl
 
         public void onBind()
         {
-            if (isBound)
+            if (mIsBound)
             {
-                binder.GetHCService().registerCommReceiver(this);
+                mBinder.GetHCService().registerCommReceiver(this);
+                mBinder.GetHCService().registerCommReceiver(mTemperatureModel);
+                mTemperatureModel.setCommService(mBinder.GetHCService());
             }
+        }
+
+        public void setBinder(HCServiceBinder binder)
+        {
+            mBinder = binder;
+            mIsBound = true;
+        }
+
+        public void unsetBinder()
+        {
+            mIsBound = false;
         }
 
         public void receiveObject(object obj)
@@ -92,14 +114,11 @@ namespace HomeControl
 
         public void connected()
         {
-//            Action action = delegate { this.Title = "Home Control (connected)"; };
-            // gridview.Post(action);
             RunOnUiThread(() => this.Title = "Home Control (connected)");
         }
 
         public void disconnected()
         {
-            //          Action action = delegate { this.Title = "Home Control (connected)"; };
             RunOnUiThread(() => this.Title = "Home Control");
         }
     }

@@ -14,29 +14,26 @@ namespace HomeControl.HCService
 {
     class HCServiceConnection : Java.Lang.Object, IServiceConnection
     {
-        MainActivity activity;
+        private MainActivity mActivity;
 
         public HCServiceConnection(MainActivity activity)
         {
-            this.activity = activity;
+            this.mActivity = activity;
         }
 
         public void OnServiceConnected(ComponentName name, IBinder service)
         {
-            var hcServiceBinder = service as HCServiceBinder;
-            if (hcServiceBinder != null)
+            var serviceBinder = service as HCServiceBinder;
+            if (serviceBinder != null)
             {
-                activity.binder = hcServiceBinder;
-                activity.isBound = true;
-                activity.onBind();
-                
+                mActivity.setBinder(serviceBinder);
+                mActivity.onBind();
             }
         }
 
         public void OnServiceDisconnected(ComponentName name)
         {
-            activity.isBound = false;
-            //activity.onUnBind();
+            mActivity.unsetBinder();
         }
     }
 }

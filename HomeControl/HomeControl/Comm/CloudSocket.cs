@@ -17,7 +17,7 @@ namespace HomeControl.Comm
         const string SERVER_HOST = "paradijs.mooo.com";
         const int SERVER_PORT = 5678;
 //        const int SERVER_PORT = 5679;
-        //const string SERVER_HOST = "192.168.10.142";
+ //       const string SERVER_HOST = "192.168.10.142";
         HCLogger mLog;
         Socket mSocket;
         Object mLock;
@@ -30,6 +30,7 @@ namespace HomeControl.Comm
             mBuffer = new List<byte>();
             mListener = listener;
             mSocketState = SocketState.Connecting;
+            mLock = new object();
             startThread();
         }
 

@@ -89,9 +89,17 @@ namespace HomeControl.HCService
             mCommModel.registerCommReceiver(receiver);
         }
 
-        public void unRegisterCommReceiver()
+        public void unRegisterCommReceiver(ICommReceiver receiver)
         {
-            mCommModel.unRegisterCommReceiver();
+            mCommModel.unRegisterCommReceiver(receiver);
+        }
+
+        public void sendObject(ICommObject obj)
+        {
+            if (mCommModel != null)
+            {
+                mCommModel.sendObjectQueued(obj);
+            }
         }
 
         void InitializeLocationManager()
