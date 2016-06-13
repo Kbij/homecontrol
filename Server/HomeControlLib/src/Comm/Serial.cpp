@@ -7,6 +7,7 @@
 
 #include <Comm/Serial.h>
 #include <Comm/SerialListenerIf.h>
+#include <glog/logging.h>
 
 namespace CommNs {
 
@@ -105,8 +106,8 @@ void Serial::serialThread()
 				mListener->receiveLine(line);
 			}
 		}
-
 	}
+	LOG(INFO) << "Stop serial thread";
 }
 
 } /* namespace CommNs */

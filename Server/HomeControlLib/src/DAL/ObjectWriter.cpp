@@ -44,6 +44,8 @@ void ObjectWriter::clientConnected(const std::string& name)
 
 		/* Create a connection */
 		driver = get_driver_instance();
+		driver->threadInit();
+
 		con = driver->connect("tcp://127.0.0.1:3306", "hc", "bugs bunny");
 		/* Connect to the MySQL test database */
 		con->setSchema("HC_DB");
@@ -61,6 +63,7 @@ void ObjectWriter::clientConnected(const std::string& name)
 
 		con->close();
 		delete con;
+		driver->threadEnd();
 	}
 	catch (sql::SQLException &ex)
 	{
@@ -123,6 +126,8 @@ void ObjectWriter::receiveObject(const std::string name, const CommNs::CommObjec
 
 		/* Create a connection */
 		driver = get_driver_instance();
+		driver->threadInit();
+
 		con = driver->connect("tcp://127.0.0.1:3306", "hc", "bugs bunny");
 		/* Connect to the MySQL test database */
 		con->setSchema("HC_DB");
@@ -143,6 +148,8 @@ void ObjectWriter::receiveObject(const std::string name, const CommNs::CommObjec
 
 		con->close();
 		delete con;
+		driver->threadEnd();
+
 	}
 	catch (sql::SQLException &ex)
 	{

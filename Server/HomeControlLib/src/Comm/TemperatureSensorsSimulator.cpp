@@ -98,7 +98,7 @@ void TemperatureSensorsSimulator::simulationThread()
 			++i;
 		}
 	}
-	LOG(INFO) << "Thread done";
+	LOG(INFO) << "Stimulation thread done";
 }
 
 } /* namespace CommNs */

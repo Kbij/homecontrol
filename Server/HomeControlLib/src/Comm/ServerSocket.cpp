@@ -75,6 +75,6 @@ void ServerSocket::stopServerThread()
 void ServerSocket::serverThread()
 {
 	mIoService.run();
-	VLOG(1) << "Server thread exiting";
+	LOG(INFO) << "Server socket thread exiting";
 }
 } /* namespace CommNs */

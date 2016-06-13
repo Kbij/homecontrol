@@ -79,6 +79,7 @@ void Server::sendObject(const std::string name, CommObjectIf* object)
 				client->sendFrame(object->objectId(), jsonFrame);
 			}
 		}
+		delete object;
 	}
 }
 
@@ -154,7 +155,7 @@ void Server::maintenanceThread()
 
 		{
 			std::lock_guard<std::mutex> lock(mDataMutex);
-			std::vector<std::string> deletedClients;
+			std::vector<Client*> deletedClients;
 			auto clientIt = mClients.begin();
 			while (clientIt !=  mClients.end())
 			{
@@ -163,7 +164,7 @@ void Server::maintenanceThread()
 					LOG(INFO) << "Deleting client: " << (*clientIt)->name() << " because it is inactive";
 					if ((*clientIt)->name() != "")
 					{
-						deletedClients.push_back((*clientIt)->name());
+						deletedClients.push_back(*clientIt);
 					}
 
 					clientIt = mClients.erase(clientIt);
@@ -175,12 +176,13 @@ void Server::maintenanceThread()
 				}
 			}
 
-			for(const auto& deletedClient: deletedClients)
+			//There could be multiple sockets to the client; check if there is a active socket
+			for(auto deletedClient: deletedClients)
 			{
 				bool clientStillConnected = false;
 				for(const auto& client: mClients)
 				{
-					if (deletedClient == client->name())
+					if (deletedClient->name() == client->name())
 					{
 						clientStillConnected = true;
 					}
@@ -190,11 +192,15 @@ void Server::maintenanceThread()
 				{
 					for(const auto& listener: mCommListeners)
 					{
-						listener->clientDisConnected(deletedClient);
+						listener->clientDisConnected(deletedClient->name());
 					}
 				}
+
+				delete deletedClient;
 			}
 		}
 	}
+
+	LOG(INFO) << "Maintenance thread stopped";
 }
 } /* namespace CommNs */

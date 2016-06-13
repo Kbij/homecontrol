@@ -18,6 +18,7 @@ namespace DalNs {
 
 HomeControlDal::HomeControlDal()
 {
+	//sql::Driver::threadInit();
 }
 
 HomeControlDal::~HomeControlDal()
@@ -41,6 +42,7 @@ RoomConfig* HomeControlDal::findRoomByRoomId(const std::string& roomId)
 
 		/* Create a connection */
 		driver = get_driver_instance();
+		driver->threadInit();
 		con = driver->connect("tcp://127.0.0.1:3306", "hc", "bugs bunny");
 		/* Connect to the MySQL test database */
 		con->setSchema("HC_DB");
@@ -63,6 +65,8 @@ RoomConfig* HomeControlDal::findRoomByRoomId(const std::string& roomId)
 
 		con->close();
 		delete con;
+		driver->threadEnd();
+
 	}
 	catch (sql::SQLException &ex)
 	{
@@ -84,11 +88,13 @@ RoomConfig* HomeControlDal::findRoomBySensorId(const std::string& sensorId)
 		select << " WHERE masterSensor.sensorAddress = '" << sensorId << "'";
 
 		sql::Driver *driver;
+
 		sql::Connection *con;
 		sql::Statement *stmt;
 
 		/* Create a connection */
 		driver = get_driver_instance();
+		driver->threadInit();
 		con = driver->connect("tcp://127.0.0.1:3306", "hc", "bugs bunny");
 		/* Connect to the MySQL test database */
 		con->setSchema("HC_DB");
@@ -111,6 +117,8 @@ RoomConfig* HomeControlDal::findRoomBySensorId(const std::string& sensorId)
 
 		con->close();
 		delete con;
+		driver->threadEnd();
+
 	}
 	catch (sql::SQLException &ex)
 	{

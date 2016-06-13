@@ -150,6 +150,4 @@ void Client::socketClosed()
 	mConnectionState = ConnectionState::Disconnected;
 }
 
-
-
 } /* namespace CommNs */

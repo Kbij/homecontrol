@@ -173,7 +173,6 @@ int main (int argc, char* argv[])
 	google::SetUsageMessage(usage);
 	google::SetVersionString("1.0.0");
 	google::ParseCommandLineFlags(&argc, &argv, true);
-
 	if (FLAGS_daemon)
 	{
 		daemonize();

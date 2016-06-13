@@ -40,6 +40,8 @@ void TemperatureWriter::sensorStarted(const std::string& sensorId)
 
 		/* Create a connection */
 		driver = get_driver_instance();
+		driver->threadInit();
+
 		con = driver->connect("tcp://127.0.0.1:3306", "hc", "bugs bunny");
 
 		con->setSchema("HC_DB");
@@ -50,6 +52,7 @@ void TemperatureWriter::sensorStarted(const std::string& sensorId)
 
 		con->close();
 		delete con;
+		driver->threadEnd();
 	}
 	catch (sql::SQLException &ex)
 	{
@@ -72,6 +75,7 @@ void TemperatureWriter::sensorTemperature(const std::string& sensorId, double te
 
 		/* Create a connection */
 		driver = get_driver_instance();
+		driver->threadInit();
 		con = driver->connect("tcp://127.0.0.1:3306", "hc", "bugs bunny");
 
 		con->setSchema("HC_DB");
@@ -82,6 +86,7 @@ void TemperatureWriter::sensorTemperature(const std::string& sensorId, double te
 
 		con->close();
 		delete con;
+		driver->threadEnd();
 	}
 	catch (sql::SQLException &ex)
 	{
