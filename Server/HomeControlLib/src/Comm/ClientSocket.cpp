@@ -58,6 +58,11 @@ void ClientSocket::registerSocketListener(SocketListenerIf* socketListener)
 	mSocketListener = socketListener;
 }
 
+void ClientSocket::unRegisterSocketListener()
+{
+	mSocketListener = nullptr;
+}
+
 void ClientSocket::sendFrame(uint8_t objectId, const std::vector<uint8_t>& frame)
 {
 	if (mSocket.is_open())

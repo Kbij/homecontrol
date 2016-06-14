@@ -42,6 +42,7 @@ Client::Client(ClientSocketIf* clientSocket, ClientListenerIf* clientListener):
 
 Client::~Client()
 {
+	mClientSocket->unRegisterSocketListener();
 	delete mClientSocket;
 }
 

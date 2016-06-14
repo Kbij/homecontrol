@@ -30,6 +30,7 @@ public:
 	std::string name() {return "unknown";}
 
 	void registerSocketListener(SocketListenerIf* socketListener);
+	void unRegisterSocketListener();
 	void sendFrame(uint8_t objectId, const std::vector<uint8_t>& frame);
 
 private:
