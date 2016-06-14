@@ -66,6 +66,7 @@ public:
 	std::string name() {return "Test";};
 	void close() {};
 	void registerSocketListener(CommNs::SocketListenerIf* socketListener) {};
+	void unRegisterSocketListener() {};
 	void sendFrame(uint8_t objectId, const std::vector<uint8_t>& frame)
 	{
 		mLastSendObjectId = objectId;

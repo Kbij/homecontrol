@@ -185,7 +185,7 @@ int main (int argc, char* argv[])
 
 		LOG(INFO) << "Home Control ServerApp";
 		LOG(INFO) << "======================";
-
+		LOG(INFO) << "Build on: " << __DATE__ << ", " << __TIME__;
 		DalNs::ObjectWriter* writer = new DalNs::ObjectWriter;
 		CommNs::SocketFactory* factory = new CommNs::SocketFactory;
 		CommNs::Server* server = new CommNs::Server(factory, 5678);
