@@ -7,8 +7,8 @@
 
 #ifndef COMM_TEMPERATURESENSORS_H_
 #define COMM_TEMPERATURESENSORS_H_
+#include <Comm/TemperatureSourceIf.h>
 #include "SerialListenerIf.h"
-#include "TemperatureSensorsIf.h"
 #include <set>
 #include <mutex>
 
@@ -20,7 +20,7 @@ class TemperatureListenerIf;
 namespace CommNs {
 class SerialIf;
 
-class TemperatureSensors: public SerialListenerIf, public TemperatureSensorsIf
+class TemperatureSensors: public SerialListenerIf, public TemperatureSourceIf
 {
 public:
 	TemperatureSensors(SerialIf* serial);

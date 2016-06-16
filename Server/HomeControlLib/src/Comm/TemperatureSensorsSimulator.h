@@ -7,7 +7,7 @@
 
 #ifndef COMM_TEMPERATURESENSORSSIMULATOR_H_
 #define COMM_TEMPERATURESENSORSSIMULATOR_H_
-#include "TemperatureSensorsIf.h"
+#include <Comm/TemperatureSourceIf.h>
 #include <string>
 #include <map>
 #include <thread>
@@ -17,7 +17,7 @@
 
 namespace CommNs {
 
-class TemperatureSensorsSimulator: public TemperatureSensorsIf
+class TemperatureSensorsSimulator: public TemperatureSourceIf
 {
 public:
 	TemperatureSensorsSimulator(int sensorCount);

@@ -193,7 +193,7 @@ int main (int argc, char* argv[])
 		server->registerCommListener(writer);
 
 		CommNs::Serial* serial = nullptr;
-		CommNs::TemperatureSensorsIf* sensors = nullptr;
+		CommNs::TemperatureSourceIf* sensors = nullptr;
 
 		if (FLAGS_simulate == 0)
 		{

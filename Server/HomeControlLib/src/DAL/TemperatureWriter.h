@@ -10,7 +10,7 @@
 #include "Logic/TemperatureListenerIf.h"
 namespace CommNs
 {
-class TemperatureSensorsIf;
+class TemperatureSourceIf;
 }
 
 namespace DalNs {
@@ -18,7 +18,7 @@ namespace DalNs {
 class TemperatureWriter: public LogicNs::TemperatureListenerIf
 {
 public:
-	TemperatureWriter(CommNs::TemperatureSensorsIf* sensors);
+	TemperatureWriter(CommNs::TemperatureSourceIf* sensors);
 	virtual ~TemperatureWriter();
 
 	void sensorStarted(const std::string& sensorId);
@@ -26,7 +26,7 @@ public:
 	void sensorSetTemperatureUp(const std::string& sensorId);
 	void sensorSetTemperatureDown(const std::string& sensorId);
 private:
-	CommNs::TemperatureSensorsIf* mSensors;
+	CommNs::TemperatureSourceIf* mSensors;
 };
 
 } /* namespace DalNs */

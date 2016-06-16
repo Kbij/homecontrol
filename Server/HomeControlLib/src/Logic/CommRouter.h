@@ -20,7 +20,7 @@
 namespace CommNs
 {
 class CommServerIf;
-class TemperatureSensorsIf;
+class TemperatureSourceIf;
 }
 namespace DalNs
 {
@@ -33,7 +33,7 @@ class RoomControl;
 class CommRouter: public RoomListenerIf, public CommNs::CommListenerIf, public TemperatureListenerIf
 {
 public:
-	CommRouter(DalNs::HomeControlDalIf* dal, CommNs::CommServerIf* server, CommNs::TemperatureSensorsIf* sensors);
+	CommRouter(DalNs::HomeControlDalIf* dal, CommNs::CommServerIf* server, CommNs::TemperatureSourceIf* sensors);
 	virtual ~CommRouter();
 
 	//RoomListenerIf
@@ -55,7 +55,7 @@ public:
 private:
 	DalNs::HomeControlDalIf* mDal;
 	CommNs::CommServerIf* mCommServer;
-	CommNs::TemperatureSensorsIf* mSensors;
+	CommNs::TemperatureSourceIf* mSensors;
 	std::set<std::string> mConnnectedClients;
 	std::recursive_mutex mDataMutex;
 	std::list<std::pair<std::set<std::string>, RoomControl*>> mRooms;

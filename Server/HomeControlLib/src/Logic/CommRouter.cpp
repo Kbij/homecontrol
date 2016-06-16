@@ -5,9 +5,9 @@
  *      Author: koen
  */
 
+#include <Comm/TemperatureSourceIf.h>
 #include <Logic/CommRouter.h>
 #include "Comm/CommServerIf.h"
-#include "Comm/TemperatureSensorsIf.h"
 #include "CommObjects/RoomTemperature.h"
 #include "CommObjects/RoomList.h"
 #include "CommObjects/TemperatureMonitoring.h"
@@ -18,7 +18,7 @@
 
 namespace LogicNs {
 
-CommRouter::CommRouter(DalNs::HomeControlDalIf* dal, CommNs::CommServerIf* server, CommNs::TemperatureSensorsIf* sensors):
+CommRouter::CommRouter(DalNs::HomeControlDalIf* dal, CommNs::CommServerIf* server, CommNs::TemperatureSourceIf* sensors):
 	mDal(dal),
 	mCommServer(server),
 	mSensors(sensors),

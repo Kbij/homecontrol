@@ -5,8 +5,8 @@
  *      Author: koen
  */
 
-#ifndef COMM_TEMPERATURESENSORSIF_H_
-#define COMM_TEMPERATURESENSORSIF_H_
+#ifndef COMM_TEMPERATURESOURCEIF_H_
+#define COMM_TEMPERATURESOURCEIF_H_
 #include <string>
 
 namespace LogicNs
@@ -16,10 +16,10 @@ class TemperatureListenerIf;
 
 namespace CommNs {
 
-class TemperatureSensorsIf
+class TemperatureSourceIf
 {
 public:
-	virtual ~TemperatureSensorsIf() {};
+	virtual ~TemperatureSourceIf() {};
 
 	virtual void registerTemperatureListener(LogicNs::TemperatureListenerIf* listener) = 0;
 	virtual void unRegisterTemperatureListener(LogicNs::TemperatureListenerIf* listener) = 0;
@@ -30,4 +30,4 @@ public:
 } /* namespace CommNs */
 
 
-#endif /* COMM_TEMPERATURESENSORSIF_H_ */
+#endif /* COMM_TEMPERATURESOURCEIF_H_ */

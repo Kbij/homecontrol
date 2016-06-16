@@ -7,8 +7,8 @@
 
 #ifndef LOGIC_TEMPERATUREFILTER_H_
 #define LOGIC_TEMPERATUREFILTER_H_
+#include <Comm/TemperatureSourceIf.h>
 #include "TemperatureListenerIf.h"
-#include "Comm/TemperatureSensorsIf.h"
 #include "Filter.h"
 #include <map>
 #include <vector>
@@ -17,10 +17,10 @@
 
 namespace LogicNs {
 
-class TemperatureFilter: public TemperatureListenerIf, public CommNs::TemperatureSensorsIf
+class TemperatureFilter: public TemperatureListenerIf, public CommNs::TemperatureSourceIf
 {
 public:
-	TemperatureFilter(CommNs::TemperatureSensorsIf* source, int k);
+	TemperatureFilter(CommNs::TemperatureSourceIf* source, int k);
 	virtual ~TemperatureFilter();
 
 	void sensorStarted(const std::string& sensorId);
@@ -33,7 +33,7 @@ public:
 
 	void writeSetTemperature(const std::string& sensorId, double temperature);
 private:
-	CommNs::TemperatureSensorsIf* mSource;
+	CommNs::TemperatureSourceIf* mSource;
 	std::mutex mDataMutex;
 	std::set<TemperatureListenerIf*> mListeners;
 	const int mK;

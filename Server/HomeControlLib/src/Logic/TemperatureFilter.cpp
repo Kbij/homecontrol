@@ -14,7 +14,7 @@ const int SAMPLE_COUNT = 30;
 
 namespace LogicNs {
 
-TemperatureFilter::TemperatureFilter(CommNs::TemperatureSensorsIf* source, int k):
+TemperatureFilter::TemperatureFilter(CommNs::TemperatureSourceIf* source, int k):
 	mSource(source),
 	mDataMutex(),
 	mListeners(),
