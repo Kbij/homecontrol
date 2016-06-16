@@ -54,7 +54,7 @@ void TemperatureFilter::sensorTemperature(const std::string& sensorId, double te
 	float filteredTemperature = mFilterSum/mK;
 	for(auto listener: mListeners)
 	{
-		if (mSampleCount > mK)
+		if (mSampleCount > (mK * 2))
 		{
 			listener->sensorTemperature(sensorId, filteredTemperature);
 		}
