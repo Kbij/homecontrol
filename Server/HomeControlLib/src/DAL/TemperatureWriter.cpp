@@ -6,6 +6,7 @@
  */
 
 #include <DAL/TemperatureWriter.h>
+#include "Comm/TemperatureSensorsIf.h"
 #include <cppconn/driver.h>
 #include <cppconn/exception.h>
 #include <cppconn/resultset.h>
@@ -18,12 +19,21 @@
 
 namespace DalNs {
 
-TemperatureWriter::TemperatureWriter()
+TemperatureWriter::TemperatureWriter(CommNs::TemperatureSensorsIf* sensors):
+	mSensors(sensors)
 {
+	if (mSensors)
+	{
+		mSensors->registerTemperatureListener(this);
+	}
 }
 
 TemperatureWriter::~TemperatureWriter()
 {
+	if (mSensors)
+	{
+		mSensors->unRegisterTemperatureListener(this);
+	}
 }
 
 void TemperatureWriter::sensorStarted(const std::string& sensorId)

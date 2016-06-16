@@ -14,69 +14,86 @@ const int SAMPLE_COUNT = 30;
 
 namespace LogicNs {
 
-TemperatureFilter::TemperatureFilter(TemperatureListenerIf* listener, size_t sampleCount):
-	mListener(listener),
-	mSampleCount(sampleCount),
-	mTemperatureHistory()
+TemperatureFilter::TemperatureFilter(CommNs::TemperatureSensorsIf* source, int k):
+	mSource(source),
+	mDataMutex(),
+	mListeners(),
+	mK(k),
+	mFilterSum(0)
 {
+	if (mSource)
+	{
+		mSource->registerTemperatureListener(this);
+	}
 }
 
 TemperatureFilter::~TemperatureFilter()
 {
+	if (mSource)
+	{
+		mSource->unRegisterTemperatureListener(this);
+	}
 }
 
 void TemperatureFilter::sensorStarted(const std::string& sensorId)
 {
-	if (mListener) mListener->sensorStarted(sensorId);
+	std::lock_guard<std::mutex> lock(mDataMutex);
+
+	for(auto listener: mListeners)
+	{
+		listener->sensorStarted(sensorId);
+	}
 }
 
 void TemperatureFilter::sensorTemperature(const std::string& sensorId, double temperature)
 {
-//	Filter* filter = getFilter(sensorId);
-//	if (filter)
-//	{
-//		double filteredTemperature = filter->do_sample(temperature);
-//		if (filter->hasEnoughSamples() && mListener)
-//		{
-//			mListener->sensorTemperature(sensorId, filteredTemperature);
-//		}
-//	}
-	if (mListener)
+	std::lock_guard<std::mutex> lock(mDataMutex);
+
+	mFilterSum = mFilterSum - (mFilterSum/mK) + temperature;
+	for(auto listener: mListeners)
 	{
-		mTemperatureHistory[sensorId].push_back(temperature);
-		// Not enough samples -> pass thru
-		if (mTemperatureHistory[sensorId].size() < mSampleCount)
-		{
-			mListener->sensorTemperature(sensorId, temperature);
-		}
-		else
-		{
-			double temperatureSum = std::accumulate(mTemperatureHistory[sensorId].begin(), mTemperatureHistory[sensorId].end(), 0.0);
-			mListener->sensorTemperature(sensorId, temperatureSum/mSampleCount);
-			mTemperatureHistory[sensorId].erase(mTemperatureHistory[sensorId].begin());
-		}
+		float filteredTemperature = mFilterSum/mK;
+		listener->sensorTemperature(sensorId, filteredTemperature);
 	}
 }
 
 void TemperatureFilter::sensorSetTemperatureUp(const std::string& sensorId)
 {
-	if (mListener) mListener->sensorSetTemperatureUp(sensorId);
+	std::lock_guard<std::mutex> lock(mDataMutex);
+
+	for(auto listener: mListeners)
+	{
+		listener->sensorSetTemperatureUp(sensorId);
+	}
 }
 
 void TemperatureFilter::sensorSetTemperatureDown(const std::string& sensorId)
 {
-	if (mListener) mListener->sensorSetTemperatureDown(sensorId);
+	std::lock_guard<std::mutex> lock(mDataMutex);
+
+	for(auto listener: mListeners)
+	{
+		listener->sensorSetTemperatureDown(sensorId);
+	}
 }
 
-//Filter* TemperatureFilter::getFilter(const std::string& sensorId)
-//{
-//	if (mFilters.find(sensorId) == mFilters.end())
-//	{
-//		// 30 Samples (all requency's are x1000)
-//		// Sample frequency = 2kHz (1000 x 2Hz 30 seconds interval)
-//		// Lowpass frequency = 100Hz
-//		mFilters[sensorId] = new Filter(LPF, 51, 44.1, 2.0);
-//	}
-//	return mFilters[sensorId];
-//}
+void TemperatureFilter::registerTemperatureListener(LogicNs::TemperatureListenerIf* listener)
+{
+	std::lock_guard<std::mutex> lock(mDataMutex);
+	mListeners.insert(listener);
+}
+
+void TemperatureFilter::unRegisterTemperatureListener(LogicNs::TemperatureListenerIf* listener)
+{
+	std::lock_guard<std::mutex> lock(mDataMutex);
+	mListeners.erase(listener);
+}
+
+void TemperatureFilter::writeSetTemperature(const std::string& sensorId, double temperature)
+{
+	if (mSource)
+	{
+		mSource->writeSetTemperature(sensorId, temperature);
+	}
+}
 } /* namespace LogicNs */

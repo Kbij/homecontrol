@@ -205,21 +205,19 @@ int main (int argc, char* argv[])
 			sensors = new CommNs::TemperatureSensorsSimulator(FLAGS_simulate);
 		}
 		DalNs::HomeControlDal* dal = new DalNs::HomeControlDal;
-		LogicNs::CommRouter* commRouter = new LogicNs::CommRouter(dal, server, sensors);
-		DalNs::TemperatureWriter* tempWriter = new DalNs::TemperatureWriter;
-	//	LogicNs::TemperatureFilter* filter = new LogicNs::TemperatureFilter(tempWriter, 10);
-		sensors->registerTemperatureListener(tempWriter);
+		LogicNs::TemperatureFilter* filter = new LogicNs::TemperatureFilter(sensors, 4);
+		DalNs::TemperatureWriter* tempWriter = new DalNs::TemperatureWriter(filter);
+		LogicNs::CommRouter* commRouter = new LogicNs::CommRouter(dal, server, filter);
 
     	// Wait until application stopped by a signal handler
         std::unique_lock<std::mutex> lk(exitMutex);
         exitCv.wait(lk, []{return exitMain;});
 
-        sensors->unRegisterTemperatureListener(tempWriter);
-    //    delete filter;
-        delete tempWriter;
         delete commRouter;
-        delete sensors;
+        delete tempWriter;
+        delete filter;
         delete dal;
+        delete sensors;
 
         if (serial != nullptr)
         {

@@ -21,11 +21,11 @@
 #include <boost/algorithm/string.hpp>
 #include <sstream>
 
-class TemperatureSensorStub: public LogicNs::TemperatureListenerIf
+class TemperatureListenerStub: public LogicNs::TemperatureListenerIf
 {
 public:
-	TemperatureSensorStub(): mLastId(), mLastTemperature() {};
-	~TemperatureSensorStub() {};
+	TemperatureListenerStub(): mLastId(), mLastTemperature() {};
+	~TemperatureListenerStub() {};
 
 	void sensorStarted(const std::string& sensorId)
 	{
@@ -67,89 +67,90 @@ public:
 TEST(TemperatureSensors, Constructor)
 {
 	CommNs::TemperatureSensors* sensors = new CommNs::TemperatureSensors(nullptr);
-	TemperatureSensorStub tempSensorStub;
-	sensors->registerTemperatureListener(&tempSensorStub);
+	TemperatureListenerStub tempListenerStub;
+	sensors->registerTemperatureListener(&tempListenerStub);
 
 
-	sensors->unRegisterTemperatureListener(&tempSensorStub);
+	sensors->unRegisterTemperatureListener(&tempListenerStub);
 	delete sensors;
 }
 
 TEST(TemperatureSensors, ReceiveInvalid)
 {
 	CommNs::TemperatureSensors* sensors = new CommNs::TemperatureSensors(nullptr);
-	TemperatureSensorStub tempSensorStub;
-	sensors->registerTemperatureListener(&tempSensorStub);
+	TemperatureListenerStub tempListenerStub;
+	sensors->registerTemperatureListener(&tempListenerStub);
 
 	sensors->receiveLine("[28AC48FB07000077:1");
-	EXPECT_EQ("", tempSensorStub.mLastId);
+	EXPECT_EQ("", tempListenerStub.mLastId);
 
 	sensors->receiveLine("[28AC48FB07000077:1");
-	EXPECT_EQ("", tempSensorStub.mLastId);
+	EXPECT_EQ("", tempListenerStub.mLastId);
 
 	sensors->receiveLine("28AC48FB07000077:1]");
-	EXPECT_EQ("", tempSensorStub.mLastId);
+	EXPECT_EQ("", tempListenerStub.mLastId);
 
 	sensors->receiveLine("[]");
-	EXPECT_EQ("", tempSensorStub.mLastId);
+	EXPECT_EQ("", tempListenerStub.mLastId);
 
 
 	sensors->receiveLine("[28AC48FB07000077]");
-	EXPECT_EQ("", tempSensorStub.mLastId);
+	EXPECT_EQ("", tempListenerStub.mLastId);
 
-	sensors->unRegisterTemperatureListener(&tempSensorStub);
+	sensors->unRegisterTemperatureListener(&tempListenerStub);
 	delete sensors;
 }
 
 TEST(TemperatureSensors, ReceiveValidStartup)
 {
 	CommNs::TemperatureSensors* sensors = new CommNs::TemperatureSensors(nullptr);
-	TemperatureSensorStub tempSensorStub;
-	sensors->registerTemperatureListener(&tempSensorStub);
+	TemperatureListenerStub tempListenerStub;
+	sensors->registerTemperatureListener(&tempListenerStub);
 
 	sensors->receiveLine("[28AC48FB07000077:1]");
-	EXPECT_EQ("28AC48FB07000077", tempSensorStub.mLastId);
+	EXPECT_EQ("28AC48FB07000077", tempListenerStub.mLastId);
 
-	sensors->unRegisterTemperatureListener(&tempSensorStub);
+	sensors->unRegisterTemperatureListener(&tempListenerStub);
 	delete sensors;
 }
 
 TEST(TemperatureSensors, ReceiveValidTemperature)
 {
 	CommNs::TemperatureSensors* sensors = new CommNs::TemperatureSensors(nullptr);
-	TemperatureSensorStub tempSensorStub;
-	sensors->registerTemperatureListener(&tempSensorStub);
+	TemperatureListenerStub tempListenerStub;
+	sensors->registerTemperatureListener(&tempListenerStub);
 
 	sensors->receiveLine("[28AC48FB07000077:2:23.75]");
-	EXPECT_EQ("28AC48FB07000077", tempSensorStub.mLastId);
-	EXPECT_EQ(23.75, tempSensorStub.mLastTemperature);
+	EXPECT_EQ("28AC48FB07000077", tempListenerStub.mLastId);
+	EXPECT_EQ(23.75, tempListenerStub.mLastTemperature);
 
 	sensors->receiveLine("[28AC48FB07000000:2:23,75]");
-	EXPECT_EQ("28AC48FB07000000", tempSensorStub.mLastId);
-	EXPECT_EQ(23.0, tempSensorStub.mLastTemperature);
+	EXPECT_EQ("28AC48FB07000000", tempListenerStub.mLastId);
+	EXPECT_EQ(23.0, tempListenerStub.mLastTemperature);
 
-	sensors->unRegisterTemperatureListener(&tempSensorStub);
+	sensors->unRegisterTemperatureListener(&tempListenerStub);
 	delete sensors;
 }
 
 TEST(TemperatureSensors, ReceiveInvalidTemperature)
 {
 	CommNs::TemperatureSensors* sensors = new CommNs::TemperatureSensors(nullptr);
-	TemperatureSensorStub tempSensorStub;
-	sensors->registerTemperatureListener(&tempSensorStub);
+	TemperatureListenerStub tempListenerStub;
+	sensors->registerTemperatureListener(&tempListenerStub);
 
 	sensors->receiveLine("[28AC48FB07000077:2:/25/75]");
-	EXPECT_EQ("", tempSensorStub.mLastId);
-	EXPECT_EQ(0, tempSensorStub.mLastTemperature);
+	EXPECT_EQ("", tempListenerStub.mLastId);
+	EXPECT_EQ(0, tempListenerStub.mLastTemperature);
 
-	sensors->unRegisterTemperatureListener(&tempSensorStub);
+	sensors->unRegisterTemperatureListener(&tempListenerStub);
 	delete sensors;
 }
 
-void filter(const std::string& inputFile, const std::string& outputFile)
+void filter(const std::string& inputFile, const std::string& outputFile, int k)
 {
-	TemperatureSensorStub tempSensorStub;
-	LogicNs::TemperatureFilter* filter = new LogicNs::TemperatureFilter(&tempSensorStub, 10);
+	TemperatureListenerStub tempListenerStub;
+	LogicNs::TemperatureFilter* filter = new LogicNs::TemperatureFilter(nullptr, k);
+	filter->registerTemperatureListener(&tempListenerStub);
 	std::remove(outputFile.c_str());
 	std::ifstream inFile(inputFile);
 	std::ofstream ofFile(outputFile);
@@ -166,16 +167,16 @@ void filter(const std::string& inputFile, const std::string& outputFile)
 
 		try
 		{
-			std::string tempString = lineParts[2];
+			std::string tempString = lineParts[3];
 			std::replace(tempString.begin(), tempString.end(), ',', '.');
 			float tempRead = std::stof(tempString);
 			filter->sensorTemperature("MYSENSOR", tempRead);
 
-			if (tempSensorStub.mLastTemperature)
+			if (tempListenerStub.mLastTemperature)
 			{
 
 				std::stringstream ss;
-				ss << lineParts[0] << ";" << lineParts[1] << ";" << tempRead << ";" << tempSensorStub.mLastTemperature << "\n";
+				ss << lineParts[0] << ";" << lineParts[2] << ";" << tempRead << ";" << tempListenerStub.mLastTemperature << "\n";
 				std::string outputLine = ss.str();
 				std::replace(outputLine.begin(), outputLine.end(), '.', ',');
 				ofFile << outputLine;
@@ -184,13 +185,21 @@ void filter(const std::string& inputFile, const std::string& outputFile)
 		catch (...) {};
 	}
 	ofFile.close();
+
+	filter->unRegisterTemperatureListener(&tempListenerStub);
 	delete filter;
 }
 
 TEST(TemperatureSensors, Filter)
 {
-	filter("../testdata/LivingTemperatuur.csv", "Processed.csv");
-	filter("../testdata/LivingTemperatuur2.csv", "Processed2.csv");
+	filter("../testdata/LivingTemperatuur.csv", "Processed_3.csv", 3);
+	filter("../testdata/LivingTemperatuur.csv", "Processed_4.csv", 4);
+	filter("../testdata/LivingTemperatuur.csv", "Processed_5.csv", 5);
+	filter("../testdata/LivingTemperatuur.csv", "Processed_6.csv", 6);
+	filter("../testdata/LivingTemperatuur.csv", "Processed_10.csv", 10);
+	filter("../testdata/LivingTemperatuur.csv", "Processed_15.csv", 15);
+
+//	filter("../testdata/LivingTemperatuur2.csv", "Processed2.csv");
 }
 
 TEST(TemperatureSensors, SendSetTemperature)

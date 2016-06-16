@@ -8,27 +8,36 @@
 #ifndef LOGIC_TEMPERATUREFILTER_H_
 #define LOGIC_TEMPERATUREFILTER_H_
 #include "TemperatureListenerIf.h"
+#include "Comm/TemperatureSensorsIf.h"
 #include "Filter.h"
 #include <map>
 #include <vector>
+#include <set>
+#include <mutex>
 
 namespace LogicNs {
 
-class TemperatureFilter: public TemperatureListenerIf
+class TemperatureFilter: public TemperatureListenerIf, public CommNs::TemperatureSensorsIf
 {
 public:
-	TemperatureFilter(TemperatureListenerIf* listener, size_t sampleCount);
+	TemperatureFilter(CommNs::TemperatureSensorsIf* source, int k);
 	virtual ~TemperatureFilter();
 
 	void sensorStarted(const std::string& sensorId);
 	void sensorTemperature(const std::string& sensorId, double temperature);
 	void sensorSetTemperatureUp(const std::string& sensorId);
 	void sensorSetTemperatureDown(const std::string& sensorId);
+
+	void registerTemperatureListener(LogicNs::TemperatureListenerIf* listener);
+	void unRegisterTemperatureListener(LogicNs::TemperatureListenerIf* listener);
+
+	void writeSetTemperature(const std::string& sensorId, double temperature);
 private:
-	TemperatureListenerIf* mListener;
-	const size_t mSampleCount;
-	std::map<std::string, std::vector<double>> mTemperatureHistory;
-//	Filter* getFilter(const std::string& sensorId);
+	CommNs::TemperatureSensorsIf* mSource;
+	std::mutex mDataMutex;
+	std::set<TemperatureListenerIf*> mListeners;
+	const int mK;
+	float mFilterSum;
 };
 
 } /* namespace LogicNs */
