@@ -37,6 +37,7 @@ private:
 	std::mutex mDataMutex;
 	std::set<TemperatureListenerIf*> mListeners;
 	const int mK;
+	int mSampleCount;
 	float mFilterSum;
 };
 

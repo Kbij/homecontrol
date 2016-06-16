@@ -19,6 +19,7 @@ TemperatureFilter::TemperatureFilter(CommNs::TemperatureSourceIf* source, int k)
 	mDataMutex(),
 	mListeners(),
 	mK(k),
+	mSampleCount(0),
 	mFilterSum(0)
 {
 	if (mSource)
@@ -50,10 +51,18 @@ void TemperatureFilter::sensorTemperature(const std::string& sensorId, double te
 	std::lock_guard<std::mutex> lock(mDataMutex);
 
 	mFilterSum = mFilterSum - (mFilterSum/mK) + temperature;
+	float filteredTemperature = mFilterSum/mK;
 	for(auto listener: mListeners)
 	{
-		float filteredTemperature = mFilterSum/mK;
-		listener->sensorTemperature(sensorId, filteredTemperature);
+		if (mSampleCount > mK)
+		{
+			listener->sensorTemperature(sensorId, filteredTemperature);
+		}
+		else
+		{
+			++mSampleCount;
+			listener->sensorTemperature(sensorId, temperature);
+		}
 	}
 }
 
