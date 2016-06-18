@@ -55,7 +55,7 @@ void TemperatureFilter::sensorTemperature(const std::string& sensorId, double te
 	filteredTemperature = round(filteredTemperature * 10)/10;
 	for(auto listener: mListeners)
 	{
-		if (mSampleCount > (mK * 2))
+		if (mSampleCount > (mK * 5))
 		{
 			listener->sensorTemperature(sensorId, filteredTemperature);
 		}
