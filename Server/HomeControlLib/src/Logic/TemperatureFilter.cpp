@@ -51,7 +51,7 @@ void TemperatureFilter::sensorTemperature(const std::string& sensorId, double te
 	std::lock_guard<std::mutex> lock(mDataMutex);
 
 	mFilterSum = mFilterSum - (mFilterSum/mK) + temperature;
-	float filteredTemperature = mFilterSum/mK;
+	double filteredTemperature = mFilterSum/mK;
 	filteredTemperature = round(filteredTemperature * 10)/10;
 	for(auto listener: mListeners)
 	{

@@ -38,7 +38,7 @@ private:
 	std::set<TemperatureListenerIf*> mListeners;
 	const int mK;
 	int mSampleCount;
-	float mFilterSum;
+	double mFilterSum;
 };
 
 } /* namespace LogicNs */

@@ -40,6 +40,7 @@ void TemperatureWriter::sensorStarted(const std::string& sensorId)
 {
 	try
 	{
+		VLOG(1) << "Received sensor start for: " << sensorId;
 		std::stringstream insert;
 		insert << "INSERT IGNORE INTO TemperatureSensor (sensorAddress)";
 		insert << " VALUES ('" << sensorId << "'); ";
@@ -74,6 +75,8 @@ void TemperatureWriter::sensorTemperature(const std::string& sensorId, double te
 {
 	try
 	{
+		VLOG(1) << "Received temperature: " << temperature << ", from sensor: " << sensorId;
+
 		std::stringstream insert;
 		insert << "INSERT INTO Temperature (idSensor, temperature, date) ";
 		insert << " SELECT TemperatureSensor.idTemperatureSensor, " << temperature << ", NOW() ";
