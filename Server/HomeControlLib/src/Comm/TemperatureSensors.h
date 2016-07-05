@@ -28,6 +28,8 @@ public:
 
 	//SerialListenerIf
 	void receiveLine(const std::string& line);
+	void receiveData(const std::vector<uint8_t>& data) {};
+
 
 	//TemperatureSensorsIf
 	void registerTemperatureListener(LogicNs::TemperatureListenerIf* listener);

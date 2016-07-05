@@ -11,6 +11,8 @@
 #include <string>
 #include <boost/asio.hpp>
 #include <thread>
+#include <vector>
+#include <stdint.h>
 
 namespace CommNs {
 class SerialListenerIf;
@@ -25,6 +27,8 @@ public:
 	void unRegisterSerialListener();
 
 	void writeLine(const std::string& line);
+	void writeData(const std::vector<uint8_t>& data);
+
 private:
 	SerialListenerIf* mListener;
     boost::asio::io_service mIo;
@@ -33,6 +37,7 @@ private:
 	std::thread* mSerialThread;
 
 	std::string readLine();
+	std::vector<uint8_t> readData();
 	void startSerialThread();
 	void stopSerialThread();
 	void serialThread();

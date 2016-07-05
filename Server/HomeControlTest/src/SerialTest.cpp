@@ -27,6 +27,7 @@ public:
 		mLastLine = line;
 		++mLineCount;
 	}
+	void receiveData(const std::vector<uint8_t>& data) {};
 	std::string mLastLine;
 	std::atomic_int mLineCount;
 };

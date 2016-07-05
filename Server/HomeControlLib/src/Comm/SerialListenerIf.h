@@ -8,6 +8,7 @@
 #ifndef COMM_SERIALLISTENERIF_H_
 #define COMM_SERIALLISTENERIF_H_
 #include <string>
+#include <vector>
 
 namespace CommNs {
 
@@ -17,6 +18,7 @@ public:
 	virtual ~SerialListenerIf() {};
 
 	virtual void receiveLine(const std::string& line) = 0;
+	virtual void receiveData(const std::vector<uint8_t>& data) = 0;
 };
 
 } /* namespace CommNs */
