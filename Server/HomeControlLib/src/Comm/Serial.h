@@ -10,9 +10,19 @@
 #include "SerialIf.h"
 #include <string>
 #include <boost/asio.hpp>
+#include <boost/asio/serial_port.hpp>
+#include <boost/system/error_code.hpp>
+#include <boost/system/system_error.hpp>
+#include <boost/bind.hpp>
+#include <boost/thread.hpp>
 #include <thread>
 #include <vector>
 #include <stdint.h>
+
+namespace
+{
+const int SERIAL_PORT_READ_BUF_SIZE  = 256;
+}
 
 namespace CommNs {
 class SerialListenerIf;
@@ -29,18 +39,19 @@ public:
 	void writeLine(const std::string& line);
 	void writeData(const std::vector<uint8_t>& data);
 
+	bool start(const std::string& portName, int baudRate);
+	void stop();
 private:
 	SerialListenerIf* mListener;
     boost::asio::io_service mIo;
-    boost::asio::serial_port mSerial;
-	bool mSerialThreadRunning;
-	std::thread* mSerialThread;
+    boost::shared_ptr<boost::asio::serial_port> mPort;
+    char mReadBuffer[SERIAL_PORT_READ_BUF_SIZE];
+    boost::mutex mMutex;
 
-	std::string readLine();
-	std::vector<uint8_t> readData();
-	void startSerialThread();
-	void stopSerialThread();
-	void serialThread();
+	void asyncReadSome();
+	void onReceive(const boost::system::error_code& ec, size_t bytesTransferred);
+	//void on_receive_(const std::string &data);
+
 };
 
 } /* namespace CommNs */

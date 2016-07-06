@@ -15,7 +15,7 @@ GTEST_API_ int main(int argc, char **argv)
 	testing::InitGoogleTest(&argc, argv);
 //	testing::GTEST_FLAG(filter) = "-LiveTest.*";
 
-	testing::GTEST_FLAG(filter) = "TemperatureSensors.Filter";
+	testing::GTEST_FLAG(filter) = "Xbee.Serial";
 //	testing::GTEST_FLAG(filter) = "Client.TimeOuts";
 
 	FLAGS_logtostderr=1;

@@ -14,18 +14,16 @@ namespace CommNs {
 Serial::Serial(std::string port, unsigned int baudRate):
 	mListener(nullptr),
 	mIo(),
-	mSerial(mIo,port),
-	mSerialThreadRunning(false),
-	mSerialThread(nullptr)
+	mPort(nullptr),
+	mReadBuffer(),
+	mMutex()
 {
-	mSerial.set_option(boost::asio::serial_port_base::baud_rate(baudRate));
-	mSerial.set_option(boost::asio::serial_port::flow_control( boost::asio::serial_port::flow_control::hardware));
-	startSerialThread();
+
 }
 
 Serial::~Serial()
 {
-	stopSerialThread();
+	stop();
 }
 
 void Serial::registerSerialListener(SerialListenerIf* listener)
@@ -37,94 +35,101 @@ void Serial::unRegisterSerialListener()
 {
 	mListener = nullptr;
 }
-/**
- * Write a string to the serial device.
- * \param s string to write
- * \throws boost::system::system_error on failure
- */
+
 void Serial::writeLine(const std::string& line)
 {
-    boost::asio::write(mSerial,boost::asio::buffer(line.c_str(),line.size()));
+ //   boost::asio::write(mSerial,boost::asio::buffer(line.c_str(),line.size()));
 }
 
 void Serial::writeData(const std::vector<uint8_t>& data)
 {
-    boost::asio::write(mSerial,boost::asio::buffer(data,data.size()));
-}
-/**
- * Blocks until a line is received from the serial device.
- * Eventual '\n' or '\r\n' characters at the end of the string are removed.
- * \return a string containing the received line
- * \throws boost::system::system_error on failure
- */
-std::string Serial::readLine()
-{
-    //Reading data char by char, code is optimized for simplicity, not speed
-    using namespace boost;
-    char c;
-    std::string result;
-    for(;;)
-    {
-        asio::read(mSerial,asio::buffer(&c,1));
-        switch(c)
-        {
-            case '\r':
-                break;
-            case '\n':
-                return result;
-            default:
-                result+=c;
-        }
-    }
+	boost::system::error_code ec;
+
+	if (!mPort) return ;
+	if (data.size() == 0) return;
+	LOG(INFO) << "Writing data, size: " << data.size();
+	mPort->write_some(boost::asio::buffer(data, data.size()), ec);
 }
 
-std::vector<uint8_t> Serial::readData()
+bool Serial::start(const std::string& portName, int baudRate)
 {
-	LOG(INFO) << "reading data...";
-    //Reading data char by char, code is optimized for simplicity, not speed
-    std::vector<uint8_t> buffer(1);
-//    buffer.reserve(100);
-    std::string result;
-    size_t bytesRead = boost::asio::read(mSerial,boost::asio::buffer(&buffer,1));
-    LOG(INFO) << "Serial received, size: " << buffer.size();
-    return buffer;
-}
+	boost::system::error_code ec;
 
-void Serial::startSerialThread()
-{
-	if (!mSerialThreadRunning)
+	if (mPort)
 	{
-		mSerialThreadRunning = true;
-		mSerialThread = new std::thread(&Serial::serialThread, this);
+		LOG(ERROR) << "error : port is already opened...";
+		return false;
 	}
-}
 
-void Serial::stopSerialThread()
-{
-	mSerialThreadRunning = false;
-	mSerial.close();
-    if (mSerialThreadRunning)
-    {
-    	mSerialThread->join();
-    	delete mSerialThread;
-    	mSerialThread = nullptr;
-    }
-}
-
-void Serial::serialThread()
-{
-	while(mSerialThreadRunning)
+	mPort = boost::shared_ptr<boost::asio::serial_port>(new boost::asio::serial_port(mIo));
+	mPort->open(portName.c_str(), ec);
+	if (ec)
 	{
-		std::vector<uint8_t> data = readData();
-		if (data.size() > 0)
-		{
-			if (mListener)
-			{
-				mListener->receiveData(data);
-			}
-		}
+		LOG(ERROR ) << "error: open() failed...com_port_name= " << portName << ", error=" << ec.message();
+		return false;
 	}
-	LOG(INFO) << "Stop serial thread";
+
+	// option settings...
+	mPort->set_option(boost::asio::serial_port_base::baud_rate(baudRate));
+	mPort->set_option(boost::asio::serial_port_base::character_size(8));
+	mPort->set_option(boost::asio::serial_port_base::stop_bits(boost::asio::serial_port_base::stop_bits::one));
+	mPort->set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::none));
+	mPort->set_option(boost::asio::serial_port_base::flow_control(boost::asio::serial_port_base::flow_control::none));
+
+	boost::thread t(boost::bind(&boost::asio::io_service::run, &mIo));
+
+	asyncReadSome();
+
+	return true;
 }
 
+void Serial::stop()
+{
+	boost::mutex::scoped_lock look(mMutex);
+
+	if (mPort)
+	{
+		mPort->cancel();
+		mPort->close();
+		mPort.reset();
+	}
+	mIo.stop();
+	mIo.reset();
+}
+
+void Serial::asyncReadSome()
+{
+	if (mPort.get() == NULL || !mPort->is_open()) return;
+
+	VLOG(1) << "Async read";
+	mPort->async_read_some(boost::asio::buffer(mReadBuffer, SERIAL_PORT_READ_BUF_SIZE),
+						   boost::bind(&Serial::onReceive, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+}
+
+void Serial::onReceive(const boost::system::error_code& ec, size_t bytesTransferred)
+{
+	VLOG(1) << "onReceive";
+	boost::mutex::scoped_lock look(mMutex);
+
+	if (mPort.get() == NULL || !mPort->is_open()) return;
+	if (ec)
+	{
+		asyncReadSome();
+		return;
+	}
+	VLOG(1) << "Bytes received: " << bytesTransferred;
+
+//	for (unsigned int i = 0; i < bytes_transferred; ++i) {
+//		char c = read_buf_raw_[i];
+//		if (c == end_of_line_char_) {
+//			this->on_receive_(read_buf_str_);
+//			read_buf_str_.clear();
+//		}
+//		else {
+//			read_buf_str_ += c;
+//		}
+//	}
+//
+//async_read_some_();
+}
 } /* namespace CommNs */
