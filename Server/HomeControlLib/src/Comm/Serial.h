@@ -13,11 +13,12 @@
 #include <boost/asio/serial_port.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/system/system_error.hpp>
-#include <boost/bind.hpp>
-#include <boost/thread.hpp>
+//#include <boost/bind.hpp>
+//#include <boost/thread.hpp>
 #include <thread>
 #include <vector>
 #include <stdint.h>
+#include <mutex>
 
 namespace
 {
@@ -46,10 +47,12 @@ private:
     boost::asio::io_service mIo;
     boost::shared_ptr<boost::asio::serial_port> mPort;
     char mReadBuffer[SERIAL_PORT_READ_BUF_SIZE];
-    boost::mutex mMutex;
+    std::thread* mThread;
+    std::mutex mMutex;
 
 	void asyncReadSome();
 	void onReceive(const boost::system::error_code& ec, size_t bytesTransferred);
+	void serialThread();
 	//void on_receive_(const std::string &data);
 
 };

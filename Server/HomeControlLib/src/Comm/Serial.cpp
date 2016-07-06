@@ -8,6 +8,7 @@
 #include <Comm/Serial.h>
 #include <Comm/SerialListenerIf.h>
 #include <glog/logging.h>
+#include <boost/bind.hpp>
 
 namespace CommNs {
 
@@ -16,6 +17,7 @@ Serial::Serial(std::string port, unsigned int baudRate):
 	mIo(),
 	mPort(nullptr),
 	mReadBuffer(),
+	mThread(nullptr),
 	mMutex()
 {
 
@@ -76,7 +78,10 @@ bool Serial::start(const std::string& portName, int baudRate)
 	mPort->set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::none));
 	mPort->set_option(boost::asio::serial_port_base::flow_control(boost::asio::serial_port_base::flow_control::none));
 
-	boost::thread t(boost::bind(&boost::asio::io_service::run, &mIo));
+//	if (!mSerialThreadRunning)
+	{
+		mThread = new std::thread(&Serial::serialThread, this);
+	}
 
 	asyncReadSome();
 
@@ -85,7 +90,7 @@ bool Serial::start(const std::string& portName, int baudRate)
 
 void Serial::stop()
 {
-	boost::mutex::scoped_lock look(mMutex);
+	std::lock_guard<std::mutex> lock(mMutex);
 
 	if (mPort)
 	{
@@ -95,8 +100,13 @@ void Serial::stop()
 	}
 	mIo.stop();
 	mIo.reset();
+	mThread->join();
 }
 
+void Serial::serialThread()
+{
+	mIo.run();
+}
 void Serial::asyncReadSome()
 {
 	if (mPort.get() == NULL || !mPort->is_open()) return;
@@ -109,7 +119,7 @@ void Serial::asyncReadSome()
 void Serial::onReceive(const boost::system::error_code& ec, size_t bytesTransferred)
 {
 	VLOG(1) << "onReceive";
-	boost::mutex::scoped_lock look(mMutex);
+	std::lock_guard<std::mutex> lock(mMutex);
 
 	if (mPort.get() == NULL || !mPort->is_open()) return;
 	if (ec)

@@ -24,6 +24,6 @@ target_link_libraries (HCServerTest ${SYSROOT}/lib/libboost_system.a)
 target_link_libraries (HCServerTest ${SYSROOT}/lib/libgtest.a)
 target_link_libraries (HCServerTest mysqlcppconn)
 target_link_libraries (HCServerTest pthread)
-target_link_libraries (HCServerTest ${SYSROOT}/lib/libboost_thread.a)
+#target_link_libraries (HCServerTest ${SYSROOT}/lib/libboost_thread.a)
 target_link_libraries (HCServerTest rt)
 
