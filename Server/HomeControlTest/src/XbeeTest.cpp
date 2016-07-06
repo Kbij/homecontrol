@@ -16,6 +16,8 @@
 #include "glog/stl_logging.h"
 #include "glog/logging.h"
 
+DEFINE_string(serial, "/dev/ttyUSB0", "Serial port to use");
+
 //const xbee_dispatch_table_entry_t xbee_frame_handlers[] =
 //{
 //		XBEE_FRAME_HANDLE_LOCAL_AT,
@@ -50,7 +52,8 @@
 //}
 TEST(Xbee, Serial)
 {
-	CommNs::Serial serial("/dev/ttyUSB0", 115200);
+	LOG(INFO) << "Serial port: " << FLAGS_serial;
+	CommNs::Serial serial(FLAGS_serial, 115200);
 	serial.start("/dev/ttyUSB0", 38400);
 	std::this_thread::sleep_for(std::chrono::seconds(1));
 	//std::vector<uint8_t> testData {0x7E, 0x00, 0x04, 0x08, 0x01, 0x61, 0x74, 0x21};
