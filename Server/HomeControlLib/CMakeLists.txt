@@ -24,7 +24,6 @@ file(GLOB lib_SRC
 )
 
 add_library (HCServerLib ${lib_SRC})
-target_link_libraries (HCServerLib ${SYSROOT}/lib/libboost_thread.a)
 #target_link_libraries (HCServerLib glog)
 
 
