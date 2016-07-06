@@ -46,7 +46,8 @@ private:
 	SerialListenerIf* mListener;
     boost::asio::io_service mIo;
     boost::shared_ptr<boost::asio::serial_port> mPort;
-    char mReadBuffer[SERIAL_PORT_READ_BUF_SIZE];
+    //char mReadBuffer[SERIAL_PORT_READ_BUF_SIZE];
+    std::vector<uint8_t> mReadBuffer;
     std::thread* mThread;
     std::mutex mMutex;
 

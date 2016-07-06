@@ -16,7 +16,7 @@ Serial::Serial(std::string port, unsigned int baudRate):
 	mListener(nullptr),
 	mIo(),
 	mPort(nullptr),
-	mReadBuffer(),
+	mReadBuffer(100),
 	mThread(nullptr),
 	mMutex()
 {
@@ -56,6 +56,7 @@ void Serial::writeData(const std::vector<uint8_t>& data)
 bool Serial::start(const std::string& portName, int baudRate)
 {
 	boost::system::error_code ec;
+	LOG(INFO) << "Opening port: " << portName << ", baudrate: " << baudRate;
 
 	if (mPort)
 	{
@@ -120,6 +121,9 @@ void Serial::onReceive(const boost::system::error_code& ec, size_t bytesTransfer
 {
 	VLOG(1) << "onReceive";
 	std::lock_guard<std::mutex> lock(mMutex);
+	VLOG(1) << "Bytes received: " << bytesTransferred;
+	std::string text(mReadBuffer.begin(), mReadBuffer.begin() + bytesTransferred);
+	LOG(INFO) << "Received: " << text;
 
 	if (mPort.get() == NULL || !mPort->is_open()) return;
 	if (ec)
@@ -127,7 +131,7 @@ void Serial::onReceive(const boost::system::error_code& ec, size_t bytesTransfer
 		asyncReadSome();
 		return;
 	}
-	VLOG(1) << "Bytes received: " << bytesTransferred;
+
 
 //	for (unsigned int i = 0; i < bytes_transferred; ++i) {
 //		char c = read_buf_raw_[i];

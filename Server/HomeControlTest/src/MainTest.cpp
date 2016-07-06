@@ -11,6 +11,9 @@
 
 GTEST_API_ int main(int argc, char **argv)
 {
+	google::SetVersionString("1.0.0");
+	google::ParseCommandLineFlags(&argc, &argv, true);
+
 	google::InitGoogleLogging("Home Control Test");
 	testing::InitGoogleTest(&argc, argv);
 //	testing::GTEST_FLAG(filter) = "-LiveTest.*";
