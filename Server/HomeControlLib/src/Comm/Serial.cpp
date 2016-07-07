@@ -106,7 +106,14 @@ void Serial::stop()
 
 void Serial::serialThread()
 {
-	mIo.run();
+	LOG(INFO) << "Thread started";
+//	for(;;)
+	{
+		boost::system::error_code ec;
+		mIo.run(ec);
+		LOG(INFO) << "Asio.run: " << ec;
+	}
+	LOG(INFO) << "Thread stopped";
 }
 void Serial::asyncReadSome()
 {
@@ -128,10 +135,10 @@ void Serial::onReceive(const boost::system::error_code& ec, size_t bytesTransfer
 	if (mPort.get() == NULL || !mPort->is_open()) return;
 	if (ec)
 	{
-		asyncReadSome();
+		//asyncReadSome();
 		return;
 	}
-
+asyncReadSome();
 
 //	for (unsigned int i = 0; i < bytes_transferred; ++i) {
 //		char c = read_buf_raw_[i];
