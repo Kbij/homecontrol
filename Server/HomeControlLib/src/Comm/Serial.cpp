@@ -40,11 +40,6 @@ void Serial::unRegisterSerialListener()
 	mListener = nullptr;
 }
 
-void Serial::writeLine(const std::string& line)
-{
-	boost::asio::write(*mPort,boost::asio::buffer(line.c_str(),line.size()));
-}
-
 void Serial::writeData(const std::vector<uint8_t>& data)
 {
 	boost::system::error_code ec;
@@ -62,7 +57,7 @@ bool Serial::openSerial()
 
 	if (mPort)
 	{
-		LOG(ERROR) << "error : port is already opened...";
+		LOG(ERROR) << "Port is already opened...";
 		return false;
 	}
 
@@ -70,7 +65,7 @@ bool Serial::openSerial()
 	mPort->open(mPortName.c_str(), ec);
 	if (ec)
 	{
-		LOG(ERROR ) << "error: open() failed...com_port_name= " << mPortName << ", error=" << ec.message();
+		LOG(ERROR ) << "OpenSerial failed... port: " << mPortName << ", error:" << ec.message();
 		return false;
 	}
 
@@ -90,7 +85,7 @@ bool Serial::openSerial()
 void Serial::closeSerial()
 {
 	{
-		std::lock_guard<std::recursive_mutex> lock(mMutex);
+		std::lock_guard<std::mutex> lock(mMutex);
 		LOG(INFO) << "Stop serial";
 		if (mPort)
 		{
@@ -107,7 +102,6 @@ void Serial::closeSerial()
 
 void Serial::serialThread()
 {
-//	LOG(INFO)<< "letting it start up";
 	mIo.run();
 }
 
@@ -115,31 +109,20 @@ void Serial::asyncReadSome()
 {
 	if (mPort.get() == NULL || !mPort->is_open()) return;
 
-	VLOG(1) << "Async read";
 	mPort->async_read_some(boost::asio::buffer(mReadBuffer, SERIAL_PORT_READ_BUF_SIZE),
 						   boost::bind(&Serial::onReceive, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
 }
 
 void Serial::onReceive(const boost::system::error_code& ec, size_t bytesTransferred)
 {
-	VLOG(1) << "onReceive, received: " << bytesTransferred;
-	std::lock_guard<std::recursive_mutex> lock(mMutex);
+	VLOG(1) << "Bytes received: " << bytesTransferred;
+	std::lock_guard<std::mutex> lock(mMutex);
 	if (mPort.get() == NULL || !mPort->is_open()) return;
-	if (!ec)
+	if (ec)
 	{
-		VLOG(1) << "Bytes received: " << bytesTransferred;
-		std::string text(mReadBuffer.begin(), mReadBuffer.begin() + bytesTransferred);
-		LOG(INFO) << "Received: " << text;
-	}
-	else
-	{
-		LOG(INFO) << "Error ?" << ec;
-
+		LOG(INFO) << "Receive error: " << ec;
 	}
 
-	if (bytesTransferred > 0)
-	{
-		asyncReadSome();
-	}
+	asyncReadSome();
 }
 } /* namespace CommNs */

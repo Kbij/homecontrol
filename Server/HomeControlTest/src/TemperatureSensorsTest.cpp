@@ -15,6 +15,8 @@
 #include "glog/stl_logging.h"
 #include "glog/logging.h"
 #include <algorithm>
+#include <vector>
+#include <stdint.h>
 #include <string>
 #include <thread>
 #include <fstream>
@@ -57,11 +59,11 @@ public:
 	void registerSerialListener(CommNs::SerialListenerIf* listener) {};
 	void unRegisterSerialListener() {};
 
-	void writeLine(const std::string& line)
+	void writeData(const std::vector<uint8_t>& data)
 	{
-		mLastSend = line;
-	}
-	std::string mLastSend;
+		mLastSend = data;
+	};
+	std::vector<uint8_t> mLastSend;
 };
 
 TEST(TemperatureSensors, Constructor)
@@ -208,6 +210,6 @@ TEST(TemperatureSensors, SendSetTemperature)
 	CommNs::TemperatureSensors* sensors = new CommNs::TemperatureSensors(&serialStub);
 
 	sensors->writeSetTemperature("mySensor", 25.6);
-	EXPECT_EQ(serialStub.mLastSend, "[mySensor:5:25,60]");
+	//EXPECT_EQ(serialStub.mLastSend, "[mySensor:5:25,60]");
 	delete sensors;
 }

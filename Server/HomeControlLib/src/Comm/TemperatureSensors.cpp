@@ -60,7 +60,7 @@ void TemperatureSensors::writeSetTemperature(const std::string& sensorId, double
 		ss << "[" << sensorId << ":5:"  << std::fixed << std::setprecision(2) << temperature << "]";
 		std::string outputLine = ss.str();
 		std::replace(outputLine.begin(), outputLine.end(), '.', ',');
-		mSerial->writeLine(outputLine);
+		//mSerial->writeLine(outputLine);
 	}
 }
 

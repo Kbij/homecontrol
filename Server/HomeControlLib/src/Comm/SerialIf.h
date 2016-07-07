@@ -8,6 +8,7 @@
 #ifndef COMM_SERIALIF_H_
 #define COMM_SERIALIF_H_
 #include <string>
+#include <vector>
 
 namespace CommNs {
 class SerialListenerIf;
@@ -20,7 +21,7 @@ public:
 	virtual void registerSerialListener(SerialListenerIf* listener) = 0;
 	virtual void unRegisterSerialListener() = 0;
 
-	virtual void writeLine(const std::string& line) = 0;
+	virtual void writeData(const std::vector<uint8_t>& data) = 0;
 };
 
 } /* namespace CommNs */

@@ -37,7 +37,6 @@ public:
 	void registerSerialListener(SerialListenerIf* listener);
 	void unRegisterSerialListener();
 
-	void writeLine(const std::string& line);
 	void writeData(const std::vector<uint8_t>& data);
 
 	bool openSerial();
@@ -50,7 +49,7 @@ private:
     boost::shared_ptr<boost::asio::serial_port> mPort;
     std::vector<uint8_t> mReadBuffer;
     std::thread* mThread;
-    std::recursive_mutex mMutex;
+    std::mutex mMutex;
 
 	void asyncReadSome();
 	void onReceive(const boost::system::error_code& ec, size_t bytesTransferred);
