@@ -104,7 +104,7 @@ void Serial::closeSerial()
 	mIo.stop();
 	mIo.reset();
 	mThread->join();
-	mThread.reset();
+	delete mThread;
 }
 
 void Serial::serialThread()
