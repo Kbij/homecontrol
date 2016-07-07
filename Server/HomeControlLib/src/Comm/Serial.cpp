@@ -42,7 +42,7 @@ void Serial::unRegisterSerialListener()
 
 void Serial::writeLine(const std::string& line)
 {
- //   boost::asio::write(mSerial,boost::asio::buffer(line.c_str(),line.size()));
+	boost::asio::write(*mPort,boost::asio::buffer(line.c_str(),line.size()));
 }
 
 void Serial::writeData(const std::vector<uint8_t>& data)
@@ -58,7 +58,7 @@ void Serial::writeData(const std::vector<uint8_t>& data)
 bool Serial::openSerial()
 {
 	boost::system::error_code ec;
-	LOG(INFO) << "Opening port: " << mPort << ", baudrate: " << mBaudRate;
+	LOG(INFO) << "Opening port: " << mPortName << ", baudrate: " << mBaudRate;
 
 	if (mPort)
 	{
@@ -81,25 +81,23 @@ bool Serial::openSerial()
 	mPort->set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::none));
 	mPort->set_option(boost::asio::serial_port_base::flow_control(boost::asio::serial_port_base::flow_control::none));
 
-//	if (!mSerialThreadRunning)
-	{
-		mThread = new std::thread(&Serial::serialThread, this);
-	}
-
 	asyncReadSome();
+	mThread = new std::thread(&Serial::serialThread, this);
 
 	return true;
 }
 
 void Serial::closeSerial()
 {
-	std::lock_guard<std::mutex> lock(mMutex);
-	LOG(INFO) << "Stop serial";
-	if (mPort)
 	{
-		mPort->cancel();
-		mPort->close();
-		mPort.reset();
+		std::lock_guard<std::recursive_mutex> lock(mMutex);
+		LOG(INFO) << "Stop serial";
+		if (mPort)
+		{
+			mPort->cancel();
+			mPort->close();
+			mPort.reset();
+		}
 	}
 	mIo.stop();
 	mIo.reset();
@@ -109,11 +107,8 @@ void Serial::closeSerial()
 
 void Serial::serialThread()
 {
-	LOG(INFO) << "Thread started";
-	boost::system::error_code ec;
-	mIo.run(ec);
-	LOG(INFO) << "Asio.run: " << ec;
-	LOG(INFO) << "Thread stopped";
+//	LOG(INFO)<< "letting it start up";
+	mIo.run();
 }
 
 void Serial::asyncReadSome()
@@ -128,7 +123,7 @@ void Serial::asyncReadSome()
 void Serial::onReceive(const boost::system::error_code& ec, size_t bytesTransferred)
 {
 	VLOG(1) << "onReceive, received: " << bytesTransferred;
-	std::lock_guard<std::mutex> lock(mMutex);
+	std::lock_guard<std::recursive_mutex> lock(mMutex);
 	if (mPort.get() == NULL || !mPort->is_open()) return;
 	if (!ec)
 	{
@@ -142,6 +137,9 @@ void Serial::onReceive(const boost::system::error_code& ec, size_t bytesTransfer
 
 	}
 
-	asyncReadSome();
+	if (bytesTransferred > 0)
+	{
+		asyncReadSome();
+	}
 }
 } /* namespace CommNs */

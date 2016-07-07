@@ -50,7 +50,7 @@ private:
     boost::shared_ptr<boost::asio::serial_port> mPort;
     std::vector<uint8_t> mReadBuffer;
     std::thread* mThread;
-    std::mutex mMutex;
+    std::recursive_mutex mMutex;
 
 	void asyncReadSome();
 	void onReceive(const boost::system::error_code& ec, size_t bytesTransferred);

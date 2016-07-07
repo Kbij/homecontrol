@@ -52,8 +52,7 @@ DEFINE_string(serial, "/dev/ttyUSB0", "Serial port to use");
 //}
 TEST(Xbee, Serial)
 {
-	LOG(INFO) << "Serial port: " << FLAGS_serial;
-	CommNs::Serial serial(FLAGS_serial, 115200);
+	CommNs::Serial serial(FLAGS_serial, 38400);
 	serial.openSerial();
 	std::this_thread::sleep_for(std::chrono::seconds(1));
 
