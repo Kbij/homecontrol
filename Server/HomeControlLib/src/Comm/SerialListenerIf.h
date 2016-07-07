@@ -17,7 +17,6 @@ class SerialListenerIf
 public:
 	virtual ~SerialListenerIf() {};
 
-	virtual void receiveLine(const std::string& line) = 0;
 	virtual void receiveData(const std::vector<uint8_t>& data) = 0;
 };
 

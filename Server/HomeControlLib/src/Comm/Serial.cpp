@@ -123,6 +123,10 @@ void Serial::onReceive(const boost::system::error_code& ec, size_t bytesTransfer
 		LOG(INFO) << "Receive error: " << ec;
 	}
 
+	if (mListener)
+	{
+		mListener->receiveData(std::vector<uint8_t>(mReadBuffer.begin(), mReadBuffer.begin() + bytesTransferred));
+	}
 	asyncReadSome();
 }
 } /* namespace CommNs */
