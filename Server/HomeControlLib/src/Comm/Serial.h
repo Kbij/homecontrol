@@ -31,7 +31,7 @@ class SerialListenerIf;
 class Serial: public SerialIf
 {
 public:
-	Serial(std::string port, unsigned int baudRate);
+	Serial(const std::string& portName, unsigned int baudRate);
 	virtual ~Serial();
 
 	void registerSerialListener(SerialListenerIf* listener);
@@ -40,13 +40,14 @@ public:
 	void writeLine(const std::string& line);
 	void writeData(const std::vector<uint8_t>& data);
 
-	bool start(const std::string& portName, int baudRate);
-	void stop();
+	bool openSerial();
+	void closeSerial();
 private:
+	const std::string mPortName;
+    const int mBaudRate;
 	SerialListenerIf* mListener;
     boost::asio::io_service mIo;
     boost::shared_ptr<boost::asio::serial_port> mPort;
-    //char mReadBuffer[SERIAL_PORT_READ_BUF_SIZE];
     std::vector<uint8_t> mReadBuffer;
     std::thread* mThread;
     std::mutex mMutex;

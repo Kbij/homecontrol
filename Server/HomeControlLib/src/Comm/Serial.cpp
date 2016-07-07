@@ -12,7 +12,9 @@
 
 namespace CommNs {
 
-Serial::Serial(std::string port, unsigned int baudRate):
+Serial::Serial(const std::string& portName, unsigned int baudRate):
+	mPortName(portName),
+	mBaudRate(baudRate),
 	mListener(nullptr),
 	mIo(),
 	mPort(nullptr),
@@ -25,7 +27,7 @@ Serial::Serial(std::string port, unsigned int baudRate):
 
 Serial::~Serial()
 {
-	stop();
+	closeSerial();
 }
 
 void Serial::registerSerialListener(SerialListenerIf* listener)
@@ -53,10 +55,10 @@ void Serial::writeData(const std::vector<uint8_t>& data)
 	mPort->write_some(boost::asio::buffer(data, data.size()), ec);
 }
 
-bool Serial::start(const std::string& portName, int baudRate)
+bool Serial::openSerial()
 {
 	boost::system::error_code ec;
-	LOG(INFO) << "Opening port: " << portName << ", baudrate: " << baudRate;
+	LOG(INFO) << "Opening port: " << mPort << ", baudrate: " << mBaudRate;
 
 	if (mPort)
 	{
@@ -65,15 +67,15 @@ bool Serial::start(const std::string& portName, int baudRate)
 	}
 
 	mPort = boost::shared_ptr<boost::asio::serial_port>(new boost::asio::serial_port(mIo));
-	mPort->open(portName.c_str(), ec);
+	mPort->open(mPortName.c_str(), ec);
 	if (ec)
 	{
-		LOG(ERROR ) << "error: open() failed...com_port_name= " << portName << ", error=" << ec.message();
+		LOG(ERROR ) << "error: open() failed...com_port_name= " << mPortName << ", error=" << ec.message();
 		return false;
 	}
 
 	// option settings...
-	mPort->set_option(boost::asio::serial_port_base::baud_rate(baudRate));
+	mPort->set_option(boost::asio::serial_port_base::baud_rate(mBaudRate));
 	mPort->set_option(boost::asio::serial_port_base::character_size(8));
 	mPort->set_option(boost::asio::serial_port_base::stop_bits(boost::asio::serial_port_base::stop_bits::one));
 	mPort->set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::none));
@@ -89,10 +91,10 @@ bool Serial::start(const std::string& portName, int baudRate)
 	return true;
 }
 
-void Serial::stop()
+void Serial::closeSerial()
 {
 	std::lock_guard<std::mutex> lock(mMutex);
-
+	LOG(INFO) << "Stop serial";
 	if (mPort)
 	{
 		mPort->cancel();
@@ -102,19 +104,18 @@ void Serial::stop()
 	mIo.stop();
 	mIo.reset();
 	mThread->join();
+	mThread.reset();
 }
 
 void Serial::serialThread()
 {
 	LOG(INFO) << "Thread started";
-//	for(;;)
-	{
-		boost::system::error_code ec;
-		mIo.run(ec);
-		LOG(INFO) << "Asio.run: " << ec;
-	}
+	boost::system::error_code ec;
+	mIo.run(ec);
+	LOG(INFO) << "Asio.run: " << ec;
 	LOG(INFO) << "Thread stopped";
 }
+
 void Serial::asyncReadSome()
 {
 	if (mPort.get() == NULL || !mPort->is_open()) return;
@@ -126,31 +127,21 @@ void Serial::asyncReadSome()
 
 void Serial::onReceive(const boost::system::error_code& ec, size_t bytesTransferred)
 {
-	VLOG(1) << "onReceive";
+	VLOG(1) << "onReceive, received: " << bytesTransferred;
 	std::lock_guard<std::mutex> lock(mMutex);
-	VLOG(1) << "Bytes received: " << bytesTransferred;
-	std::string text(mReadBuffer.begin(), mReadBuffer.begin() + bytesTransferred);
-	LOG(INFO) << "Received: " << text;
-
 	if (mPort.get() == NULL || !mPort->is_open()) return;
-	if (ec)
+	if (!ec)
 	{
-		//asyncReadSome();
-		return;
+		VLOG(1) << "Bytes received: " << bytesTransferred;
+		std::string text(mReadBuffer.begin(), mReadBuffer.begin() + bytesTransferred);
+		LOG(INFO) << "Received: " << text;
 	}
-asyncReadSome();
+	else
+	{
+		LOG(INFO) << "Error ?" << ec;
 
-//	for (unsigned int i = 0; i < bytes_transferred; ++i) {
-//		char c = read_buf_raw_[i];
-//		if (c == end_of_line_char_) {
-//			this->on_receive_(read_buf_str_);
-//			read_buf_str_.clear();
-//		}
-//		else {
-//			read_buf_str_ += c;
-//		}
-//	}
-//
-//async_read_some_();
+	}
+
+	asyncReadSome();
 }
 } /* namespace CommNs */

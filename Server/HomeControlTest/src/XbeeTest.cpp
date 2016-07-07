@@ -54,15 +54,16 @@ TEST(Xbee, Serial)
 {
 	LOG(INFO) << "Serial port: " << FLAGS_serial;
 	CommNs::Serial serial(FLAGS_serial, 115200);
-	serial.start(FLAGS_serial, 38400);
+	serial.openSerial();
 	std::this_thread::sleep_for(std::chrono::seconds(1));
+
 	//std::vector<uint8_t> testData {0x7E, 0x00, 0x04, 0x08, 0x01, 0x61, 0x74, 0x21};
 	std::vector<uint8_t> testData {'+', '+', '+'};
 	serial.writeData(testData);
 	std::this_thread::sleep_for(std::chrono::seconds(3));
 
-	std::vector<uint8_t> testVL {'A', 'T', 'V', 'L', '\n'};
+	std::vector<uint8_t> testVL {'A', 'T', 'V', 'L', 0x0D};
 	serial.writeData(testVL);
-	std::this_thread::sleep_for(std::chrono::seconds(1));
+	std::this_thread::sleep_for(std::chrono::seconds(2));
 
 }
