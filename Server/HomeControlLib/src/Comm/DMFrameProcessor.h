@@ -15,19 +15,25 @@
 
 namespace CommNs {
 class DMFrameListenerIf;
+class SerialIf;
 
 class DMFrameProcessor: public SerialListenerIf
 {
 public:
-	DMFrameProcessor();
+	DMFrameProcessor(SerialIf* serial);
 	virtual ~DMFrameProcessor();
 
 	void registerFrameListener(DMFrameListenerIf* listener);
 	void unRegisterFrameListener();
 
+	void sendATCmd(const std::string& atCmd);
+	void sendData(const std::vector<uint8_t>& data);
+
 	//SerialListenerIf
 	void receiveData(const std::vector<uint8_t>& data);
+
 private:
+	SerialIf* mSerial;
     std::vector<uint8_t> mFrameBuffer;
     std::mutex mDataMutex;
     DMFrameListenerIf* mListener;

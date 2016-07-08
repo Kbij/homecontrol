@@ -11,6 +11,8 @@
 #include "Comm/CommListenerIf.h"
 #include "CommObjects/CommObjectIf.h"
 #include "Comm/Serial.h"
+#include "Comm/DMFrameProcessor.h"
+#include "Comm/DMFrameListenerIf.h"
 #include "gtest/gtest.h"
 #include "glog/stl_logging.h"
 #include "glog/logging.h"
@@ -20,7 +22,8 @@
 #include <iostream>
 
 DEFINE_string(serial, "/dev/ttyUSB0", "Serial port to use");
-
+namespace
+{
 class CommListenerStub: public CommNs::CommListenerIf
 {
 public:
@@ -35,6 +38,18 @@ public:
 	};
 
 };
+
+class DMFrameListenerStub: public CommNs::DMFrameListenerIf
+{
+public:
+	virtual ~DMFrameListenerStub() {};
+	void receiveFrame(const std::vector<uint8_t>& data)
+	{
+		mLastFrame = data;
+	};
+	std::vector<uint8_t> mLastFrame;
+};
+}
 
 TEST(LiveTest, ServerListening)
 {
@@ -63,5 +78,19 @@ TEST(LiveTest, Serial)
 	std::vector<uint8_t> testVL {'A', 'T', 'V', 'L', 0x0D};
 	serial.writeData(testVL);
 	std::this_thread::sleep_for(std::chrono::seconds(2));
+}
 
+TEST(LiveTest, SendApiCommand)
+{
+	CommNs::Serial serial(FLAGS_serial, 38400);
+	serial.openSerial();
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+	DMFrameListenerStub DMListener;
+	CommNs::DMFrameProcessor processor(&serial);
+	processor.registerFrameListener(&DMListener);
+	processor.sendData({0x08, 0x01, 'S', 'H'});
+	std::this_thread::sleep_for(std::chrono::seconds(5));
+	LOG(INFO) << "Received: " << DMListener.mLastFrame;
+	std::string text(DMListener.mLastFrame.begin(), DMListener.mLastFrame.end());
+	LOG(INFO) << text;
 }
