@@ -13,6 +13,8 @@
 #include "Comm/Serial.h"
 #include "Comm/DMFrameProcessor.h"
 #include "Comm/DMFrameListenerIf.h"
+#include "Comm/DMComm.h"
+#include "Comm/DMMessages.h"
 #include "gtest/gtest.h"
 #include "glog/stl_logging.h"
 #include "glog/logging.h"
@@ -85,12 +87,25 @@ TEST(LiveTest, SendApiCommand)
 	CommNs::Serial serial(FLAGS_serial, 38400);
 	serial.openSerial();
 	std::this_thread::sleep_for(std::chrono::seconds(1));
-	DMFrameListenerStub DMListener;
 	CommNs::DMFrameProcessor processor(&serial);
-	processor.registerFrameListener(&DMListener);
-	processor.sendData({0x08, 0x01, 'S', 'H'});
+	CommNs::DMComm dmComm(&processor);
+	CommNs::DMMessageIf* received = dmComm.sendATCmd("SH", 100);
+	EXPECT_NE(nullptr, received);
+	if (received != nullptr)
+	{
+		LOG(INFO) << received->toString();
+
+		delete received;
+	}
+
+	received = dmComm.sendATCmd("SL", 100);
+		EXPECT_NE(nullptr, received);
+		if (received != nullptr)
+		{
+			LOG(INFO) << received->toString();
+
+			delete received;
+		}
+
 	std::this_thread::sleep_for(std::chrono::seconds(5));
-	LOG(INFO) << "Received: " << DMListener.mLastFrame;
-	std::string text(DMListener.mLastFrame.begin(), DMListener.mLastFrame.end());
-	LOG(INFO) << text;
 }

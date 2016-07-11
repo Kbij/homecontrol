@@ -25,7 +25,8 @@ DMFrameProcessor::DMFrameProcessor(SerialIf* serial):
 	mSerial(serial),
 	mFrameBuffer(),
 	mDataMutex(),
-	mListener(nullptr)
+	mListener(nullptr),
+	mFrameId(1)
 {
 	if (mSerial)
 	{
@@ -52,16 +53,6 @@ void DMFrameProcessor::unRegisterFrameListener()
 	mListener = nullptr;
 }
 
-void DMFrameProcessor::sendATCmd(const std::string& atCmd)
-{
-	std::vector<uint8_t> data;
-	data.push_back(0x08);
-	data.push_back(0x00);
-	data.insert(data.end(), atCmd.begin(), atCmd.end());
-
-	sendData(data);
-}
-
 void DMFrameProcessor::sendData(const std::vector<uint8_t>& data)
 {
 	if (mSerial)
@@ -82,7 +73,7 @@ void DMFrameProcessor::sendData(const std::vector<uint8_t>& data)
 void DMFrameProcessor::receiveData(const std::vector<uint8_t>& data)
 {
 	std::lock_guard<std::mutex> lk_guard(mDataMutex);
-	VLOG(1) << "Received (" << data.size() << ") " << data;
+	VLOG(1) << "Receive size : " << data.size();
 	mFrameBuffer.insert(mFrameBuffer.end(), data.begin(), data.end());
 
 	processFrameBuffer();
@@ -132,14 +123,15 @@ void DMFrameProcessor::processFrameBuffer()
 			{
 				mListener->receiveFrame(frame);
 			}
+			mFrameBuffer.erase(mFrameBuffer.begin(), itStartPosition + HEADER_LENGTH + dataLength + CRC_LENGTH);
+			packetFound = true;
 		}
 		else
 		{
 			LOG(ERROR) << "Invalid Crc";
+			mFrameBuffer.clear();
 		}
 
-		mFrameBuffer.erase(mFrameBuffer.begin(), itStartPosition + HEADER_LENGTH + dataLength + CRC_LENGTH);
-		packetFound = true;
 		VLOG(3) << "Buffer size: " << mFrameBuffer.size();
 	}
 }

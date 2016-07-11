@@ -8,6 +8,7 @@
 #ifndef COMM_DMFRAMEPROCESSOR_H_
 #define COMM_DMFRAMEPROCESSOR_H_
 #include "SerialListenerIf.h"
+#include "DMFrameProcessorIf.h"
 #include <vector>
 #include <stdint.h>
 #include <mutex>
@@ -17,7 +18,7 @@ namespace CommNs {
 class DMFrameListenerIf;
 class SerialIf;
 
-class DMFrameProcessor: public SerialListenerIf
+class DMFrameProcessor: public DMFrameProcessorIf, public SerialListenerIf
 {
 public:
 	DMFrameProcessor(SerialIf* serial);
@@ -26,7 +27,6 @@ public:
 	void registerFrameListener(DMFrameListenerIf* listener);
 	void unRegisterFrameListener();
 
-	void sendATCmd(const std::string& atCmd);
 	void sendData(const std::vector<uint8_t>& data);
 
 	//SerialListenerIf
@@ -37,6 +37,7 @@ private:
     std::vector<uint8_t> mFrameBuffer;
     std::mutex mDataMutex;
     DMFrameListenerIf* mListener;
+    uint8_t mFrameId;
 
     void processFrameBuffer();
 };
