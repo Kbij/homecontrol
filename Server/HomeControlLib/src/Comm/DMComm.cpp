@@ -97,6 +97,7 @@ void DMComm::sendMessage(DMMessageIf* message)
 	{
 		if (mFrameProcessor)
 		{
+			LOG(INFO) << "Send message: " << message->toString();
 			mFrameProcessor->sendData(message->serialise(mFrameId++));
 		}
 
