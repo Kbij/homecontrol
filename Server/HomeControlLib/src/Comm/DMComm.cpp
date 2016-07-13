@@ -207,7 +207,6 @@ void DMComm::init()
 		LOG(INFO) << "Device initialised, SN: " << snString();
 		sendATCmd("CH", {0x0B});
 		sendATCmd("ID", {0x12, 0x13});
-		sendATCmd("ND", {});
 	}
 	else
 	{

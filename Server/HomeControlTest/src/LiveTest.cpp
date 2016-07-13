@@ -129,7 +129,10 @@ TEST(LiveTest, Client)
 	CommNs::DMFrameProcessor processor(&serial);
 	CommNs::DMComm dmComm(&processor);
 	std::this_thread::sleep_for(std::chrono::seconds(10));
-	CommNs::TxMessage* sendData = new CommNs::TxMessage({'T', 'e', 's', 't'}, {0x00,0x13, 0xA2, 0x40, 0xD9, 0xD5, 0xDB});
+	dmComm.sendATCmd("ND", {});
+	std::this_thread::sleep_for(std::chrono::seconds(20));
+
+	CommNs::TxMessage* sendData = new CommNs::TxMessage({'T', 'e', 's', 't'}, {0x00, 0x13, 0xA2, 0x00, 0x40, 0xD9, 0xD5, 0xDB});
 //	CommNs::TxMessage* sendData = new CommNs::TxMessage({'T', 'e', 's', 't'}, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF});
 	dmComm.sendMessage(sendData);
 
