@@ -14,7 +14,7 @@
 
 namespace CommNs {
 
-enum class DMMessageType {ATResponse_SH, ATResponse_SL, TxRequestFrame};
+enum class DMMessageType {ATResponse_SH, ATResponse_SL, TxRequestFrame, TxStatusFrame};
 
 class DMMessageIf
 {
