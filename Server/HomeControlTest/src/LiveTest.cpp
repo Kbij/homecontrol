@@ -86,10 +86,10 @@ TEST(LiveTest, SendApiCommand)
 {
 	CommNs::Serial serial(FLAGS_serial, 38400);
 	serial.openSerial();
-	std::this_thread::sleep_for(std::chrono::seconds(1));
+	//std::this_thread::sleep_for(std::chrono::milliseconds());
 	CommNs::DMFrameProcessor processor(&serial);
 	CommNs::DMComm dmComm(&processor);
-	CommNs::DMMessageIf* received = dmComm.sendATCmd("SH", 100);
+	CommNs::DMMessageIf* received = dmComm.sendATCmd("SH", {}, 100);
 	EXPECT_NE(nullptr, received);
 	if (received != nullptr)
 	{
@@ -98,14 +98,39 @@ TEST(LiveTest, SendApiCommand)
 		delete received;
 	}
 
-	received = dmComm.sendATCmd("SL", 100);
-		EXPECT_NE(nullptr, received);
-		if (received != nullptr)
-		{
-			LOG(INFO) << received->toString();
+	received = dmComm.sendATCmd("SL", {}, 100);
+	EXPECT_NE(nullptr, received);
+	if (received != nullptr)
+	{
+		LOG(INFO) << received->toString();
 
-			delete received;
-		}
+		delete received;
+	}
 
-	std::this_thread::sleep_for(std::chrono::seconds(5));
+}
+
+TEST(LiveTest, Server)
+{
+	CommNs::Serial serial(FLAGS_serial, 38400);
+	serial.openSerial();
+	//std::this_thread::sleep_for(std::chrono::milliseconds());
+	CommNs::DMFrameProcessor processor(&serial);
+	CommNs::DMComm dmComm(&processor);
+	std::this_thread::sleep_for(std::chrono::seconds(10));
+
+	std::this_thread::sleep_for(std::chrono::seconds(60));
+}
+
+TEST(LiveTest, Client)
+{
+	CommNs::Serial serial(FLAGS_serial, 38400);
+	serial.openSerial();
+	//std::this_thread::sleep_for(std::chrono::milliseconds());
+	CommNs::DMFrameProcessor processor(&serial);
+	CommNs::DMComm dmComm(&processor);
+	std::this_thread::sleep_for(std::chrono::seconds(10));
+	CommNs::TxMessage* sendData = new CommNs::TxMessage({'T', 'e', 's', 't'}, {});
+	dmComm.sendMessage(sendData);
+
+	std::this_thread::sleep_for(std::chrono::seconds(60));
 }

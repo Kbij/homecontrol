@@ -31,7 +31,6 @@ DMFrameProcessor::DMFrameProcessor(SerialIf* serial):
 	if (mSerial)
 	{
 		mSerial->registerSerialListener(this);
-	//	mSerial->writeData({'A', 'T', ' ', '1', 0x0D});
 	}
 }
 
@@ -73,7 +72,7 @@ void DMFrameProcessor::sendData(const std::vector<uint8_t>& data)
 void DMFrameProcessor::receiveData(const std::vector<uint8_t>& data)
 {
 	std::lock_guard<std::mutex> lk_guard(mDataMutex);
-	VLOG(1) << "Receive size : " << data.size();
+	VLOG(12) << "Receive size : " << data.size();
 	mFrameBuffer.insert(mFrameBuffer.end(), data.begin(), data.end());
 
 	processFrameBuffer();
@@ -87,7 +86,7 @@ void DMFrameProcessor::processFrameBuffer()
 		packetFound = false;
 		if (mFrameBuffer.size() < HEADER_LENGTH)
 		{ // Not received the full buffer; return
-			VLOG(3) << "Not a full frame received, buffer size: " << mFrameBuffer.size();
+			VLOG(12) << "Not a full frame received, buffer size: " << mFrameBuffer.size();
 			return;
 		}
 
@@ -99,20 +98,20 @@ void DMFrameProcessor::processFrameBuffer()
 				LOG(ERROR) << "While searching for start, buffer cleared. Size: " << mFrameBuffer.size();
 				mFrameBuffer.clear();
 			}
-			VLOG(1) << "Start not found, first byte: " << (int) mFrameBuffer[0] << ", buffer: " << mFrameBuffer;
+			VLOG(12) << "Start not found, first byte: " << (int) mFrameBuffer[0] << ", buffer: " << mFrameBuffer;
 			return;
 		}
 		auto startPosition = itStartPosition - mFrameBuffer.begin();
 		int dataLength = mFrameBuffer[startPosition + LENGTH_POSITION] * 256 +
 						 mFrameBuffer[startPosition + LENGTH_POSITION + 1];
-		VLOG(1) << "dataLength: " << dataLength;
+		VLOG(12) << "dataLength: " << dataLength;
 		if (mFrameBuffer.size() < (size_t) dataLength + HEADER_LENGTH + CRC_LENGTH)
 		{ // Not all data received
-			VLOG(3) << "Not all data received, buffer size: " << mFrameBuffer.size();
+			VLOG(12) << "Not all data received, buffer size: " << mFrameBuffer.size();
 			return;
 		}
 
-		VLOG(3) << "Full frame received. buffer size: " << mFrameBuffer.size() << ", packet length: " << dataLength;
+		VLOG(12) << "Full frame received. buffer size: " << mFrameBuffer.size() << ", packet length: " << dataLength;
 		std::vector<uint8_t> frame(itStartPosition +  HEADER_LENGTH, itStartPosition + HEADER_LENGTH + dataLength);
 
 		uint8_t calculatedCrc = std::accumulate(frame.begin(), frame.end(), 0);
@@ -132,7 +131,7 @@ void DMFrameProcessor::processFrameBuffer()
 			mFrameBuffer.clear();
 		}
 
-		VLOG(3) << "Buffer size: " << mFrameBuffer.size();
+		VLOG(12) << "Buffer size: " << mFrameBuffer.size();
 	}
 }
 } /* namespace CommNs */

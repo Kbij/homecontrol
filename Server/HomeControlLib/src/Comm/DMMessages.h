@@ -14,7 +14,7 @@
 
 namespace CommNs {
 
-enum class DMMessageType {ATResponse_SH, ATResponse_SL};
+enum class DMMessageType {ATResponse_SH, ATResponse_SL, TxRequestFrame};
 
 class DMMessageIf
 {
@@ -23,7 +23,7 @@ public:
 
 	virtual DMMessageType messageType() = 0;
 	virtual std::string toString() = 0;
-	virtual std::vector<uint8_t> serialise() = 0;
+	virtual std::vector<uint8_t> serialise(uint8_t frameId) = 0;
 
 };
 
@@ -58,11 +58,45 @@ public:
 	{
 		return "SN: " + snString();
 	}
-	std::vector<uint8_t> serialise() {return std::vector<uint8_t>();};
+	std::vector<uint8_t> serialise(uint8_t frameId) {return std::vector<uint8_t>();};
 	DMMessageType mMessageType;
 	std::vector<uint8_t> SN;
 };
 
+class TxMessage: public DMMessageIf
+{
+public:
+	TxMessage(std::vector<uint8_t> txData, std::vector<uint8_t> destination) :
+		mTxData(txData),
+		mDestination(destination)
+	{
+	}
+	virtual ~TxMessage() {};
+
+	DMMessageType messageType() {return DMMessageType::TxRequestFrame;};
+
+	std::string toString()
+	{
+		return "Tx Data, data size: " + mTxData.size();
+	}
+	std::vector<uint8_t> serialise(uint8_t frameId)
+	{
+		std::vector<uint8_t> data;
+		data.push_back(0x10);
+		data.push_back(frameId);
+		data.insert(data.end(), mDestination.begin(), mDestination.end());
+		data.push_back(0xFF);  // Reserved
+		data.push_back(0xFE);  // Reserved
+		data.push_back(0x00);  // Broadcast radius
+		data.push_back(0x00);  // Transmit options
+		data.insert(data.end(), mTxData.begin(), mTxData.end());
+
+		return data;
+	};
+
+	std::vector<uint8_t> mTxData;
+	std::vector<uint8_t> mDestination;
+};
 } /* namespace CommNs */
 
 

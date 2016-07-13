@@ -10,6 +10,8 @@
 #include "Comm/DMFrameListenerIf.h"
 #include <condition_variable>
 #include <atomic>
+#include <vector>
+#include <stdint.h>
 
 namespace CommNs {
 class DMFrameProcessorIf;
@@ -24,8 +26,8 @@ public:
 
 	std::string snString();
 
-	void sendATCmd(const std::string& atCmd);
-	DMMessageIf* sendATCmd(const std::string& atCmd, int timeOutMilliseconds);
+	void sendATCmd(const std::string& atCmd, std::vector<uint8_t> parameters);
+	DMMessageIf* sendATCmd(const std::string& atCmd, std::vector<uint8_t> parameters, int timeOutMilliseconds);
 	void sendMessage(DMMessageIf* message);
 
 	//DMFrameListenerIf

@@ -54,14 +54,16 @@ std::string DMComm::snString()
 	return ss.str();
 }
 
-void DMComm::sendATCmd(const std::string& atCmd)
+void DMComm::sendATCmd(const std::string& atCmd, std::vector<uint8_t> parameters)
 {
 	if (mFrameProcessor)
 	{
+		LOG(INFO) << "Send AT: " << atCmd;
 		std::vector<uint8_t> sendCmd;
 		sendCmd.push_back(0x08);
 		sendCmd.push_back(mFrameId++);
 		sendCmd.insert(sendCmd.end(), atCmd.begin(), atCmd.end());
+		sendCmd.insert(sendCmd.end(), parameters.begin(), parameters.end());
 
 		mFrameProcessor->sendData(sendCmd);
 	}
@@ -69,19 +71,19 @@ void DMComm::sendATCmd(const std::string& atCmd)
 	if (mFrameId == 0) mFrameId = 1;
 }
 
-DMMessageIf* DMComm::sendATCmd(const std::string& atCmd, int timeOutMilliseconds)
+DMMessageIf* DMComm::sendATCmd(const std::string& atCmd, std::vector<uint8_t> parameters, int timeOutMilliseconds)
 {
 	mResponseReceived = false;
 	mSynchronousFrameId = mFrameId;
 	mReceivedMessage = nullptr;
-	sendATCmd(atCmd);
+	sendATCmd(atCmd, parameters);
 
 	auto until = std::chrono::system_clock::now() +std::chrono::milliseconds(timeOutMilliseconds);
 	std::unique_lock<std::mutex> lock(mConditionVarMutex);
 	mWaitForResponseCondVar.wait_until(lock, until,[&]{return (bool)mResponseReceived;});
 	if (mResponseReceived)
 	{
-		VLOG(1) << "Response received for command: " << atCmd;
+		VLOG(10) << "Response received for command: " << atCmd;
 		return mReceivedMessage;
 	}
 	mSynchronousFrameId = 0;
@@ -91,7 +93,15 @@ DMMessageIf* DMComm::sendATCmd(const std::string& atCmd, int timeOutMilliseconds
 
 void DMComm::sendMessage(DMMessageIf* message)
 {
+	if (message)
+	{
+		if (mFrameProcessor)
+		{
+			mFrameProcessor->sendData(message->serialise(mFrameId++));
+		}
 
+		delete message;
+	}
 }
 
 void DMComm::receiveFrame(const std::vector<uint8_t>& data)
@@ -117,29 +127,33 @@ void DMComm::receiveFrame(const std::vector<uint8_t>& data)
 		case 0x88:
 		{
 			std::string atCmd(data.begin() + 2, data.begin() + 4);
-			LOG(INFO) << "AT Command response received, command: " << atCmd;
+			VLOG(10) << "AT Command response received, command: " << atCmd;
 			if (atCmd == "SH")
 			{
-				LOG(INFO) << "SH received";
+				VLOG(10) << "SH received";
 				received = new AtResponse_SN(DMMessageType::ATResponse_SH);
 				std::copy(data.begin() + 5, data.begin() + 8, std::back_inserter( ((AtResponse_SN*)received)->SN));
 			}
-			if (atCmd == "SL")
+			else if (atCmd == "SL")
 			{
-				LOG(INFO) << "SL received";
+				VLOG(10) << "SL received";
 				received = new AtResponse_SN(DMMessageType::ATResponse_SL);
 				std::copy(data.begin() + 5, data.begin() + 9, std::back_inserter( ((AtResponse_SN*)received)->SN));
+			}
+			else
+			{
+				LOG(ERROR) << "Unknown AT Response: " << atCmd;
 			}
 			break;
 		}
 		case 0x8A:
 		{
-			LOG(INFO) << "Modem status received";
+			VLOG(10) << "Modem status received";
 			break;
 		}
 		default:
 		{
-			LOG(INFO) << "Unknown response received: " << (int) data[0];
+			LOG(INFO) << "Unknown response received, frameType: " << "0x" << std::hex << std::uppercase <<  std::setfill('0') << std::setw(2) << (int) frameType;
 		}
 	}
 
@@ -168,19 +182,19 @@ void DMComm::printFrame(const std::vector<uint8_t>& data)
 		ss << "0x" << std::hex << std::uppercase <<  std::setfill('0') << std::setw(2) <<  (int) val;
 		first = false;
 	}
-	VLOG(2) << "Received frame: " << ss.str();
+	VLOG(10) << "Received frame: " << ss.str();
 }
 
 void DMComm::init()
 {
-	DMMessageIf* received = sendATCmd("SH", 100);
+	DMMessageIf* received = sendATCmd("SH", {}, 100);
 	if(AtResponse_SN* sn = dynamic_cast<AtResponse_SN*> (received))
 	{
 		mSN.insert(mSN.end(), sn->SN.begin(), sn->SN.end());
 		delete sn;
 	}
 
-	received = sendATCmd("SL", 100);
+	received = sendATCmd("SL", {}, 100);
 	if(AtResponse_SN* sn = dynamic_cast<AtResponse_SN*> (received))
 	{
 		mSN.insert(mSN.end(), sn->SN.begin(), sn->SN.end());
@@ -190,6 +204,8 @@ void DMComm::init()
 	if (mSN.size() == 7)
 	{
 		LOG(INFO) << "Device initialised, SN: " << snString();
+		sendATCmd("CH", {0x0B});
+		sendATCmd("ID", {0x12, 0x13});
 	}
 	else
 	{

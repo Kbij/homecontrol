@@ -9,6 +9,9 @@
 #include <glog/logging.h>
 #include <gflags/gflags.h>
 
+DEFINE_bool(server, false, "Run live test as Server");
+DEFINE_bool(client, false, "Run live test as Client");
+
 GTEST_API_ int main(int argc, char **argv)
 {
 	google::SetVersionString("1.0.0");
@@ -21,8 +24,17 @@ GTEST_API_ int main(int argc, char **argv)
 	testing::GTEST_FLAG(filter) = "LiveTest.SendApiCommand";
 //	testing::GTEST_FLAG(filter) = "DMTests.*";
 
+	if (FLAGS_server)
+	{
+		testing::GTEST_FLAG(filter) = "LiveTest.Server";
+	}
+	if (FLAGS_client)
+	{
+		testing::GTEST_FLAG(filter) = "LiveTest.Client";
+	}
+
 	FLAGS_logtostderr=1;
-	FLAGS_v = 3;
+//	FLAGS_v = 3;
 
 	//FLAGS_minloglevel = 100;
     int result = RUN_ALL_TESTS();
