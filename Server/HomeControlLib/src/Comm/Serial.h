@@ -54,8 +54,6 @@ private:
 	void asyncReadSome();
 	void onReceive(const boost::system::error_code& ec, size_t bytesTransferred);
 	void serialThread();
-	//void on_receive_(const std::string &data);
-
 };
 
 } /* namespace CommNs */

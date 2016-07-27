@@ -14,7 +14,7 @@
 
 namespace CommNs {
 
-enum class DMMessageType {ATResponse_SH, ATResponse_SL, TxRequestFrame, TxStatusFrame};
+enum class DMMessageType {ATResponse, TxRequestFrame, TxStatusFrame};
 
 class DMMessageIf
 {
@@ -27,40 +27,31 @@ public:
 
 };
 
-class AtResponse_SN: public DMMessageIf
+class AtResponse: public DMMessageIf
 {
 public:
-	AtResponse_SN(DMMessageType messageType) :
-		mMessageType(messageType),
-		SN()
+	AtResponse(std::string cmd, std::vector<uint8_t> parameters) :
+		mCmd(cmd),
+		mParameters(parameters)
 	{
 	}
-	virtual ~AtResponse_SN() {};
+	virtual ~AtResponse() {};
 
-	DMMessageType messageType() {return mMessageType;};
-	std::string snString()
-	{
-		std::stringstream ss;
-		bool first = true;
-		for(auto val: SN)
-		{
-			if (!first)
-			{
-				ss << ":";
-			}
-			ss << std::hex << std::uppercase <<  std::setfill('0') << std::setw(2) <<  (int) val;
-			first = false;
-		}
-		return ss.str();
-	}
+	DMMessageType messageType() {return DMMessageType::ATResponse;};
 
 	std::string toString()
 	{
-		return "SN: " + snString();
+		std::stringstream ss;
+		ss << "AT Response, Cmd: " << mCmd << ", parameter length: " << mParameters.size();
+		return ss.str();
 	}
 	std::vector<uint8_t> serialise(uint8_t frameId) {return std::vector<uint8_t>();};
-	DMMessageType mMessageType;
-	std::vector<uint8_t> SN;
+
+	std::string cmd() {return mCmd;};
+	std::vector<uint8_t>& parameters() {return mParameters;};
+private:
+	std::string mCmd;
+	std::vector<uint8_t> mParameters;
 };
 
 class TxMessage: public DMMessageIf
@@ -77,8 +68,11 @@ public:
 
 	std::string toString()
 	{
-		return "Tx Data, data size: " + mTxData.size();
+		std::stringstream ss;
+		ss << "Tx Data, data size: " << mTxData.size();
+		return ss.str();
 	}
+
 	std::vector<uint8_t> serialise(uint8_t frameId)
 	{
 		std::vector<uint8_t> data;
@@ -96,6 +90,65 @@ public:
 
 	std::vector<uint8_t> mTxData;
 	std::vector<uint8_t> mDestination;
+};
+
+enum class DeliveryStatus {	Success = 0x00
+							,MACACKFailure = 0x01
+							,CollisionAvoidanceFailure = 0x02
+							,NetworkACKFailure = 0x21
+							,RouteNotFound = 0x25
+							,InternalResourceError = 0x31
+							,InternalError = 0x32
+							,PayloadTooLarge = 0x74 };
+enum class DiscoveryStatus { NoDiscoveryOverhead = 0x00
+							 ,RouteDiscovery = 0x02};
+
+class TxStatusFrame: public DMMessageIf
+{
+public:
+	TxStatusFrame(std::vector<uint8_t> data):
+		mTransmitRetry(),
+		mDeliveryStatus(),
+		mDiscoveryStatus()
+	{
+		mTransmitRetry = data[4];
+		mDeliveryStatus = (DeliveryStatus) data[5];
+		mDiscoveryStatus = (DiscoveryStatus) data[6];
+	}
+	virtual ~TxStatusFrame() {};
+
+	DMMessageType messageType() {return DMMessageType::TxStatusFrame;};
+
+	std::string toString()
+	{
+		std::stringstream ss;
+		ss << "Tx Status. Transmit Retry: " << (int) mTransmitRetry << ", Delivery status: ";
+		switch(mDeliveryStatus)
+		{
+			case DeliveryStatus::Success: ss << "Success"; break;
+			case DeliveryStatus::MACACKFailure: ss << "Mac Ack Failure"; break;
+			case DeliveryStatus::CollisionAvoidanceFailure: ss << "Mac Ack Failure"; break;
+			case DeliveryStatus::NetworkACKFailure: ss << "Mac Ack Failure"; break;
+			case DeliveryStatus::RouteNotFound: ss << "Mac Ack Failure"; break;
+			case DeliveryStatus::InternalResourceError: ss << "Mac Ack Failure"; break;
+			case DeliveryStatus::InternalError: ss << "Mac Ack Failure"; break;
+			case DeliveryStatus::PayloadTooLarge: ss << "Mac Ack Failure"; break;
+			default: ss << "Unknown";
+		}
+		ss << ", Discovery status: ";
+		switch(mDiscoveryStatus)
+		{
+			case DiscoveryStatus::NoDiscoveryOverhead: ss << "No Discovery overhead"; break;
+			case DiscoveryStatus::RouteDiscovery: ss << "Route discovery"; break;
+		}
+
+		return ss.str();
+	}
+	std::vector<uint8_t> serialise(uint8_t frameId) {return std::vector<uint8_t>();};
+private:
+	uint8_t mTransmitRetry;
+	DeliveryStatus mDeliveryStatus;
+	DiscoveryStatus mDiscoveryStatus;
 };
 } /* namespace CommNs */
 

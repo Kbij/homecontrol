@@ -86,6 +86,10 @@ DMMessageIf* DMComm::sendATCmd(const std::string& atCmd, std::vector<uint8_t> pa
 		VLOG(10) << "Response received for command: " << atCmd;
 		return mReceivedMessage;
 	}
+	else
+	{
+		LOG(ERROR) << "No response received for cmd: " << atCmd << ", timeout: " << timeOutMilliseconds;
+	}
 	mSynchronousFrameId = 0;
 
 	return nullptr;
@@ -129,22 +133,7 @@ void DMComm::receiveFrame(const std::vector<uint8_t>& data)
 		{
 			std::string atCmd(data.begin() + 2, data.begin() + 4);
 			VLOG(10) << "AT Command response received, command: " << atCmd;
-			if (atCmd == "SH")
-			{
-				VLOG(10) << "SH received";
-				received = new AtResponse_SN(DMMessageType::ATResponse_SH);
-				std::copy(data.begin() + 5, data.begin() + 8, std::back_inserter( ((AtResponse_SN*)received)->SN));
-			}
-			else if (atCmd == "SL")
-			{
-				VLOG(10) << "SL received";
-				received = new AtResponse_SN(DMMessageType::ATResponse_SL);
-				std::copy(data.begin() + 5, data.begin() + 9, std::back_inserter( ((AtResponse_SN*)received)->SN));
-			}
-			else
-			{
-				LOG(ERROR) << "Unknown AT Response: " << atCmd;
-			}
+			received = new AtResponse(atCmd, std::vector<uint8_t>(data.begin() + 5, data.end()));
 			break;
 		}
 		case 0x8A:
@@ -152,10 +141,21 @@ void DMComm::receiveFrame(const std::vector<uint8_t>& data)
 			VLOG(10) << "Modem status received";
 			break;
 		}
+		case 0x8B:
+		{
+			VLOG(10) << "TX Status received";
+			received = new TxStatusFrame(std::vector<uint8_t>(data.begin(), data.end()));
+			break;
+		}
 		default:
 		{
 			LOG(INFO) << "Unknown response received, frameType: " << "0x" << std::hex << std::uppercase <<  std::setfill('0') << std::setw(2) << (int) frameType;
 		}
+	}
+
+	if (received)
+	{
+		VLOG(10) << "Received: " << received->toString();
 	}
 
 	if (synchronousResponse)
@@ -189,20 +189,26 @@ void DMComm::printFrame(const std::vector<uint8_t>& data)
 void DMComm::init()
 {
 	DMMessageIf* received = sendATCmd("SH", {}, 100);
-	if(AtResponse_SN* sn = dynamic_cast<AtResponse_SN*> (received))
+	if (received)
 	{
-		mSN.insert(mSN.end(), sn->SN.begin(), sn->SN.end());
-		delete sn;
+		if(AtResponse* sn = dynamic_cast<AtResponse*> (received))
+		{
+			if (sn->cmd() == "SH") mSN.insert(mSN.end(), sn->parameters().begin(), sn->parameters().end());
+			delete sn;
+		}
 	}
 
 	received = sendATCmd("SL", {}, 100);
-	if(AtResponse_SN* sn = dynamic_cast<AtResponse_SN*> (received))
+	if (received)
 	{
-		mSN.insert(mSN.end(), sn->SN.begin(), sn->SN.end());
-		delete sn;
+		if(AtResponse* sn = dynamic_cast<AtResponse*> (received))
+		{
+			if (sn->cmd() == "SL") mSN.insert(mSN.end(), sn->parameters().begin(), sn->parameters().end());
+			delete sn;
+		}
 	}
 
-	if (mSN.size() == 7)
+	if (mSN.size() == 8)
 	{
 		LOG(INFO) << "Device initialised, SN: " << snString();
 		sendATCmd("CH", {0x0B});

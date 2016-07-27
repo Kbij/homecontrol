@@ -9,6 +9,7 @@
 #include <Comm/SerialListenerIf.h>
 #include <glog/logging.h>
 #include <boost/bind.hpp>
+#include <iostream>
 
 namespace CommNs {
 
@@ -27,6 +28,7 @@ Serial::Serial(const std::string& portName, unsigned int baudRate):
 
 Serial::~Serial()
 {
+	unRegisterSerialListener();
 	closeSerial();
 }
 
@@ -91,13 +93,17 @@ void Serial::closeSerial()
 		{
 			mPort->cancel();
 			mPort->close();
-			mPort.reset();
 		}
 	}
 	mIo.stop();
 	mIo.reset();
+	std::cout << "1" << std::endl;
+	//mPort.reset();
+	std::cout << "2" << std::endl;
 	mThread->join();
+	std::cout << "3" << std::endl;
 	delete mThread;
+	std::cout << "4" << std::endl;
 }
 
 void Serial::serialThread()
@@ -107,7 +113,7 @@ void Serial::serialThread()
 
 void Serial::asyncReadSome()
 {
-	if (mPort.get() == NULL || !mPort->is_open()) return;
+	if (!mPort || !mPort->is_open()) return;
 
 	mPort->async_read_some(boost::asio::buffer(mReadBuffer, SERIAL_PORT_READ_BUF_SIZE),
 						   boost::bind(&Serial::onReceive, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
@@ -117,7 +123,12 @@ void Serial::onReceive(const boost::system::error_code& ec, size_t bytesTransfer
 {
 	VLOG(13) << "Bytes received: " << bytesTransferred;
 	std::lock_guard<std::mutex> lock(mMutex);
-	if (mPort.get() == NULL || !mPort->is_open()) return;
+	std::cout << "2.1" << std::endl;
+
+	if (!mPort) return;
+	std::cout << "2.2" << std::endl;
+	if (!mPort->is_open()) return;
+	std::cout << "2.3" << std::endl;
 	if (ec)
 	{
 		LOG(ERROR) << "Receive error: " << ec;

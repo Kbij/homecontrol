@@ -123,10 +123,10 @@ TEST(LiveTest, Server)
 
 TEST(LiveTest, Client)
 {
-	CommNs::Serial serial(FLAGS_serial, 38400);
-	serial.openSerial();
+	CommNs::Serial*  serial = new CommNs::Serial(FLAGS_serial, 38400);
+	serial->openSerial();
 	//std::this_thread::sleep_for(std::chrono::milliseconds());
-	CommNs::DMFrameProcessor processor(&serial);
+	CommNs::DMFrameProcessor processor(serial);
 	CommNs::DMComm dmComm(&processor);
 	std::this_thread::sleep_for(std::chrono::seconds(10));
 	dmComm.sendATCmd("ND", {});
@@ -136,5 +136,7 @@ TEST(LiveTest, Client)
 //	CommNs::TxMessage* sendData = new CommNs::TxMessage({'T', 'e', 's', 't'}, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF});
 	dmComm.sendMessage(sendData);
 
-	std::this_thread::sleep_for(std::chrono::seconds(60));
+	std::this_thread::sleep_for(std::chrono::seconds(5));
+
+	delete serial;
 }
