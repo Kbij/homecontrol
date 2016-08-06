@@ -15,6 +15,8 @@
 #include "Comm/DMFrameListenerIf.h"
 #include "Comm/DMComm.h"
 #include "Comm/DMMessages.h"
+#include "Comm/TemperatureSensors.h"
+#include "Logic/TemperatureListenerIf.h"
 #include "gtest/gtest.h"
 #include "glog/stl_logging.h"
 #include "glog/logging.h"
@@ -50,6 +52,34 @@ public:
 		mLastFrame = data;
 	};
 	std::vector<uint8_t> mLastFrame;
+};
+
+class TemperatureListenerStub: public LogicNs::TemperatureListenerIf
+{
+public:
+	TemperatureListenerStub(): mLastId(), mLastTemperature() {};
+	~TemperatureListenerStub() {};
+
+	void sensorStarted(const std::string& sensorId)
+	{
+		mLastId = sensorId;
+	}
+	void sensorTemperature(const std::string& sensorId, double temperature)
+	{
+		LOG(INFO) << "Temperature, sensor: " << sensorId << ", Temp: " << temperature;
+		mLastId = sensorId;
+		mLastTemperature = temperature;
+	}
+	void sensorSetTemperatureUp(const std::string& sensorId)
+	{
+		mLastId = sensorId;
+	}
+	void sensorSetTemperatureDown(const std::string& sensorId)
+	{
+		mLastId = sensorId;
+	}
+	std::string mLastId;
+	double mLastTemperature;
 };
 }
 
@@ -88,7 +118,7 @@ TEST(LiveTest, SendApiCommand)
 	serial.openSerial();
 	//std::this_thread::sleep_for(std::chrono::milliseconds());
 	CommNs::DMFrameProcessor processor(&serial);
-	CommNs::DMComm dmComm(&processor);
+	CommNs::DMComm dmComm(&processor, 0x0B, {0x12, 0x13});
 	CommNs::DMMessageIf* received = dmComm.sendATCmd("SH", {}, 100);
 	EXPECT_NE(nullptr, received);
 	if (received != nullptr)
@@ -115,10 +145,27 @@ TEST(LiveTest, Server)
 	serial.openSerial();
 	//std::this_thread::sleep_for(std::chrono::milliseconds());
 	CommNs::DMFrameProcessor processor(&serial);
-	CommNs::DMComm dmComm(&processor);
-	std::this_thread::sleep_for(std::chrono::seconds(10));
+	CommNs::DMComm dmComm(&processor, 0x0B, {0x12, 0x13});
 
-	std::this_thread::sleep_for(std::chrono::seconds(300));
+	std::this_thread::sleep_for(std::chrono::seconds(3000));
+}
+
+TEST(LiveTest, TempSensorsServer)
+{
+	CommNs::Serial serial(FLAGS_serial, 38400);
+	serial.openSerial();
+	//std::this_thread::sleep_for(std::chrono::milliseconds());
+	CommNs::DMFrameProcessor processor(&serial);
+	CommNs::DMComm* dmComm = new CommNs::DMComm(&processor, 0x0B, {0x12, 0x13});
+	CommNs::TemperatureSensors* sensors = new CommNs::TemperatureSensors(dmComm);
+	TemperatureListenerStub tempListenerStub;
+	sensors->registerTemperatureListener(&tempListenerStub);
+
+	std::this_thread::sleep_for(std::chrono::seconds(3000));
+
+	sensors->unRegisterTemperatureListener(&tempListenerStub);
+	delete sensors;
+	delete dmComm;
 }
 
 TEST(LiveTest, Client)
@@ -126,17 +173,18 @@ TEST(LiveTest, Client)
 	CommNs::Serial*  serial = new CommNs::Serial(FLAGS_serial, 38400);
 	serial->openSerial();
 	//std::this_thread::sleep_for(std::chrono::milliseconds());
-	CommNs::DMFrameProcessor processor(serial);
-	CommNs::DMComm dmComm(&processor);
+	CommNs::DMFrameProcessor* processor = new  CommNs::DMFrameProcessor(serial);
+	CommNs::DMComm* dmComm= new CommNs::DMComm(processor, 0x0B, {0x12, 0x13});
 	std::this_thread::sleep_for(std::chrono::seconds(10));
-	dmComm.sendATCmd("ND", {});
+	dmComm->sendATCmd("ND", {});
 	std::this_thread::sleep_for(std::chrono::seconds(20));
 
 	CommNs::TxMessage* sendData = new CommNs::TxMessage({'T', 'e', 's', 't'}, {0x00, 0x13, 0xA2, 0x00, 0x40, 0xD9, 0xD5, 0xDB});
 //	CommNs::TxMessage* sendData = new CommNs::TxMessage({'T', 'e', 's', 't'}, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF});
-	dmComm.sendMessage(sendData);
+	dmComm->sendMessage(sendData);
 
 	std::this_thread::sleep_for(std::chrono::seconds(5));
-
+	delete dmComm;
+	delete processor;
 	delete serial;
 }

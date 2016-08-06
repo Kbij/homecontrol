@@ -8,9 +8,12 @@
 #ifndef COMM_TEMPERATURESENSORS_H_
 #define COMM_TEMPERATURESENSORS_H_
 #include <Comm/TemperatureSourceIf.h>
-#include "SerialListenerIf.h"
+#include "Comm/DMCommListenerIf.h"
 #include <set>
 #include <mutex>
+#include <vector>
+#include <map>
+#include <string>
 
 namespace LogicNs
 {
@@ -18,18 +21,16 @@ class TemperatureListenerIf;
 }
 
 namespace CommNs {
-class SerialIf;
+class DMCommIf;
 
-class TemperatureSensors: public SerialListenerIf, public TemperatureSourceIf
+class TemperatureSensors: public DMCommListenerIf, public TemperatureSourceIf
 {
 public:
-	TemperatureSensors(SerialIf* serial);
+	TemperatureSensors(DMCommIf* dmComm);
 	virtual ~TemperatureSensors();
 
-	//SerialListenerIf
-	void receiveLine(const std::string& line);
-	void receiveData(const std::vector<uint8_t>& data) {};
-
+	//DMCommListenerIf
+	void receiveMessage(const DMMessageIf* message);
 
 	//TemperatureSensorsIf
 	void registerTemperatureListener(LogicNs::TemperatureListenerIf* listener);
@@ -37,14 +38,17 @@ public:
 
 	void writeSetTemperature(const std::string& sensorId, double temperature);
 private:
-	SerialIf* mSerial;
+	DMCommIf* mDMComm;
 	std::set<LogicNs::TemperatureListenerIf*> mListeners;
+	std::map<std::string, std::vector<uint8_t>> mSensorAddress;
 	std::mutex mDataMutex;
 
+	void receiveLine(const std::string& line, const std::vector<uint8_t> sourceAddress);
 	void sendSensorStarted(const std::string& sensorId);
 	void sendTemperature(const std::string& sensorId, float temperature);
 	void sendSetTemperatureUp(const std::string& sensorId);
 	void sendSetTemperatureDown(const std::string& sensorId);
+	void sendXBeeListenerAddress(const std::string& sensorId, const std::vector<uint8_t> sourceAddress);
 };
 
 } /* namespace CommNs */

@@ -72,6 +72,15 @@ RoomConfig* HomeControlDal::findRoomByRoomId(const std::string& roomId)
 	{
 		LOG(ERROR) << "clientConnected, SQLExceptin: " << ex.what() << ", MySQL error code: " << ex.getErrorCode() << ", SQLState: " << ex.getSQLState();
 	}
+
+	if (result == nullptr)
+	{
+		LOG(INFO) << "Room not found";
+	}
+	else
+	{
+		LOG(INFO) << "Room found: " << result->RoomName;
+	}
 	return result;
 }
 
@@ -123,6 +132,14 @@ RoomConfig* HomeControlDal::findRoomBySensorId(const std::string& sensorId)
 	catch (sql::SQLException &ex)
 	{
 		LOG(ERROR) << "clientConnected, SQLExceptin: " << ex.what() << ", MySQL error code: " << ex.getErrorCode() << ", SQLState: " << ex.getSQLState();
+	}
+	if (result == nullptr)
+	{
+		LOG(INFO) << "Room not found";
+	}
+	else
+	{
+		LOG(INFO) << "Room found: " << result->RoomName;
 	}
 	return result;
 }

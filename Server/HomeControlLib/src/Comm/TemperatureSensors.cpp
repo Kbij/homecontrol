@@ -6,37 +6,48 @@
  */
 
 #include <Comm/TemperatureSensors.h>
-#include "Comm/SerialIf.h"
+#include "Comm/DMCommIf.h"
+#include "Comm/DMMessages.h"
 #include "Logic/TemperatureListenerIf.h"
 #include <glog/logging.h>
 #include <boost/algorithm/string.hpp>
+#include <sstream>
 #include <iomanip>
-
+#include <iostream>
 namespace
 {
-const int SERIAL_POS = 0;
-const int MESSAGE_TYPE_POS = 1;
+const int MESSAGE_TYPE_POS = 0;
+const int SERIAL_POS = 1;
 const int TEMPERATURE_POS = 2;
+
+const std::string MSG_SENSOR_STARTUP = "1";
+const std::string MSG_TEMPERATURE = "2";
+const std::string MSG_SERVER_DISCOVERY = "3";
+const std::string MSG_SERVER_DISCOVERY_RESPONSE = "4";
+const std::string MSG_SET_TEMPERATURE = "5";
+const std::string MSG_SET_TEMPERATURE_UP = "6";
+const std::string MSG_SET_TEMPERATURE_DOWN = "7";
 }
 
 namespace CommNs {
 
-TemperatureSensors::TemperatureSensors(SerialIf* serial):
-	mSerial(serial),
+TemperatureSensors::TemperatureSensors(DMCommIf* dmComm):
+	mDMComm(dmComm),
 	mListeners(),
+	mSensorAddress(),
 	mDataMutex()
 {
-	if (mSerial)
+	if (mDMComm)
 	{
-		mSerial->registerSerialListener(this);
+		mDMComm->registerListener(this);
 	}
 }
 
 TemperatureSensors::~TemperatureSensors()
 {
-	if (mSerial)
+	if (mDMComm)
 	{
-		mSerial->unRegisterSerialListener();
+		mDMComm->unRegisterListener(this);
 	}
 }
 
@@ -54,21 +65,55 @@ void TemperatureSensors::unRegisterTemperatureListener(LogicNs::TemperatureListe
 
 void TemperatureSensors::writeSetTemperature(const std::string& sensorId, double temperature)
 {
-	if (mSerial)
+	if (mDMComm)
 	{
 		std::stringstream ss;
-		ss << "[" << sensorId << ":5:"  << std::fixed << std::setprecision(2) << temperature << "]";
+		ss << "[" << MSG_SET_TEMPERATURE << ":"  << std::fixed << std::setprecision(1) << temperature << "]";
 		std::string outputLine = ss.str();
 		std::replace(outputLine.begin(), outputLine.end(), '.', ',');
-		//mSerial->writeLine(outputLine);
+		std::string dataString(ss.str());
+		VLOG(1) << "Writing set temperature (" << temperature << ") to sensor: " << sensorId;
+
+		if (mSensorAddress.find(sensorId) != mSensorAddress.end())
+		{
+			TxMessage* txMessage = new TxMessage(std::vector<uint8_t>(dataString.begin(), dataString.end()), mSensorAddress[sensorId]);
+			mDMComm->sendMessage(txMessage);
+		}
+		else
+		{
+			LOG(ERROR) << "Unable to write set temperature, sensor unknown: " << sensorId;
+		}
 	}
 }
 
-void TemperatureSensors::receiveLine(const std::string& line)
+void TemperatureSensors::receiveMessage(const DMMessageIf* message)
+{
+	if (message)
+	{
+		switch(message->messageType())
+		{
+			case DMMessageType::RxMessage:
+			{
+				if (const RxMessage* rxMessage = dynamic_cast<const RxMessage*>(message))
+				{
+					std::string line(rxMessage->rxMessage().begin(), rxMessage->rxMessage().end());
+					receiveLine(line, rxMessage->sourceAddress());
+				}
+				break;
+			}
+			default:
+				LOG(ERROR) << "Unhandled message type:" << message->toString();
+				break;
+		}
+	}
+
+}
+
+void TemperatureSensors::receiveLine(const std::string& line, const std::vector<uint8_t> sourceAddress)
 {
 	try
 	{
-		if (line.size() > 2 && (*line.begin()) == '[' && (*(line.end()-1)) == ']')
+		if (line.size() > 2 && line.front() == '[' && line.back() == ']')
 		{
 			std::string rawLine(line.begin() + 1, line.end() -1);
 
@@ -80,15 +125,42 @@ void TemperatureSensors::receiveLine(const std::string& line)
 				return;
 			}
 
-			if (lineParts[MESSAGE_TYPE_POS] == "1")
+			if (lineParts[MESSAGE_TYPE_POS] == MSG_SENSOR_STARTUP)
 			{
-				sendSensorStarted(lineParts[SERIAL_POS]);
+				std::string sensorId = lineParts[SERIAL_POS];
+				mSensorAddress[sensorId] = sourceAddress;
+				sendSensorStarted(sensorId);
 				return;
 			}
-			if (lineParts[MESSAGE_TYPE_POS] == "2")
+			if (lineParts[MESSAGE_TYPE_POS] == MSG_TEMPERATURE)
 			{
+				std::string sensorId = lineParts[SERIAL_POS];
+				mSensorAddress[sensorId] = sourceAddress;
 				float temp = std::stof(lineParts[TEMPERATURE_POS]);
-				sendTemperature(lineParts[SERIAL_POS], temp);
+				sendTemperature(sensorId, temp);
+				return;
+			}
+			if (lineParts[MESSAGE_TYPE_POS] == MSG_SERVER_DISCOVERY)
+			{
+				sendXBeeListenerAddress(lineParts[SERIAL_POS], sourceAddress);
+				return;
+			}
+			if (lineParts[MESSAGE_TYPE_POS] == MSG_SET_TEMPERATURE_UP)
+			{
+				std::lock_guard<std::mutex> lg(mDataMutex);
+				for (auto listener: mListeners)
+				{
+					listener->sensorSetTemperatureUp(lineParts[SERIAL_POS]);
+				}
+				return;
+			}
+			if (lineParts[MESSAGE_TYPE_POS] == MSG_SET_TEMPERATURE_DOWN)
+			{
+				std::lock_guard<std::mutex> lg(mDataMutex);
+				for (auto listener: mListeners)
+				{
+					listener->sensorSetTemperatureDown(lineParts[SERIAL_POS]);
+				}
 				return;
 			}
 		}
@@ -138,5 +210,24 @@ void TemperatureSensors::sendSetTemperatureDown(const std::string& sensorId)
 	{
 		listener->sensorSetTemperatureDown(sensorId);
 	}
+}
+
+void TemperatureSensors::sendXBeeListenerAddress(const std::string& sensorId, const std::vector<uint8_t> sourceAddress)
+{
+	if (mDMComm)
+	{
+		LOG(INFO) << "Sensor (id: " << sensorId << ") does not know the server's address, sending now";
+		std::string address(mDMComm->addressString());
+		address.erase(std::remove(address.begin(), address.end(), ':'), address.end());
+		//std::string address2 = std::remove(address.begin(), address.end(), ':');
+		std::stringstream ss;
+		ss << "[" << MSG_SERVER_DISCOVERY_RESPONSE << ":" << address << "]";
+		std::string dataString(ss.str());
+
+		TxMessage* txMessage = new TxMessage(std::vector<uint8_t>(dataString.begin(), dataString.end()), sourceAddress);
+		mDMComm->sendMessage(txMessage);
+	}
+
+
 }
 } /* namespace CommNs */

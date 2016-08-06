@@ -8,20 +8,27 @@
 #include <Comm/DMComm.h>
 #include "Comm/DMFrameProcessorIf.h"
 #include "Comm/DMMessages.h"
+#include "Comm/DMCommListenerIf.h"
+#include "Comm/CommUtils.h"
 #include "glog/logging.h"
 #include <iomanip>
 #include <sstream>
+#include <iostream>
 
 namespace CommNs {
 
-DMComm::DMComm(DMFrameProcessorIf* frameProcessor):
+DMComm::DMComm(DMFrameProcessorIf* frameProcessor, uint8_t channel, std::vector<uint8_t> id):
 	mFrameProcessor(frameProcessor),
+	mChannel(channel),
+	mId(id),
+	mListener(nullptr),
 	mFrameId(1),
 	mSynchronousFrameId(0),
     mWaitForResponseCondVar(),
     mResponseReceived(),
 	mConditionVarMutex(),
-	mSN()
+	mSN(),
+	mDataMutex()
 {
 	if (mFrameProcessor)
 	{
@@ -38,7 +45,19 @@ DMComm::~DMComm()
 	}
 }
 
-std::string DMComm::snString()
+void DMComm::registerListener(DMCommListenerIf* listener)
+{
+	std::lock_guard<std::mutex> lg(mDataMutex);
+	mListener = listener;
+}
+
+void DMComm::unRegisterListener(DMCommListenerIf* /*listener*/)
+{
+	std::lock_guard<std::mutex> lg(mDataMutex);
+	mListener = nullptr;
+}
+
+std::string DMComm::addressString()
 {
 	std::stringstream ss;
 	bool first = true;
@@ -111,7 +130,7 @@ void DMComm::sendMessage(DMMessageIf* message)
 
 void DMComm::receiveFrame(const std::vector<uint8_t>& data)
 {
-	if (VLOG_IS_ON(2))
+	if (VLOG_IS_ON(11))
 	{
 		printFrame(data);
 	}
@@ -132,19 +151,22 @@ void DMComm::receiveFrame(const std::vector<uint8_t>& data)
 		case 0x88:
 		{
 			std::string atCmd(data.begin() + 2, data.begin() + 4);
-			VLOG(10) << "AT Command response received, command: " << atCmd;
 			received = new AtResponse(atCmd, std::vector<uint8_t>(data.begin() + 5, data.end()));
 			break;
 		}
-		case 0x8A:
-		{
-			VLOG(10) << "Modem status received";
-			break;
-		}
+//		case 0x8A:
+//		{
+//			VLOG(10) << "Modem status received";
+//			break;
+//		}
 		case 0x8B:
 		{
-			VLOG(10) << "TX Status received";
 			received = new TxStatusFrame(std::vector<uint8_t>(data.begin(), data.end()));
+			break;
+		}
+		case 0x90:
+		{
+			received = new RxMessage(std::vector<uint8_t>(data.begin(), data.end()));
 			break;
 		}
 		default:
@@ -160,13 +182,22 @@ void DMComm::receiveFrame(const std::vector<uint8_t>& data)
 
 	if (synchronousResponse)
 	{
+		VLOG(10) << "Synchronous reponse";
 		mResponseReceived = true;
 		mReceivedMessage = received;
 		mWaitForResponseCondVar.notify_one();
 	}
 	else
 	{
-
+		std::lock_guard<std::mutex> lg(mDataMutex);
+		if (received)
+		{
+			if (mListener)
+			{
+				mListener->receiveMessage(received);
+			}
+			delete received;
+		}
 	}
 }
 
@@ -183,7 +214,7 @@ void DMComm::printFrame(const std::vector<uint8_t>& data)
 		ss << "0x" << std::hex << std::uppercase <<  std::setfill('0') << std::setw(2) <<  (int) val;
 		first = false;
 	}
-	VLOG(10) << "Received frame: " << ss.str();
+	VLOG(11) << "Received frame: " << ss.str();
 }
 
 void DMComm::init()
@@ -210,9 +241,9 @@ void DMComm::init()
 
 	if (mSN.size() == 8)
 	{
-		LOG(INFO) << "Device initialised, SN: " << snString();
-		sendATCmd("CH", {0x0B});
-		sendATCmd("ID", {0x12, 0x13});
+		LOG(INFO) << "Device initialised, Address: " << addressString();
+		sendATCmd("CH", {mChannel});
+		sendATCmd("ID", mId);
 	}
 	else
 	{

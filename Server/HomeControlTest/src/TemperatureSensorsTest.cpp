@@ -9,6 +9,8 @@
 #include "Comm/SerialIf.h"
 #include "Comm/SerialListenerIf.h"
 #include "Comm/TemperatureSensors.h"
+#include "Comm/DMMessages.h"
+#include "Comm/DMCommIf.h"
 #include "Logic/TemperatureListenerIf.h"
 #include "Logic/TemperatureFilter.h"
 #include "gtest/gtest.h"
@@ -23,6 +25,13 @@
 #include <boost/algorithm/string.hpp>
 #include <sstream>
 
+namespace CommNs
+{
+class DMCommListenerIf;
+}
+
+namespace
+{
 class TemperatureListenerStub: public LogicNs::TemperatureListenerIf
 {
 public:
@@ -35,6 +44,7 @@ public:
 	}
 	void sensorTemperature(const std::string& sensorId, double temperature)
 	{
+		LOG(INFO) << "Temperature, sensor: " << sensorId << "Temp: " << temperature;
 		mLastId = sensorId;
 		mLastTemperature = temperature;
 	}
@@ -66,6 +76,26 @@ public:
 	std::vector<uint8_t> mLastSend;
 };
 
+class DMCommStub:public CommNs::DMCommIf
+{
+public:
+	DMCommStub():
+	 mAddress(),
+	 mMessage(nullptr)
+	 {};
+	virtual ~DMCommStub() {};
+	void registerListener(CommNs::DMCommListenerIf* listener) {};
+	void unRegisterListener(CommNs::DMCommListenerIf* listener) {};
+
+	std::string addressString() {return mAddress; };
+
+	void sendATCmd(const std::string& atCmd, std::vector<uint8_t> parameters) {};;
+	CommNs::DMMessageIf* sendATCmd(const std::string& atCmd, std::vector<uint8_t> parameters, int timeOutMilliseconds) {return nullptr;};
+	void sendMessage(CommNs::DMMessageIf* message) {mMessage = message;}
+	std::string mAddress;
+	CommNs::DMMessageIf* mMessage;
+};
+}
 TEST(TemperatureSensors, Constructor)
 {
 	CommNs::TemperatureSensors* sensors = new CommNs::TemperatureSensors(nullptr);
@@ -82,21 +112,42 @@ TEST(TemperatureSensors, ReceiveInvalid)
 	CommNs::TemperatureSensors* sensors = new CommNs::TemperatureSensors(nullptr);
 	TemperatureListenerStub tempListenerStub;
 	sensors->registerTemperatureListener(&tempListenerStub);
+	std::vector<uint8_t> headerData(0, 12);
 
-	sensors->receiveLine("[28AC48FB07000077:1");
+	std::vector<uint8_t> data1(12, 0);
+	std::string string1 = "[1:28AC48FB07000077";
+	data1.insert(data1.end(), string1.begin(), string1.end());
+	CommNs::RxMessage message1(data1);
+	sensors->receiveMessage(&message1);
 	EXPECT_EQ("", tempListenerStub.mLastId);
 
-	sensors->receiveLine("[28AC48FB07000077:1");
+	std::vector<uint8_t> data2(12, 0);
+	std::string string2 = "[1:28AC48FB07000077";
+	data2.insert(data2.end(), string2.begin(), string2.end());
+	CommNs::RxMessage message2(data2);
+	sensors->receiveMessage(&message2);
 	EXPECT_EQ("", tempListenerStub.mLastId);
 
-	sensors->receiveLine("28AC48FB07000077:1]");
+	std::vector<uint8_t> data3(12, 0);
+	std::string string3 = "1:28AC48FB07000077]";
+	data3.insert(data3.end(), string3.begin(), string3.end());
+	CommNs::RxMessage message3(data3);
+	sensors->receiveMessage(&message3);
+	//sensors->receiveLine("1:28AC48FB07000077]");
 	EXPECT_EQ("", tempListenerStub.mLastId);
 
-	sensors->receiveLine("[]");
+	std::vector<uint8_t> data4(12, 0);
+	std::string string4 = "[]";
+	data4.insert(data4.end(), string4.begin(), string4.end());
+	CommNs::RxMessage message4(data4);
+	sensors->receiveMessage(&message4);
 	EXPECT_EQ("", tempListenerStub.mLastId);
 
-
-	sensors->receiveLine("[28AC48FB07000077]");
+	std::vector<uint8_t> data5(12, 0);
+	std::string string5 = "[28AC48FB07000077]";
+	data5.insert(data5.end(), string5.begin(), string5.end());
+	CommNs::RxMessage message5(data5);
+	sensors->receiveMessage(&message5);
 	EXPECT_EQ("", tempListenerStub.mLastId);
 
 	sensors->unRegisterTemperatureListener(&tempListenerStub);
@@ -109,7 +160,13 @@ TEST(TemperatureSensors, ReceiveValidStartup)
 	TemperatureListenerStub tempListenerStub;
 	sensors->registerTemperatureListener(&tempListenerStub);
 
-	sensors->receiveLine("[28AC48FB07000077:1]");
+	std::vector<uint8_t> data1(12, 0);
+	std::string string1 = "[1:28AC48FB07000077]";
+	data1.insert(data1.end(), string1.begin(), string1.end());
+	CommNs::RxMessage message1(data1);
+
+	sensors->receiveMessage(&message1);
+
 	EXPECT_EQ("28AC48FB07000077", tempListenerStub.mLastId);
 
 	sensors->unRegisterTemperatureListener(&tempListenerStub);
@@ -122,11 +179,21 @@ TEST(TemperatureSensors, ReceiveValidTemperature)
 	TemperatureListenerStub tempListenerStub;
 	sensors->registerTemperatureListener(&tempListenerStub);
 
-	sensors->receiveLine("[28AC48FB07000077:2:23.75]");
+	std::vector<uint8_t> data1(12, 0);
+	std::string string1 = "[2:28AC48FB07000077:23.75]";
+	data1.insert(data1.end(), string1.begin(), string1.end());
+	CommNs::RxMessage message1(data1);
+	sensors->receiveMessage(&message1);
+	//sensors->receiveLine("[2:28AC48FB07000077:23.75]");
 	EXPECT_EQ("28AC48FB07000077", tempListenerStub.mLastId);
 	EXPECT_EQ(23.75, tempListenerStub.mLastTemperature);
 
-	sensors->receiveLine("[28AC48FB07000000:2:23,75]");
+
+	std::vector<uint8_t> data2(12, 0);
+	std::string string2 = "[2:28AC48FB07000000:23,75]";
+	data2.insert(data2.end(), string2.begin(), string2.end());
+	CommNs::RxMessage message2(data2);
+	sensors->receiveMessage(&message2);
 	EXPECT_EQ("28AC48FB07000000", tempListenerStub.mLastId);
 	EXPECT_EQ(23.0, tempListenerStub.mLastTemperature);
 
@@ -140,7 +207,11 @@ TEST(TemperatureSensors, ReceiveInvalidTemperature)
 	TemperatureListenerStub tempListenerStub;
 	sensors->registerTemperatureListener(&tempListenerStub);
 
-	sensors->receiveLine("[28AC48FB07000077:2:/25/75]");
+	std::vector<uint8_t> data1(12, 0);
+	std::string string1 = "[2:28AC48FB07000077:/25/75]";
+	data1.insert(data1.end(), string1.begin(), string1.end());
+	CommNs::RxMessage message1(data1);
+	sensors->receiveMessage(&message1);
 	EXPECT_EQ("", tempListenerStub.mLastId);
 	EXPECT_EQ(0, tempListenerStub.mLastTemperature);
 
@@ -206,10 +277,41 @@ TEST(TemperatureSensors, Filter)
 
 TEST(TemperatureSensors, SendSetTemperature)
 {
-	SerialStub serialStub;
-	CommNs::TemperatureSensors* sensors = new CommNs::TemperatureSensors(&serialStub);
+//	SerialStub serialStub;
+//	CommNs::TemperatureSensors* sensors = new CommNs::TemperatureSensors(&serialStub);
+//
+//	sensors->writeSetTemperature("mySensor", 25.6);
+//	//EXPECT_EQ(serialStub.mLastSend, "[mySensor:5:25,60]");
+//	delete sensors;
+}
 
-	sensors->writeSetTemperature("mySensor", 25.6);
-	//EXPECT_EQ(serialStub.mLastSend, "[mySensor:5:25,60]");
+TEST(TemperatureSensors, SendListenerAddress)
+{
+	DMCommStub* commStub = new  DMCommStub;
+	CommNs::TemperatureSensors* sensors = new CommNs::TemperatureSensors(commStub);
+	TemperatureListenerStub tempListenerStub;
+	sensors->registerTemperatureListener(&tempListenerStub);
+
+	EXPECT_EQ(nullptr, commStub->mMessage);
+	std::vector<uint8_t> data1;
+	data1.push_back(0);
+	data1.push_back(0x01); //Address of sender
+	data1.push_back(0x02);
+	data1.push_back(0x03);
+	data1.push_back(0x04);
+	data1.push_back(0x05);
+	data1.push_back(0x06);
+	data1.push_back(0x07);
+	data1.push_back(0x08);
+	data1.push_back(0);
+	data1.push_back(0);
+	data1.push_back(0);
+	std::string string1 = "[3:28AC48FB07000077]";
+	data1.insert(data1.end(), string1.begin(), string1.end());
+	CommNs::RxMessage message1(data1);
+	sensors->receiveMessage(&message1);
+
+	EXPECT_NE(nullptr, commStub->mMessage);
+	sensors->unRegisterTemperatureListener(&tempListenerStub);
 	delete sensors;
 }

@@ -32,6 +32,8 @@ public:
 	//SerialListenerIf
 	void receiveData(const std::vector<uint8_t>& data);
 
+	void printFrame(const std::string& name, const std::vector<uint8_t>& data);
+
 private:
 	SerialIf* mSerial;
     std::vector<uint8_t> mFrameBuffer;

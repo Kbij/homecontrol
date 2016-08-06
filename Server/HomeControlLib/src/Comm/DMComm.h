@@ -8,6 +8,7 @@
 #ifndef COMM_DMCOMM_H_
 #define COMM_DMCOMM_H_
 #include "Comm/DMFrameListenerIf.h"
+#include "Comm/DMCommIf.h"
 #include <condition_variable>
 #include <atomic>
 #include <vector>
@@ -16,15 +17,18 @@
 namespace CommNs {
 class DMFrameProcessorIf;
 class DMMessageIf;
+class DMCommListenerIf;
 
-class DMComm: public CommNs::DMFrameListenerIf
+class DMComm: public DMCommIf, public CommNs::DMFrameListenerIf
 {
 public:
-	DMComm(DMFrameProcessorIf* frameProcessor);
+	DMComm(DMFrameProcessorIf* frameProcessor, uint8_t channel, std::vector<uint8_t> id);
 	virtual ~DMComm();
 
+	void registerListener(DMCommListenerIf* listener);
+	void unRegisterListener(DMCommListenerIf* listener);
 
-	std::string snString();
+	std::string addressString();
 
 	void sendATCmd(const std::string& atCmd, std::vector<uint8_t> parameters);
 	DMMessageIf* sendATCmd(const std::string& atCmd, std::vector<uint8_t> parameters, int timeOutMilliseconds);
@@ -34,6 +38,9 @@ public:
 	void receiveFrame(const std::vector<uint8_t>& data);
 private:
 	DMFrameProcessorIf* mFrameProcessor;
+	const uint8_t mChannel;
+	const std::vector<uint8_t> mId;
+	DMCommListenerIf* mListener;
 	uint8_t mFrameId;
 	uint8_t mSynchronousFrameId;
 //	uint8_t mExpectedResponseFrame;
@@ -43,6 +50,7 @@ private:
 	std::mutex mConditionVarMutex;
 	DMMessageIf* mReceivedMessage;
 	std::vector<uint8_t> mSN;
+	std::mutex mDataMutex;
 
 	void printFrame(const std::vector<uint8_t>& data);
 	void init();

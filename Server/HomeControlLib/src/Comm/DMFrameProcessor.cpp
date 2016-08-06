@@ -12,6 +12,8 @@
 #include "glog/logging.h"
 #include <iterator>
 #include <algorithm>
+#include <iomanip>
+#include <sstream>
 
 namespace
 {
@@ -64,7 +66,7 @@ void DMFrameProcessor::sendData(const std::vector<uint8_t>& data)
 		uint8_t calculatedCrc = std::accumulate(data.begin(), data.end(), 0);
 		calculatedCrc = 0xFF - calculatedCrc;
 		sendFrame.push_back(calculatedCrc);
-
+		printFrame("Send Raw Frame: ", sendFrame);
 		mSerial->writeData(sendFrame);
 	}
 }
@@ -72,7 +74,7 @@ void DMFrameProcessor::sendData(const std::vector<uint8_t>& data)
 void DMFrameProcessor::receiveData(const std::vector<uint8_t>& data)
 {
 	std::lock_guard<std::mutex> lk_guard(mDataMutex);
-	VLOG(12) << "Receive size : " << data.size();
+	VLOG(20) << "Receive size : " << data.size();
 	mFrameBuffer.insert(mFrameBuffer.end(), data.begin(), data.end());
 
 	processFrameBuffer();
@@ -86,7 +88,7 @@ void DMFrameProcessor::processFrameBuffer()
 		packetFound = false;
 		if (mFrameBuffer.size() < HEADER_LENGTH)
 		{ // Not received the full buffer; return
-			VLOG(12) << "Not a full frame received, buffer size: " << mFrameBuffer.size();
+			VLOG(20) << "Not a full frame received, buffer size: " << mFrameBuffer.size();
 			return;
 		}
 
@@ -98,20 +100,21 @@ void DMFrameProcessor::processFrameBuffer()
 				LOG(ERROR) << "While searching for start, buffer cleared. Size: " << mFrameBuffer.size();
 				mFrameBuffer.clear();
 			}
-			VLOG(12) << "Start not found, first byte: " << (int) mFrameBuffer[0] << ", buffer: " << mFrameBuffer;
+			VLOG(20) << "Start not found, first byte: " << (int) mFrameBuffer[0] << ", buffer: " << mFrameBuffer;
 			return;
 		}
 		auto startPosition = itStartPosition - mFrameBuffer.begin();
 		int dataLength = mFrameBuffer[startPosition + LENGTH_POSITION] * 256 +
 						 mFrameBuffer[startPosition + LENGTH_POSITION + 1];
-		VLOG(12) << "dataLength: " << dataLength;
+		VLOG(20) << "dataLength: " << dataLength;
 		if (mFrameBuffer.size() < (size_t) dataLength + HEADER_LENGTH + CRC_LENGTH)
 		{ // Not all data received
-			VLOG(12) << "Not all data received, buffer size: " << mFrameBuffer.size();
+			VLOG(20) << "Not all data received, buffer size: " << mFrameBuffer.size();
 			return;
 		}
 
-		VLOG(12) << "Full frame received. buffer size: " << mFrameBuffer.size() << ", packet length: " << dataLength;
+		VLOG(20) << "Full frame received. buffer size: " << mFrameBuffer.size() << ", packet length: " << dataLength;
+		printFrame("Received Raw Frame: ", std::vector<uint8_t>(itStartPosition, itStartPosition + HEADER_LENGTH + dataLength + 1)); // +1: CRC
 		std::vector<uint8_t> frame(itStartPosition +  HEADER_LENGTH, itStartPosition + HEADER_LENGTH + dataLength);
 
 		uint8_t calculatedCrc = std::accumulate(frame.begin(), frame.end(), 0);
@@ -131,7 +134,23 @@ void DMFrameProcessor::processFrameBuffer()
 			mFrameBuffer.clear();
 		}
 
-		VLOG(12) << "Buffer size: " << mFrameBuffer.size();
+		VLOG(20) << "Buffer size: " << mFrameBuffer.size();
 	}
+}
+
+void DMFrameProcessor::printFrame(const std::string& name, const std::vector<uint8_t>& data)
+{
+	std::stringstream ss;
+	bool first = true;
+	for(auto val: data)
+	{
+		if (!first)
+		{
+			ss << ", ";
+		}
+		ss << "0x" << std::hex << std::uppercase <<  std::setfill('0') << std::setw(2) <<  (int) val;
+		first = false;
+	}
+	VLOG(21) << name << ss.str();
 }
 } /* namespace CommNs */

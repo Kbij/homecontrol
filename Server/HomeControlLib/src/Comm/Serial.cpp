@@ -23,7 +23,6 @@ Serial::Serial(const std::string& portName, unsigned int baudRate):
 	mThread(nullptr),
 	mMutex()
 {
-
 }
 
 Serial::~Serial()
@@ -48,7 +47,7 @@ void Serial::writeData(const std::vector<uint8_t>& data)
 
 	if (!mPort) return ;
 	if (data.size() == 0) return;
-	VLOG(13) << "Writing data, size: " << data.size();
+	VLOG(30) << "Writing data, size: " << data.size();
 	mPort->write_some(boost::asio::buffer(data, data.size()), ec);
 }
 
@@ -88,7 +87,7 @@ void Serial::closeSerial()
 {
 	{
 		std::lock_guard<std::mutex> lock(mMutex);
-		VLOG(13) << "Stop serial";
+		VLOG(30) << "Stop serial";
 		if (mPort)
 		{
 			mPort->cancel();
@@ -96,14 +95,10 @@ void Serial::closeSerial()
 		}
 	}
 	mIo.stop();
-	mIo.reset();
-	std::cout << "1" << std::endl;
+	//mIo.reset();
 	//mPort.reset();
-	std::cout << "2" << std::endl;
 	mThread->join();
-	std::cout << "3" << std::endl;
 	delete mThread;
-	std::cout << "4" << std::endl;
 }
 
 void Serial::serialThread()
@@ -121,14 +116,11 @@ void Serial::asyncReadSome()
 
 void Serial::onReceive(const boost::system::error_code& ec, size_t bytesTransferred)
 {
-	VLOG(13) << "Bytes received: " << bytesTransferred;
+	VLOG(30) << "Bytes received: " << bytesTransferred;
 	std::lock_guard<std::mutex> lock(mMutex);
-	std::cout << "2.1" << std::endl;
 
 	if (!mPort) return;
-	std::cout << "2.2" << std::endl;
 	if (!mPort->is_open()) return;
-	std::cout << "2.3" << std::endl;
 	if (ec)
 	{
 		LOG(ERROR) << "Receive error: " << ec;

@@ -12,6 +12,8 @@
 #include "Comm/Serial.h"
 #include "Comm/TemperatureSensors.h"
 #include "Comm/TemperatureSensorsSimulator.h"
+#include "Comm/DMFrameProcessor.h"
+#include "Comm/DMComm.h"
 #include "DAL/TemperatureWriter.h"
 #include "DAL/HomeControlDal.h"
 #include "Logic/ObjectPrinter.h"
@@ -34,6 +36,7 @@
 DEFINE_bool(daemon, false, "Run Server as Daemon");
 DEFINE_string(pidfile,"","Pid file when running as Daemon");
 DEFINE_int32(simulate, 0, "The number of simulation sensors");
+DEFINE_string(serial, "/dev/ttyUSB0", "Serial port to use");
 
 void signal_handler(int sig);
 void daemonize();
@@ -193,15 +196,22 @@ int main (int argc, char* argv[])
 		server->registerCommListener(writer);
 
 		CommNs::Serial* serial = nullptr;
+		CommNs::DMFrameProcessor* frameProcessor = nullptr;
+		CommNs::DMComm* dmComm = nullptr;
 		CommNs::TemperatureSourceIf* sensors = nullptr;
 
 		if (FLAGS_simulate == 0)
 		{
-			serial = new CommNs::Serial("/dev/ttyAMA0", 9600);
-			sensors = new CommNs::TemperatureSensors(serial);
+			LOG(INFO) << "Using serial port: " << FLAGS_serial;
+			serial = new CommNs::Serial(FLAGS_serial, 38400);
+			serial->openSerial();
+			frameProcessor = new CommNs::DMFrameProcessor(serial);
+			dmComm = new CommNs::DMComm(frameProcessor, 0x0B, {0x12, 0x13});
+			sensors = new CommNs::TemperatureSensors(dmComm);
 		}
 		else
 		{
+			LOG(INFO) << "Simulating with number of sensors: " << FLAGS_simulate;
 			sensors = new CommNs::TemperatureSensorsSimulator(FLAGS_simulate);
 		}
 		DalNs::HomeControlDal* dal = new DalNs::HomeControlDal;
@@ -222,6 +232,9 @@ int main (int argc, char* argv[])
         if (serial != nullptr)
         {
         	delete serial;
+        	delete frameProcessor;
+        	delete dmComm;
+        	delete sensors;
         }
         server->unRegisterCommListener(writer);
 

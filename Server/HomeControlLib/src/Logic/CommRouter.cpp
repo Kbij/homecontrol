@@ -59,7 +59,20 @@ void CommRouter::temperatureChanged(const std::string& roomId, double temperatur
 
 void CommRouter::setPointChanged(const std::string& roomId, double setTemperature)
 {
-
+	if (mSensors)
+	{
+		std::lock_guard<std::recursive_mutex> lg(mDataMutex);
+		for (const auto& room: mRooms)
+		{
+			if (room.second->roomId() == roomId)
+			{
+				for(auto sensorId: room.first)
+				{
+					mSensors->writeSetTemperature(sensorId, setTemperature);
+				}
+			}
+		}
+	}
 }
 
 void CommRouter::heaterOn(const std::string& roomId)

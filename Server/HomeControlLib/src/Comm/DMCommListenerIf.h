@@ -10,6 +10,7 @@
 
 
 namespace CommNs {
+class DMMessageIf;
 
 class DMCommListenerIf
 {
