@@ -26,9 +26,12 @@ float tempSet = 0;
 float tempCurrent = 0;
 unsigned long tempStartTime = millis();
 unsigned long dispStartTime = millis();
+unsigned long setSendStartTime = millis();
 bool tempRequested = false;
 bool bootFlag = true;
 bool displaySetTemperature = false;
+bool setTempReceived = true;
+bool lastAcknowledged = false;
 
 // create the XBee object
 XBee xbee = XBee();
@@ -90,6 +93,18 @@ void draw()
     writeMid(50, fullTempStr);  
   }
 
+  if (!lastAcknowledged)
+  { 
+    u8g.drawStr( 118, 15, "?");  
+  }
+  else if (sensorListener.getMsb() == 0 && sensorListener.getLsb() == 0x0000FFFF)
+  {//We still have the broadcast address
+    u8g.drawStr( 118, 15, "!");  
+  } else
+  {
+ //   u8g.drawStr( 118, 15, " ");
+  }
+
   u8g.drawFrame(0, 0, 128, 64);
 }
 
@@ -142,11 +157,21 @@ void loop()
   unsigned long currentTime = millis();
   if (touchUp.capacitiveSensor(30) > 100)
   {
-    xbeeSend("[6:%s]", ADDR_STR); 
+    if (setTempReceived || ((currentTime - setSendStartTime) > 3000)) //If response received, or more than 3 sec ago send
+    {
+      xbeeSend("[6:%s]", ADDR_STR);
+      setSendStartTime = millis();
+      setTempReceived = false;
+    }
   }
   if (touchDown.capacitiveSensor(30) > 100)
   {
-    xbeeSend("[7:%s]", ADDR_STR); 
+    if (setTempReceived || ((currentTime - setSendStartTime) > 3000)) //If response received, or more than 3 sec ago send
+    {
+      xbeeSend("[7:%s]", ADDR_STR); 
+      setSendStartTime = millis();
+      setTempReceived = false;
+    }
   }
   
   if (!tempRequested && (((currentTime - tempStartTime) > TEMP_INTERVAL_SECONDS * 1000) || bootFlag))
@@ -179,12 +204,12 @@ void loop()
     displaySetTemperature = false;
   }
   
-  if (xbee.readPacket(500))
-  {
-      // should be a znet tx status              
-      if (xbee.getResponse().getApiId() == TX_STATUS_RESPONSE)
+  if (xbee.readPacket(50))
+  {     
+      if (xbee.getResponse().getApiId() == ZB_TX_STATUS_RESPONSE)
       {
-         xbee.getResponse().getTxStatusResponse(xbTxStatus);
+        xbee.getResponse().getTxStatusResponse(xbTxStatus);
+        lastAcknowledged = xbTxStatus.isSuccess();
       }
       if (xbee.getResponse().getApiId() == ZB_RX_RESPONSE)
       {
@@ -217,6 +242,7 @@ void loop()
               memcpy(SET_TEMPERATURE, &rawData[3], xbRx.getDataLength() - 4); // len([5:])
               dispStartTime = millis();
               displaySetTemperature = true;
+              setTempReceived = true;
             }              
           }
         }
@@ -228,7 +254,4 @@ void loop()
   do {
     draw();
   } while( u8g.nextPage() );
-
-  // rebuild the picture after some delay
-  delay(50);
 }
