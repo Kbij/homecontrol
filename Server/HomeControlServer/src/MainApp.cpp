@@ -217,7 +217,7 @@ int main (int argc, char* argv[])
 		DalNs::HomeControlDal* dal = new DalNs::HomeControlDal;
 		LogicNs::TemperatureFilter* filter = new LogicNs::TemperatureFilter(sensors, 4);
 		DalNs::TemperatureWriter* tempWriter = new DalNs::TemperatureWriter(filter);
-		LogicNs::CommRouter* commRouter = new LogicNs::CommRouter(dal, server, filter);
+		LogicNs::CommRouter* commRouter = new LogicNs::CommRouter(dal, server, filter, nullptr);
 
     	// Wait until application stopped by a signal handler
         std::unique_lock<std::mutex> lk(exitMutex);
