@@ -9,6 +9,7 @@
 #define LOGIC_HOMECONTROL_H_
 #include "RoomListenerIf.h"
 #include "TemperatureListenerIf.h"
+#include "HeaterListenerIf.h"
 #include "Comm/CommListenerIf.h"
 #include <string>
 #include <set>
@@ -28,12 +29,12 @@ class HomeControlDalIf;
 }
 namespace LogicNs {
 class RoomControl;
-
+class HeaterListenerIf;
 
 class CommRouter: public RoomListenerIf, public CommNs::CommListenerIf, public TemperatureListenerIf
 {
 public:
-	CommRouter(DalNs::HomeControlDalIf* dal, CommNs::CommServerIf* server, CommNs::TemperatureSourceIf* sensors);
+	CommRouter(DalNs::HomeControlDalIf* dal, CommNs::CommServerIf* server, CommNs::TemperatureSourceIf* sensors, HeaterListenerIf* heaterListener);
 	virtual ~CommRouter();
 
 	//RoomListenerIf
@@ -56,6 +57,7 @@ private:
 	DalNs::HomeControlDalIf* mDal;
 	CommNs::CommServerIf* mCommServer;
 	CommNs::TemperatureSourceIf* mSensors;
+	HeaterListenerIf* mHeaterListener;
 	std::set<std::string> mConnnectedClients;
 	std::recursive_mutex mDataMutex;
 	std::list<std::pair<std::set<std::string>, RoomControl*>> mRooms;

@@ -33,9 +33,12 @@ public:
 	void sendATCmd(const std::string& atCmd, std::vector<uint8_t> parameters);
 	DMMessageIf* sendATCmd(const std::string& atCmd, std::vector<uint8_t> parameters, int timeOutMilliseconds);
 	void sendMessage(DMMessageIf* message);
+	DMMessageIf* sendMessage(DMMessageIf* message, int timeOutMilliseconds);
 
 	//DMFrameListenerIf
 	void receiveFrame(const std::vector<uint8_t>& data);
+
+	void init();
 private:
 	DMFrameProcessorIf* mFrameProcessor;
 	const uint8_t mChannel;
@@ -43,17 +46,15 @@ private:
 	DMCommListenerIf* mListener;
 	uint8_t mFrameId;
 	uint8_t mSynchronousFrameId;
-//	uint8_t mExpectedResponseFrame;
-//	std::string mExpectedATResponse;
     std::condition_variable mWaitForResponseCondVar;
     std::atomic_bool mResponseReceived;
 	std::mutex mConditionVarMutex;
 	DMMessageIf* mReceivedMessage;
 	std::vector<uint8_t> mSN;
-	std::mutex mDataMutex;
+	std::recursive_mutex mDataMutex;
 
 	void printFrame(const std::vector<uint8_t>& data);
-	void init();
+
 };
 
 } /* namespace CommNs */

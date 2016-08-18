@@ -60,14 +60,14 @@ public:
 
 TEST(CommRouter, Constructor)
 {
-	LogicNs::CommRouter* router = new LogicNs::CommRouter(nullptr, nullptr, nullptr);
+	LogicNs::CommRouter* router = new LogicNs::CommRouter(nullptr, nullptr, nullptr, nullptr);
 	delete router;
 }
 
 TEST(CommRouter, UnknownSensor)
 {
 	HomeControlDalStub dalStub;
-	LogicNs::CommRouter* router = new LogicNs::CommRouter(&dalStub, nullptr, nullptr);
+	LogicNs::CommRouter* router = new LogicNs::CommRouter(&dalStub, nullptr, nullptr, nullptr);
 
 	router->sensorStarted("unknown SensorId");
 
@@ -82,7 +82,7 @@ TEST(CommRouter, KnownSensor)
 	dalStub.mRoomConfig = new DalNs::RoomConfig;
 	dalStub.mRoomConfig->RoomId = "RoomId";
 	dalStub.mRoomConfig->RoomName = "RoomName";
-	LogicNs::CommRouter* router = new LogicNs::CommRouter(&dalStub, nullptr, nullptr);
+	LogicNs::CommRouter* router = new LogicNs::CommRouter(&dalStub, nullptr, nullptr, nullptr);
 
 	router->sensorStarted("SensorId");
 
@@ -99,7 +99,7 @@ TEST(CommRouter, TwoSensorsSameRoom)
 	dalStub.mRoomConfig = new DalNs::RoomConfig;
 	dalStub.mRoomConfig->RoomId = "RoomId";
 	dalStub.mRoomConfig->RoomName = "RoomName";
-	LogicNs::CommRouter* router = new LogicNs::CommRouter(&dalStub, nullptr, nullptr);
+	LogicNs::CommRouter* router = new LogicNs::CommRouter(&dalStub, nullptr, nullptr, nullptr);
 
 	router->sensorStarted("SensorId1");
 
@@ -120,11 +120,15 @@ TEST(CommRouter, SendTemperatureToCommServer)
 	dalStub.mRoomConfig = new DalNs::RoomConfig;
 	dalStub.mRoomConfig->RoomId = "RoomId";
 	dalStub.mRoomConfig->RoomName = "RoomName";
-	LogicNs::CommRouter* router = new LogicNs::CommRouter(&dalStub, &commServerStub, nullptr);
+	dalStub.mRoomConfig->mSensorIds.push_back("SensorId1");
+	LogicNs::CommRouter* router = new LogicNs::CommRouter(&dalStub, &commServerStub, nullptr, nullptr);
 
 	router->sensorTemperature("SensorId1", 23.6);
 	// Temperature will not be send; no clients connected
 	ASSERT_TRUE(commServerStub.mLastObject == nullptr);
+
+
+Blijft soms hangen, geen idee waarom (race conditie ?)
 
 	// A client is connected, the temperature will be send
 	router->clientConnected("client1");

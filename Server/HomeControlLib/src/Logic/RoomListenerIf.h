@@ -23,7 +23,7 @@ public:
 	virtual void heaterOff(const std::string& roomId) = 0;
 };
 
-} /* namespace CommNs */
+} /* namespace LogicNs */
 
 
 

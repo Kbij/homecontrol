@@ -227,14 +227,16 @@ int main (int argc, char* argv[])
         delete tempWriter;
         delete filter;
         delete dal;
-        delete sensors;
 
         if (serial != nullptr)
         {
-        	delete serial;
-        	delete frameProcessor;
-        	delete dmComm;
         	delete sensors;
+        	delete dmComm;
+        	delete frameProcessor;
+        	delete serial;
+
+
+
         }
         server->unRegisterCommListener(writer);
 

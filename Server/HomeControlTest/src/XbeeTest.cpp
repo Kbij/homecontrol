@@ -145,6 +145,16 @@ TEST(DMTests, DMComm_ReceiveFrame_With_Listener)
 	EXPECT_EQ(CommNs::DMMessageType::ATResponse, listener.mMessageType);
 }
 
+TEST(DMTests, DMComm_ReceiveFrame_ModemStatus)
+{
+	DMListenerStub listener;
+	CommNs::DMComm dmComm(nullptr, 0x00, {0x00});
+	dmComm.registerListener(&listener);
+	dmComm.receiveFrame({0x8A, 0x00});
+	ASSERT_NE(nullptr, listener.mMessage);
+	EXPECT_EQ(CommNs::DMMessageType::ModemStatus, listener.mMessageType);
+}
+
 TEST(DMTests, DMComm_ReceiveRxMessage)
 {
 	CommNs::DMComm dmComm(nullptr, 0x00, {0x00});

@@ -47,13 +47,13 @@ DMComm::~DMComm()
 
 void DMComm::registerListener(DMCommListenerIf* listener)
 {
-	std::lock_guard<std::mutex> lg(mDataMutex);
+	std::lock_guard<std::recursive_mutex> lg(mDataMutex);
 	mListener = listener;
 }
 
 void DMComm::unRegisterListener(DMCommListenerIf* /*listener*/)
 {
-	std::lock_guard<std::mutex> lg(mDataMutex);
+	std::lock_guard<std::recursive_mutex> lg(mDataMutex);
 	mListener = nullptr;
 }
 
@@ -128,6 +128,32 @@ void DMComm::sendMessage(DMMessageIf* message)
 	}
 }
 
+DMMessageIf* DMComm::sendMessage(DMMessageIf* message, int timeOutMilliseconds)
+{
+	mResponseReceived = false;
+	mSynchronousFrameId = mFrameId;
+	mReceivedMessage = nullptr;
+	std::string sendMessageDetail = message->toString();
+
+	//Message is deleted here ....
+	sendMessage(message);
+	auto until = std::chrono::system_clock::now() +std::chrono::milliseconds(timeOutMilliseconds);
+	std::unique_lock<std::mutex> lock(mConditionVarMutex);
+	mWaitForResponseCondVar.wait_until(lock, until,[&]{return (bool)mResponseReceived;});
+	if (mResponseReceived)
+	{
+		VLOG(10) << "Response received for message: " << sendMessageDetail;
+		return mReceivedMessage;
+	}
+	else
+	{
+		LOG(ERROR) << "No response received for message: " << sendMessageDetail << ", timeout: " << timeOutMilliseconds;
+	}
+	mSynchronousFrameId = 0;
+
+	return nullptr;
+}
+
 void DMComm::receiveFrame(const std::vector<uint8_t>& data)
 {
 	if (VLOG_IS_ON(11))
@@ -139,7 +165,7 @@ void DMComm::receiveFrame(const std::vector<uint8_t>& data)
 	bool synchronousResponse = false;
 	const uint8_t frameType = data[0];
 	const uint8_t frameId = data[1];
-	if (mSynchronousFrameId == frameId)
+	if (mSynchronousFrameId == frameId && frameId != 0x00)
 	{
 		synchronousResponse = true;
 	}
@@ -154,11 +180,11 @@ void DMComm::receiveFrame(const std::vector<uint8_t>& data)
 			received = new AtResponse(atCmd, std::vector<uint8_t>(data.begin() + 5, data.end()));
 			break;
 		}
-//		case 0x8A:
-//		{
-//			VLOG(10) << "Modem status received";
-//			break;
-//		}
+		case 0x8A:
+		{
+			received = new ModemStatusFrame(std::vector<uint8_t>(data.begin(), data.end()));
+			break;
+		}
 		case 0x8B:
 		{
 			received = new TxStatusFrame(std::vector<uint8_t>(data.begin(), data.end()));
@@ -189,7 +215,7 @@ void DMComm::receiveFrame(const std::vector<uint8_t>& data)
 	}
 	else
 	{
-		std::lock_guard<std::mutex> lg(mDataMutex);
+		std::lock_guard<std::recursive_mutex> lg(mDataMutex);
 		if (received)
 		{
 			if (mListener)
@@ -219,6 +245,7 @@ void DMComm::printFrame(const std::vector<uint8_t>& data)
 
 void DMComm::init()
 {
+	mFrameId = 1;
 	DMMessageIf* received = sendATCmd("SH", {}, 100);
 	if (received)
 	{

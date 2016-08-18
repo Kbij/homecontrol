@@ -57,9 +57,11 @@ TEST(RoomControl, TemperatureChange)
 	LogicNs::RoomControl* room = new LogicNs::RoomControl("id", "name", &roomListener);
 
 	room->roomTemperature(23.5);
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	EXPECT_EQ(23.5, roomListener.mLastTemperature);
 
 	room->roomTemperature(18.5);
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	EXPECT_EQ(18.5, roomListener.mLastTemperature);
 
 	delete room;
@@ -71,9 +73,11 @@ TEST(RoomControl, SetUp)
 	LogicNs::RoomControl* room = new LogicNs::RoomControl("id", "name", &roomListener);
 
 	room->setPointUp();
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	EXPECT_TRUE(abs(roomListener.mLastSetTemperature - 16.2) < 0.01);
 
 	room->setPointUp();
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	EXPECT_TRUE(abs(roomListener.mLastSetTemperature - 16.4) < 0.01);
 
 	delete room;
@@ -85,9 +89,11 @@ TEST(RoomControl, SetDown)
 	LogicNs::RoomControl* room = new LogicNs::RoomControl("id", "name", &roomListener);
 
 	room->setPointDown();
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	EXPECT_TRUE(abs(roomListener.mLastSetTemperature - 15.8) < 0.01);
 
 	room->setPointDown();
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	EXPECT_TRUE(abs(roomListener.mLastSetTemperature - 15.6) < 0.01);
 
 	delete room;

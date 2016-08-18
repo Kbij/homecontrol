@@ -7,6 +7,7 @@
 
 #include <Comm/TemperatureSourceIf.h>
 #include <Logic/CommRouter.h>
+#include "Logic/HeaterListenerIf.h"
 #include "Comm/CommServerIf.h"
 #include "CommObjects/RoomTemperature.h"
 #include "CommObjects/RoomList.h"
@@ -18,10 +19,11 @@
 
 namespace LogicNs {
 
-CommRouter::CommRouter(DalNs::HomeControlDalIf* dal, CommNs::CommServerIf* server, CommNs::TemperatureSourceIf* sensors):
+CommRouter::CommRouter(DalNs::HomeControlDalIf* dal, CommNs::CommServerIf* server, CommNs::TemperatureSourceIf* sensors, HeaterListenerIf* heaterListener):
 	mDal(dal),
 	mCommServer(server),
 	mSensors(sensors),
+	mHeaterListener(heaterListener),
 	mConnnectedClients(),
 	mDataMutex(),
 	mRooms()
@@ -77,17 +79,28 @@ void CommRouter::setPointChanged(const std::string& roomId, double setTemperatur
 
 void CommRouter::heaterOn(const std::string& roomId)
 {
-
+	//Need to send to ConnectedClients, sensors and Relais outputs
+	if (mHeaterListener)
+	{
+		mHeaterListener->heaterOn(roomId);
+	}
 }
 
 void CommRouter::heaterOff(const std::string& roomId)
 {
-
+	//Need to send to ConnectedClients, sensors and Relais outputs
+	if (mHeaterListener)
+	{
+		mHeaterListener->heaterOff(roomId);
+	}
 }
 
 void CommRouter::clientConnected(const std::string& name)
 {
+	std::lock_guard<std::recursive_mutex> lg(mDataMutex);
+	LOG(INFO) << "Client connected, enable monitoring for: " << name;
 
+	mConnnectedClients.insert(name);
 }
 
 void CommRouter::clientDisConnected(const std::string& name)
@@ -138,6 +151,7 @@ void CommRouter::sensorTemperature(const std::string& sensorId, double temperatu
 	RoomControl* room = findRoomBySensorId(sensorId);
 	if (room)
 	{
+	//	std::cout << "sensor temperature" << temperature << std::endl;
 		room->roomTemperature(temperature);
 	}
 }
@@ -210,6 +224,7 @@ RoomControl* CommRouter::findRoomBySensorId(const std::string& sensorId)
 	DalNs::RoomConfig* roomConfig = mDal->findRoomBySensorId(sensorId);
 	if (roomConfig)
 	{
+		LOG(INFO) << "Room found: " << roomConfig->RoomId;
 		// Could be that the room was already created, but not with our sensorId (Room with multiple sensors)
 		RoomControl* roomControl = findRoomByRoomId(roomConfig->RoomId, false);
 		if (roomControl == nullptr)

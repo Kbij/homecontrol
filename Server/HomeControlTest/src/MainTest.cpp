@@ -19,10 +19,10 @@ GTEST_API_ int main(int argc, char **argv)
 
 	google::InitGoogleLogging("Home Control Test");
 	testing::InitGoogleTest(&argc, argv);
-//	testing::GTEST_FLAG(filter) = "-LiveTest.*";
+	testing::GTEST_FLAG(filter) = "-LiveTest.*";
 
-//	testing::GTEST_FLAG(filter) = "DMTests.DMComm_ReceiveRxMessage";
-	testing::GTEST_FLAG(filter) = "TemperatureSensors.*";
+	testing::GTEST_FLAG(filter) = "CommRouter.SendTemperatureToCommServer";
+//	testing::GTEST_FLAG(filter) = "DMTests.*";
 
 	if (FLAGS_server)
 	{

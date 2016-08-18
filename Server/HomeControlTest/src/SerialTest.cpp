@@ -37,7 +37,19 @@ TEST(Serial, Receive)
 	CommNs::Serial* serial = new CommNs::Serial("/dev/ttyAMA0", 38400);
 	SerialListener serialListener;
 	serial->registerSerialListener(&serialListener);
-	std::this_thread::sleep_for(std::chrono::seconds(10));
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+
+	serial->unRegisterSerialListener();
+	delete serial;
+}
+
+TEST(Serial, Receive2)
+{
+	CommNs::Serial* serial = new CommNs::Serial("/dev/ttyAMA0", 38400);
+	SerialListener serialListener;
+	serial->registerSerialListener(&serialListener);
+	serial->openSerial();
+	std::this_thread::sleep_for(std::chrono::seconds(1));
 
 	serial->unRegisterSerialListener();
 	delete serial;

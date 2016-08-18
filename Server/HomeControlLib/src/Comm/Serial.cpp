@@ -53,33 +53,39 @@ void Serial::writeData(const std::vector<uint8_t>& data)
 
 bool Serial::openSerial()
 {
-	boost::system::error_code ec;
-	LOG(INFO) << "Opening port: " << mPortName << ", baudrate: " << mBaudRate;
-
-	if (mPort)
+	try
 	{
-		LOG(ERROR) << "Port is already opened...";
-		return false;
-	}
+		boost::system::error_code ec;
+		LOG(INFO) << "Opening port: " << mPortName << ", baudrate: " << mBaudRate;
 
-	mPort = boost::shared_ptr<boost::asio::serial_port>(new boost::asio::serial_port(mIo));
-	mPort->open(mPortName.c_str(), ec);
-	if (ec)
+		if (mPort)
+		{
+			LOG(ERROR) << "Port is already opened...";
+			return false;
+		}
+
+		mPort = boost::shared_ptr<boost::asio::serial_port>(new boost::asio::serial_port(mIo));
+		mPort->open(mPortName.c_str(), ec);
+		if (ec)
+		{
+			LOG(ERROR ) << "OpenSerial failed... port: " << mPortName << ", error:" << ec.message();
+			return false;
+		}
+
+		// option settings...
+		mPort->set_option(boost::asio::serial_port_base::baud_rate(mBaudRate));
+		mPort->set_option(boost::asio::serial_port_base::character_size(8));
+		mPort->set_option(boost::asio::serial_port_base::stop_bits(boost::asio::serial_port_base::stop_bits::one));
+		mPort->set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::none));
+		mPort->set_option(boost::asio::serial_port_base::flow_control(boost::asio::serial_port_base::flow_control::none));
+
+		asyncReadSome();
+		mThread = new std::thread(&Serial::serialThread, this);
+	}
+	catch(...)
 	{
-		LOG(ERROR ) << "OpenSerial failed... port: " << mPortName << ", error:" << ec.message();
-		return false;
+		LOG(ERROR) << "Exception opening serial port";
 	}
-
-	// option settings...
-	mPort->set_option(boost::asio::serial_port_base::baud_rate(mBaudRate));
-	mPort->set_option(boost::asio::serial_port_base::character_size(8));
-	mPort->set_option(boost::asio::serial_port_base::stop_bits(boost::asio::serial_port_base::stop_bits::one));
-	mPort->set_option(boost::asio::serial_port_base::parity(boost::asio::serial_port_base::parity::none));
-	mPort->set_option(boost::asio::serial_port_base::flow_control(boost::asio::serial_port_base::flow_control::none));
-
-	asyncReadSome();
-	mThread = new std::thread(&Serial::serialThread, this);
-
 	return true;
 }
 
@@ -88,7 +94,7 @@ void Serial::closeSerial()
 	{
 		std::lock_guard<std::mutex> lock(mMutex);
 		VLOG(30) << "Stop serial";
-		if (mPort)
+		if (mPort && mPort->is_open())
 		{
 			mPort->cancel();
 			mPort->close();
@@ -97,8 +103,11 @@ void Serial::closeSerial()
 	mIo.stop();
 	//mIo.reset();
 	//mPort.reset();
-	mThread->join();
-	delete mThread;
+	if (mThread)
+	{
+		mThread->join();
+		delete mThread;
+	}
 }
 
 void Serial::serialThread()
@@ -118,7 +127,6 @@ void Serial::onReceive(const boost::system::error_code& ec, size_t bytesTransfer
 {
 	VLOG(30) << "Bytes received: " << bytesTransferred;
 	std::lock_guard<std::mutex> lock(mMutex);
-
 	if (!mPort) return;
 	if (!mPort->is_open()) return;
 	if (ec)

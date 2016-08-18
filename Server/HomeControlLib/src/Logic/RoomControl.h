@@ -7,8 +7,12 @@
 
 #ifndef LOGIC_ROOMCONTROL_H_
 #define LOGIC_ROOMCONTROL_H_
+
 #include <string>
+#include <thread>
 #include <mutex>
+#include <atomic>
+#include <condition_variable>
 
 namespace LogicNs {
 class RoomListenerIf;
@@ -27,13 +31,24 @@ public:
 	void setPointUp();
 	void setPointDown();
 private:
+	void startWorkerThread();
+	void stopWorkerThread();
+	void workerThread();
+
 	const std::string mRoomId;
 	const std::string mRoomName;
 	RoomListenerIf* mRoomListener;
 	double mRoomTemperature;
 	double mSetTemperature;
+	std::thread* mWorkerThread;
+	bool mWorkerThreadRunning;
+	std::atomic_int mUpRequested;
+	std::atomic_int mDownRequested;
+	std::atomic_bool mTempReceived;
+    std::condition_variable mWaitForWorkCondVar;
+    std::atomic_bool mWorkReceived;
+	std::mutex mConditionVarMutex;
 	std::mutex mDataMutex;
-
 };
 
 } /* namespace LogicNs */

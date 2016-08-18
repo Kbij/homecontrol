@@ -77,7 +77,12 @@ void TemperatureSensors::writeSetTemperature(const std::string& sensorId, double
 		if (mSensorAddress.find(sensorId) != mSensorAddress.end())
 		{
 			TxMessage* txMessage = new TxMessage(std::vector<uint8_t>(dataString.begin(), dataString.end()), mSensorAddress[sensorId]);
-			mDMComm->sendMessage(txMessage);
+			//Send synchronously (avoid sending to fast)
+			DMMessageIf* result = mDMComm->sendMessage(txMessage, 10000);
+			if (result != nullptr)
+			{
+				delete result;
+			}
 		}
 		else
 		{
@@ -98,6 +103,17 @@ void TemperatureSensors::receiveMessage(const DMMessageIf* message)
 				{
 					std::string line(rxMessage->rxMessage().begin(), rxMessage->rxMessage().end());
 					receiveLine(line, rxMessage->sourceAddress());
+				}
+				break;
+			}
+			case DMMessageType::ModemStatus:
+			{
+				if (const ModemStatusFrame* statusFrame = dynamic_cast<const ModemStatusFrame*>(message))
+				{
+					if (statusFrame->modemStatus() == ModemStatus::HardwareReset)
+					{
+						mDMComm->init();
+					}
 				}
 				break;
 			}

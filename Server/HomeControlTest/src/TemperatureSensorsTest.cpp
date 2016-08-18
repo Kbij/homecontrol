@@ -92,6 +92,9 @@ public:
 	void sendATCmd(const std::string& atCmd, std::vector<uint8_t> parameters) {};;
 	CommNs::DMMessageIf* sendATCmd(const std::string& atCmd, std::vector<uint8_t> parameters, int timeOutMilliseconds) {return nullptr;};
 	void sendMessage(CommNs::DMMessageIf* message) {mMessage = message;}
+	CommNs::DMMessageIf* sendMessage(CommNs::DMMessageIf* message, int /*timeout*/) {mMessage = message; return nullptr;}
+
+	void init() {};
 	std::string mAddress;
 	CommNs::DMMessageIf* mMessage;
 };

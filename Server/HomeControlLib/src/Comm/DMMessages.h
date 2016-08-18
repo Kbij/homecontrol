@@ -15,7 +15,7 @@
 
 namespace CommNs {
 
-enum class DMMessageType {Unknown, ATResponse, TxMessage, TxStatusFrame, RxMessage};
+enum class DMMessageType {Unknown, ATResponse, TxMessage, TxStatusFrame, RxMessage, ModemStatus};
 
 class DMMessageIf
 {
@@ -193,6 +193,42 @@ private:
 	std::vector<uint8_t> mSourceAddress;
 	ReceiveOptions mReceiveOptions;
 	std::vector<uint8_t> mRxData;
+};
+
+enum class ModemStatus {HardwareReset = 0x00
+	 	 	 	 	   ,WatchdogTimerReset = 0x01
+					   ,NetworkWakeUp = 0x0B
+					   ,NetworkSleep = 0x0C};
+
+class ModemStatusFrame: public DMMessageIf
+{
+public:
+	ModemStatusFrame(std::vector<uint8_t> data) :
+		mModemStatus((ModemStatus) data[1])
+	{
+	}
+	virtual ~ModemStatusFrame() {};
+
+	DMMessageType messageType() const {return DMMessageType::ModemStatus;};
+
+	std::string toString() const
+	{
+		std::stringstream ss;
+		ss << "Modem status: ";
+		switch(mModemStatus)
+		{
+			case ModemStatus::HardwareReset: ss << "Hardware Reset"; break;
+			case ModemStatus::WatchdogTimerReset: ss << "Watchdog Timer Reset"; break;
+			case ModemStatus::NetworkWakeUp: ss << "Network WakeUp"; break;
+			case ModemStatus::NetworkSleep: ss << "Network Sleep"; break;
+			default: ss << "0x" << std::hex << std::uppercase <<  std::setfill('0') << std::setw(2) <<  (int) mModemStatus;
+		}
+		return ss.str();
+	}
+	std::vector<uint8_t> serialise(uint8_t frameId) {return std::vector<uint8_t>();};
+	ModemStatus modemStatus() const {return mModemStatus;};
+private:
+	ModemStatus mModemStatus;
 };
 } /* namespace CommNs */
 
