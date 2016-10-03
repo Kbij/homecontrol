@@ -16,6 +16,7 @@
 #include "DAL/HomeControlDalIf.h"
 #include <glog/logging.h>
 #include <algorithm>
+#include <iostream>
 
 namespace LogicNs {
 
@@ -151,7 +152,6 @@ void CommRouter::sensorTemperature(const std::string& sensorId, double temperatu
 	RoomControl* room = findRoomBySensorId(sensorId);
 	if (room)
 	{
-	//	std::cout << "sensor temperature" << temperature << std::endl;
 		room->roomTemperature(temperature);
 	}
 }

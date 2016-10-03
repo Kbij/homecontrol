@@ -46,9 +46,9 @@ private:
 	std::atomic_int mDownRequested;
 	std::atomic_bool mTempReceived;
     std::condition_variable mWaitForWorkCondVar;
-    std::atomic_bool mWorkReceived;
+    std::atomic_int mWorkReceived;
 	std::mutex mConditionVarMutex;
-	std::mutex mDataMutex;
+	std::recursive_mutex mDataMutex;
 };
 
 } /* namespace LogicNs */

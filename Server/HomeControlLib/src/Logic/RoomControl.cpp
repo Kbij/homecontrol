@@ -7,6 +7,7 @@
 
 #include <Logic/RoomControl.h>
 #include "RoomListenerIf.h"
+#include <iostream>
 
 namespace
 {
@@ -29,7 +30,7 @@ RoomControl::RoomControl(const std::string& roomId, const std::string& roomName,
 	mDownRequested(0),
 	mTempReceived(false),
     mWaitForWorkCondVar(),
-    mWorkReceived(false),
+    mWorkReceived(0),
 	mConditionVarMutex(),
 	mDataMutex()
 {
@@ -43,10 +44,10 @@ RoomControl::~RoomControl()
 
 void RoomControl::roomTemperature(double temperature)
 {
-	std::lock_guard<std::mutex> lg(mDataMutex);
+	std::lock_guard<std::recursive_mutex> lg(mDataMutex);
 	mRoomTemperature = temperature;
 	mTempReceived = true;
-	mWorkReceived = true;
+	++mWorkReceived;
 	mWaitForWorkCondVar.notify_one();
 }
 
@@ -54,14 +55,14 @@ void RoomControl::roomTemperature(double temperature)
 void RoomControl::setPointUp()
 {
 	++mUpRequested;
-	mWorkReceived = true;
+	++mWorkReceived;
 	mWaitForWorkCondVar.notify_one();
 }
 
 void RoomControl::setPointDown()
 {
 	++mDownRequested;
-	mWorkReceived = true;
+	++mWorkReceived;
 	mWaitForWorkCondVar.notify_one();
 }
 
@@ -77,7 +78,7 @@ void RoomControl::startWorkerThread()
 void RoomControl::stopWorkerThread()
 {
 	mWorkerThreadRunning = false;
-	mWorkReceived = true;
+	++mWorkReceived;
 	mWaitForWorkCondVar.notify_one();
 
     if (mWorkerThread)
@@ -94,13 +95,12 @@ void RoomControl::workerThread()
 	{
 		auto until = std::chrono::system_clock::now() +std::chrono::seconds(WAIT_FOR_WORK_TIMEOUT_SEC);
 		std::unique_lock<std::mutex> lock(mConditionVarMutex);
-		mWaitForWorkCondVar.wait_until(lock, until,[&]{return (bool)mWorkReceived;});
-		if (mWorkReceived && mWorkerThreadRunning)
+		mWaitForWorkCondVar.wait_until(lock, until,[&]{return (bool)(mWorkReceived > 0);});
+		if ((mWorkReceived > 0) && mWorkerThreadRunning)
 		{
 			while (mUpRequested)
 			{
 				--mUpRequested;
-				std::lock_guard<std::mutex> lg(mDataMutex);
 				mSetTemperature += SET_TEMP_DELTA;
 				if (mRoomListener)
 				{
@@ -121,7 +121,6 @@ void RoomControl::workerThread()
 			while (mDownRequested)
 			{
 				--mDownRequested;
-				std::lock_guard<std::mutex> lg(mDataMutex);
 				mSetTemperature -= SET_TEMP_DELTA;
 				if (mRoomListener)
 				{
@@ -140,7 +139,6 @@ void RoomControl::workerThread()
 			}
 			if (mTempReceived)
 			{
-				std::lock_guard<std::mutex> lg(mDataMutex);
 				if (mRoomListener)
 				{
 					mRoomListener->temperatureChanged(mRoomId, mRoomTemperature);
@@ -157,7 +155,7 @@ void RoomControl::workerThread()
 				}
 			}
 		}
-		mWorkReceived = false;
+		--mWorkReceived;
 	}
 }
 } /* namespace LogicNs */

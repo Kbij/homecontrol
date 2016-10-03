@@ -21,8 +21,8 @@ GTEST_API_ int main(int argc, char **argv)
 	testing::InitGoogleTest(&argc, argv);
 	testing::GTEST_FLAG(filter) = "-LiveTest.*";
 
-	testing::GTEST_FLAG(filter) = "CommRouter.SendTemperatureToCommServer";
-//	testing::GTEST_FLAG(filter) = "DMTests.*";
+//	testing::GTEST_FLAG(filter) = "CommRouter.SendTemperatureToCommServer";
+//	testing::GTEST_FLAG(filter) = "TemperatureSensors.*";
 
 	if (FLAGS_server)
 	{

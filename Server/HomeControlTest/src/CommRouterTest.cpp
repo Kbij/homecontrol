@@ -43,13 +43,23 @@ class CommServerStub: public CommNs::CommServerIf
 {
 public:
 	CommServerStub(): mLastName(), mLastObject(nullptr){};
-	virtual ~CommServerStub() {};
+	virtual ~CommServerStub()
+	{
+		if (mLastObject)
+		{
+			delete mLastObject;
+		}
+	};
 
 	void registerCommListener(CommNs::CommListenerIf* listener) {};
 	void unRegisterCommListener(CommNs::CommListenerIf* listener) {};
 	// Server takes ownership
 	void sendObject(const std::string name, CommNs::CommObjectIf* object)
 	{
+		if (mLastObject)
+		{
+			delete mLastObject;
+		}
 		mLastName = name;
 		mLastObject = object;
 	}
@@ -122,26 +132,27 @@ TEST(CommRouter, SendTemperatureToCommServer)
 	dalStub.mRoomConfig->RoomName = "RoomName";
 	dalStub.mRoomConfig->mSensorIds.push_back("SensorId1");
 	LogicNs::CommRouter* router = new LogicNs::CommRouter(&dalStub, &commServerStub, nullptr, nullptr);
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
 	router->sensorTemperature("SensorId1", 23.6);
 	// Temperature will not be send; no clients connected
 	ASSERT_TRUE(commServerStub.mLastObject == nullptr);
 
 
-Blijft soms hangen, geen idee waarom (race conditie ?)
-
 	// A client is connected, the temperature will be send
 	router->clientConnected("client1");
 	router->sensorTemperature("SensorId1", 24.6);
 
+	//Allow processing
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	ASSERT_TRUE(commServerStub.mLastObject != nullptr);
 	EXPECT_EQ(commServerStub.mLastName, "client1");
+
 
 	if (CommNs::RoomTemperature* temperature = dynamic_cast<CommNs::RoomTemperature*>(commServerStub.mLastObject))
 	{
 		EXPECT_EQ(temperature->temperature(), 24.6);
 	}
 
-	delete commServerStub.mLastObject;
 	delete router;
 }

@@ -82,8 +82,15 @@ public:
 	DMCommStub():
 	 mAddress(),
 	 mMessage(nullptr)
-	 {};
-	virtual ~DMCommStub() {};
+	 {
+	 };
+	virtual ~DMCommStub()
+	{
+		if (mMessage)
+		{
+			delete mMessage;
+		}
+	};
 	void registerListener(CommNs::DMCommListenerIf* listener) {};
 	void unRegisterListener(CommNs::DMCommListenerIf* listener) {};
 
@@ -91,14 +98,30 @@ public:
 
 	void sendATCmd(const std::string& atCmd, std::vector<uint8_t> parameters) {};;
 	CommNs::DMMessageIf* sendATCmd(const std::string& atCmd, std::vector<uint8_t> parameters, int timeOutMilliseconds) {return nullptr;};
-	void sendMessage(CommNs::DMMessageIf* message) {mMessage = message;}
-	CommNs::DMMessageIf* sendMessage(CommNs::DMMessageIf* message, int /*timeout*/) {mMessage = message; return nullptr;}
+	void sendMessage(CommNs::DMMessageIf* message)
+	{
+		if (mMessage)
+		{
+			delete mMessage;
+		}
+		mMessage = message;
+	}
+	CommNs::DMMessageIf* sendMessage(CommNs::DMMessageIf* message, int /*timeout*/)
+	{
+		if (mMessage)
+		{
+			delete mMessage;
+		}
+		mMessage = message;
+		return nullptr;
+	}
 
 	void init() {};
 	std::string mAddress;
 	CommNs::DMMessageIf* mMessage;
 };
 }
+
 TEST(TemperatureSensors, Constructor)
 {
 	CommNs::TemperatureSensors* sensors = new CommNs::TemperatureSensors(nullptr);
@@ -265,7 +288,7 @@ void filter(const std::string& inputFile, const std::string& outputFile, int k)
 	filter->unRegisterTemperatureListener(&tempListenerStub);
 	delete filter;
 }
-
+/*
 TEST(TemperatureSensors, Filter)
 {
 	filter("../testdata/LivingTemperatuur.csv", "Processed_3.csv", 3);
@@ -277,7 +300,7 @@ TEST(TemperatureSensors, Filter)
 
 //	filter("../testdata/LivingTemperatuur2.csv", "Processed2.csv");
 }
-
+*/
 TEST(TemperatureSensors, SendSetTemperature)
 {
 //	SerialStub serialStub;
@@ -317,4 +340,5 @@ TEST(TemperatureSensors, SendListenerAddress)
 	EXPECT_NE(nullptr, commStub->mMessage);
 	sensors->unRegisterTemperatureListener(&tempListenerStub);
 	delete sensors;
+	delete commStub;
 }
