@@ -1,0 +1,4 @@
+"C:\Program Files (x86)\Arduino\hardware\tools\avr/bin/avrdude" -C"C:\Program Files (x86)\Arduino\hardware\tools\avr/etc/avrdude.conf" -v -patmega328p -carduino -PCOM7 -b19200  -Uflash:w:C:\Users\koen\AppData\Local\Temp\buildd0f0635324e1e299741fbec895462ace.tmp/Blink.ino.hex:i
+
+
+"C:\Program Files (x86)\Arduino\hardware\tools\avr/bin/avrdude" -C"C:\Program Files (x86)\Arduino\hardware\tools\avr/etc/avrdude.conf" -v -patmega328p -carduino -PCOM7 -b19200  -U "flash:w:D:\UserData\Koen\Documents\HomeControl\trunk\Arduino\ArduinoISP\Blink\Blink.ino.standard.hex:i"
