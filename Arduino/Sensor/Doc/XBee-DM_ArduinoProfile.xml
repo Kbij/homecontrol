@@ -4,7 +4,7 @@
   <profile>
     <description_file>xb24-dm_8073.xml</description_file>
     <settings>
-      <setting command="CH">0B</setting>
+      <setting command="CH">B</setting>
       <setting command="ID">1213</setting>
       <setting command="MT">3</setting>
       <setting command="PL">4</setting>
@@ -23,13 +23,13 @@
       <setting command="CI">11</setting>
       <setting command="EE">0</setting>
       <setting command="KY"></setting>
-      <setting command="BD">3</setting>
+      <setting command="BD">5</setting>
       <setting command="NB">0</setting>
       <setting command="RO">3</setting>
       <setting command="FT">BE</setting>
       <setting command="AP">2</setting>
       <setting command="AO">0</setting>
-      <setting command="D0">1</setting>
+      <setting command="D0">2</setting>
       <setting command="D1">0</setting>
       <setting command="D2">0</setting>
       <setting command="D3">0</setting>

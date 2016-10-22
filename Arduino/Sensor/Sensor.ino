@@ -1,21 +1,27 @@
-#include <U8glib.h>
-#include <Printers.h>
+
+//#include <Printers.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <CapacitiveSensor.h>
 #include <XBee.h>
+#include <U8glib.h>
 #include <stdlib.h>
 
 // LCD Setup
 U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_DEV_0|U8G_I2C_OPT_NO_ACK|U8G_I2C_OPT_FAST);  // Fast I2C / TWI 
+const int ONEWIRE_PIN = 2;
+const int TOUCH_COMMON = 3;
+const int TOUCH_UP = 4;
+const int TOUCH_DOWN = 5;
+const int TRANSMIT_LED = 6;
 
-// DS18S20 Setup
-OneWire oneWire(2);
+// DS18S20 Setup, use pin 2
+OneWire oneWire(ONEWIRE_PIN);
 DallasTemperature sensors(&oneWire);
 
 // Touch buttons
-CapacitiveSensor touchUp   = CapacitiveSensor(3, 4);
-CapacitiveSensor touchDown = CapacitiveSensor(3, 5);
+CapacitiveSensor touchUp   = CapacitiveSensor(TOUCH_COMMON, TOUCH_UP);
+CapacitiveSensor touchDown = CapacitiveSensor(TOUCH_COMMON, TOUCH_DOWN);
 
 const int TEMP_INTERVAL_SECONDS = 30;
 const int TEMP_MEASURE_TIME_SECONDS = 1;
@@ -59,7 +65,9 @@ void xbeeSend(const char *format, ...)
 
   ZBTxRequest zbString = ZBTxRequest(sensorListener, (uint8_t*)buf, strlen(buf));
 
+  digitalWrite(TRANSMIT_LED, LOW);
   xbee.send(zbString);
+  digitalWrite(TRANSMIT_LED, HIGH);   // turn the LED on (HIGH is the voltage level)
 }
 
 void writeMid(int vert, const char* str)
@@ -121,6 +129,7 @@ void setup()
   // start serial port
   Serial.begin(38400);
   xbee.setSerial(Serial);
+  pinMode(TRANSMIT_LED, OUTPUT);
   
   touchUp.set_CS_AutocaL_Millis(1000);
   touchDown.set_CS_AutocaL_Millis(1000);
@@ -146,10 +155,12 @@ void setup()
   sprintf(ADDR_STR, "%02X%02X%02X%02X%02X%02X%02X%02X", sensorAddr[0], sensorAddr[1], sensorAddr[2], sensorAddr[3], sensorAddr[4], sensorAddr[5], sensorAddr[6], sensorAddr[7]);
   
   tempStartTime = millis();
+  /*
   if ( u8g.getMode() == U8G_MODE_BW )
   {
     u8g.setColorIndex(1);
   }
+  */
 }
 
 void loop()
@@ -185,7 +196,7 @@ void loop()
   {
     tempStartTime = millis();
     tempRequested = false;
-    tempCurrent = sensors.getTempCByIndex(0);    
+      = sensors.getTempCByIndex(0);    
     char tempStr[4];
     dtostrf(tempCurrent, 2, 2, tempStr);
     
@@ -249,9 +260,11 @@ void loop()
 
       }        
   }
-   
+   delay(100); 
+   /*
   u8g.firstPage();  
   do {
     draw();
   } while( u8g.nextPage() );
+  */
 }
