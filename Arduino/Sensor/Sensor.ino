@@ -1,5 +1,4 @@
 #include <SoftwareSerial.h>
-#include <Wire.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <CapacitiveSensor.h>
@@ -7,33 +6,28 @@
 #include <U8glib.h>
 #include <stdlib.h>
 
-// LCD Setup
-U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_DEV_0|U8G_I2C_OPT_NO_ACK|U8G_I2C_OPT_FAST);  // Fast I2C / TWI 
 const int ONEWIRE_PIN = 2;
 const int TOUCH_COMMON = 3;
 const int TOUCH_UP = 4;
 const int TOUCH_DOWN = 5;
 const int TRANSMIT_LED = 6;
+const int OLED_ENABLE = 7;
 const int OLED_ADDRESS = 0x3C;
 const int TEMP_INTERVAL_SECONDS = 30;
 const int TEMP_MEASURE_TIME_SECONDS = 1;
 
+// LCD Setup
+U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_DEV_0|U8G_I2C_OPT_NO_ACK|U8G_I2C_OPT_FAST);  // Fast I2C / TWI 
 // DS18S20 Setup, use pin 2
 OneWire oneWire(ONEWIRE_PIN);
 DallasTemperature sensors(&oneWire);
-
 //Software serial (debug)
 SoftwareSerial debugSerial(8, 9); // RX, TX
-
 // Touch buttons
 CapacitiveSensor touchUp   = CapacitiveSensor(TOUCH_COMMON, TOUCH_UP);
 CapacitiveSensor touchDown = CapacitiveSensor(TOUCH_COMMON, TOUCH_DOWN);
-
-
 // create the XBee object
 XBee xbee = XBee();
-
-
 
 char ADDR_STR[17];
 char SET_TEMPERATURE[10];
@@ -142,10 +136,13 @@ void sendAtCommand()
 void setup()
 {
   pinMode(TRANSMIT_LED, OUTPUT);
+  pinMode(OLED_ENABLE, INPUT);
+  
   blinkLed();  
 
   debugSerial.begin(9600);
   debugSerial.println("Sensor Init");  
+  delay(2000);
   blinkLed();
   
   // start serial port
@@ -179,8 +176,7 @@ void setup()
   
   tempStartTime = millis();
 
-  Wire.beginTransmission(address);
-  if (Wire.endTransmission() == 0)
+  if (digitalRead(OLED_ENABLE) == 1)
   {
     oledPresent = true;
     debugSerial.println("Oled is present");  
@@ -274,8 +270,6 @@ void loop()
         if (xbRx.getDataLength() > 4)
         {
           uint8_t* rawData = xbRx.getData();
-          debugSerial.print("Received data 1");  
-          
           if (xbRx.getDataLength() > 4)
           {
             if (rawData[0] == '[' && rawData[xbRx.getDataLength() - 1] == ']')
@@ -283,32 +277,21 @@ void loop()
               //If we received the DigiMesh address of the server
               if ((rawData[1] == '4') && (xbRx.getDataLength() == 20))
               {
-                debugSerial.println("D1");  
-                debugSerial.print(xbRx.getDataLength());  
-                
                 char msbStr[10];
                 char lsbStr[10];
-                //for(int i=0;i<10;i++){msbStr[i] = 0;};
-                //for(int i=0;i<10;i++){lsbStr[i] = 0;};
-                //Memset doesn't work ?
                 memset(msbStr, 0, sizeof(msbStr));
                 memset(lsbStr, 0, sizeof(lsbStr));
-                
-                debugSerial.println("D2");  
                 
                 memcpy((void*)msbStr, &rawData[3], 8);
                 memcpy((void*)lsbStr, &rawData[11], 8);
                 
                 uint32_t msb = strtol(msbStr, NULL, 16);
                 uint32_t lsb = strtol(lsbStr, NULL, 16);
-                debugSerial.print("Received data 4");  
   
                 sensorListener.setMsb(msb); 
                 sensorListener.setLsb(lsb);
-                debugSerial.print("Received data 5");  
   
                 xbeeSend("[1:%s]", ADDR_STR);
-                
               }
               
               //We received the set temperature from the server
@@ -322,7 +305,6 @@ void loop()
               }
             }
           }
-            
         }
       }        
   }
