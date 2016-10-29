@@ -4,3 +4,5 @@
 "C:\Program Files (x86)\Arduino\hardware\tools\avr/bin/avrdude" -C"C:\Program Files (x86)\Arduino\hardware\tools\avr/etc/avrdude.conf" -v -patmega328p -carduino -PCOM7 -b19200  -U "flash:w:D:\UserData\Koen\Documents\HomeControl\trunk\Arduino\ArduinoISP\Blink\Blink.ino.standard.hex:i"
 
 "C:\Program Files (x86)\Arduino\hardware\tools\avr/bin/avrdude" -C"C:\Program Files (x86)\Arduino\hardware\tools\avr/etc/avrdude.conf" -v -patmega328p -carduino -PCOM7 -b19200  -U "flash:w:D:\UserData\Koen\Documents\HomeControl\trunk\Arduino\Sensor\Sensor.ino.standard.hex:i"
+
+"C:\Program Files (x86)\Arduino\hardware\tools\avr/bin/avrdude" -C"C:\Program Files (x86)\Arduino\hardware\tools\avr/etc/avrdude.conf" -v -patmega328p -carduino -PCOM7 -b19200  -U "flash:w:D:\UserData\Koen\Documents\HomeControl\trunk\Arduino\Sensor\Sensor.ino.standard.hex:i"
