@@ -153,6 +153,7 @@ void TemperatureSensors::receiveLine(const std::string& line, const std::vector<
 				std::string sensorId = lineParts[SERIAL_POS];
 				mSensorAddress[sensorId] = sourceAddress;
 				float temp = std::stof(lineParts[TEMPERATURE_POS]);
+				VLOG(1) << "Received unfiltered temperature: " << temp << ", from sensor: " << temp;
 				sendTemperature(sensorId, temp);
 				return;
 			}
