@@ -13,7 +13,7 @@ const int TOUCH_DOWN = 5;
 const int TRANSMIT_LED = 6;
 const int OLED_ENABLE = 7;
 const int OLED_ADDRESS = 0x3C;
-const int TEMP_INTERVAL_SECONDS = 30;
+const unsigned long TEMP_INTERVAL_SECONDS = 120;
 const int TEMP_MEASURE_TIME_SECONDS = 1;
 
 // LCD Setup
@@ -140,7 +140,7 @@ void setup()
   
   blinkLed();  
 
-  debugSerial.begin(9600);
+  debugSerial.begin(19200);
   debugSerial.println("Sensor Init");  
   delay(2000);
   blinkLed();
@@ -191,7 +191,7 @@ void setup()
 void loop()
 {
   unsigned long currentTime = millis();
-  
+
   if (currentTime < tempStartTime)
   {//Time machine; overflow of long int
     tempStartTime = millis();
@@ -219,7 +219,7 @@ void loop()
     }
   }
   //Request measurement of the temperature
-  if (!tempRequested && (((currentTime - tempStartTime) > TEMP_INTERVAL_SECONDS * 1000) || bootFlag))
+  if (!tempRequested && (((currentTime - tempStartTime) > TEMP_INTERVAL_SECONDS * 1000ul) || bootFlag))
   {
     debugSerial.println("Request temperature");  
     tempStartTime = millis();
