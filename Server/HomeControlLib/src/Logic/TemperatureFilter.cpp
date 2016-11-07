@@ -52,7 +52,7 @@ void TemperatureFilter::sensorTemperature(const std::string& sensorId, double te
 
 	mFilterSum = mFilterSum - (mFilterSum/mK) + temperature;
 	double filteredTemperature = mFilterSum/mK;
-	//filteredTemperature = round(filteredTemperature * 10)/10;
+	filteredTemperature = round(filteredTemperature * 100)/100;
 	for(auto listener: mListeners)
 	{
 		if (mSampleCount > (mK * 5))
