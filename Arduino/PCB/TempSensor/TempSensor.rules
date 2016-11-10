@@ -1,0 +1,79 @@
+
+(rules PCB TempSensor
+  (snap_angle 
+    fortyfive_degree
+  )
+  (autoroute_settings
+    (fanout off)
+    (autoroute on)
+    (postroute on)
+    (vias on)
+    (via_costs 50)
+    (plane_via_costs 5)
+    (start_ripup_costs 100)
+    (start_pass_no 1556)
+    (layer_rule 1#Top
+      (active on)
+      (preferred_direction horizontal)
+      (preferred_direction_trace_costs 1.0)
+      (against_preferred_direction_trace_costs 2.0)
+    )
+    (layer_rule 16#Bottom
+      (active on)
+      (preferred_direction vertical)
+      (preferred_direction_trace_costs 1.0)
+      (against_preferred_direction_trace_costs 2.0)
+    )
+  )
+  (rule
+    (width 0.15)
+    (clear 0.15)
+    (clear 0.075 (type smd_to_turn_gap))
+    (clear 0.25 (type default_boundary))
+    (clear 0.25 (type default_area))
+    (clear 0.25 (type boundary_via))
+    (clear 0.25 (type boundary_smd))
+    (clear 0.25 (type boundary_pin))
+    (clear 0.25 (type boundary_area))
+    (clear 0.25 (type via_area))
+  )
+  (padstack Round1$0.350000
+    (shape
+      (circle 1#Top 0.6 0.0 0.0)
+    )
+    (shape
+      (circle 16#Bottom 0.6 0.0 0.0)
+    )
+    (attach off)
+  )
+  (via 
+    Round1$0.350000 Round1$0.350000 via
+  )
+  (via_rule
+    default Round1$0.350000
+  )
+  (class default
+    N$1 N$2 N$3 N$4 N$5 N$6 N$8 N$9
+    N$10 N$12 N$13 N$15 N$16 N$17 N$18 N$20
+    N$21 N$22 N$23 N$24
+    (clearance_class default)
+    (via_rule default)
+    (rule
+      (width 0.15)
+    )
+    (circuit 
+      (use_layer 1#Top 16#Bottom)
+    )
+  )
+  (class Power
+    +3V3 GND N$11 N$14 VCC
+    (clearance_class default)
+    (via_rule default)
+    (rule
+      (width 0.508)
+    )
+    (circuit 
+      (use_layer 1#Top 16#Bottom)
+    )
+  )
+)
