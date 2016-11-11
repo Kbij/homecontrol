@@ -14,13 +14,12 @@ const int SAMPLE_COUNT = 30;
 
 namespace LogicNs {
 
-TemperatureFilter::TemperatureFilter(CommNs::TemperatureSourceIf* source, int k):
+TemperatureFilter::TemperatureFilter(CommNs::TemperatureSourceIf* source, double alpha):
 	mSource(source),
 	mDataMutex(),
 	mListeners(),
-	mK(k),
-	mSampleCount(0),
-	mFilterSum(0)
+	mAlpha(alpha),
+	mFilterValues()
 {
 	if (mSource)
 	{
@@ -49,21 +48,22 @@ void TemperatureFilter::sensorStarted(const std::string& sensorId)
 void TemperatureFilter::sensorTemperature(const std::string& sensorId, double temperature)
 {
 	std::lock_guard<std::mutex> lock(mDataMutex);
+	double sendValue = temperature;
+	mFilterValues[sensorId].mValue = (mAlpha * temperature) + (1.0 - mAlpha) * mFilterValues[sensorId].mValue;
 
-	mFilterSum = mFilterSum - (mFilterSum/mK) + temperature;
-	double filteredTemperature = mFilterSum/mK;
-	filteredTemperature = round(filteredTemperature * 100)/100;
+	if (mFilterValues[sensorId].mStarted)
+    {
+    	sendValue =  mFilterValues[sensorId].mValue;
+    }
+    if (abs(temperature - mFilterValues[sensorId].mValue) < 0.1)
+    {
+        //Return the filtered value next time
+    	mFilterValues[sensorId].mStarted = true;
+    }
+
 	for(auto listener: mListeners)
 	{
-		if (mSampleCount > (mK * 5))
-		{
-			listener->sensorTemperature(sensorId, filteredTemperature);
-		}
-		else
-		{
-			++mSampleCount;
-			listener->sensorTemperature(sensorId, temperature);
-		}
+		listener->sensorTemperature(sensorId, sendValue);
 	}
 }
 

@@ -16,11 +16,19 @@
 #include <mutex>
 
 namespace LogicNs {
+struct TempValues
+{
+	TempValues():
+	 mValue(0), mStarted(false) {};
+    double mValue;
+    bool mStarted;
+
+};
 
 class TemperatureFilter: public TemperatureListenerIf, public CommNs::TemperatureSourceIf
 {
 public:
-	TemperatureFilter(CommNs::TemperatureSourceIf* source, int k);
+	TemperatureFilter(CommNs::TemperatureSourceIf* source, double alpha);
 	virtual ~TemperatureFilter();
 
 	void sensorStarted(const std::string& sensorId);
@@ -36,9 +44,8 @@ private:
 	CommNs::TemperatureSourceIf* mSource;
 	std::mutex mDataMutex;
 	std::set<TemperatureListenerIf*> mListeners;
-	const int mK;
-	int mSampleCount;
-	double mFilterSum;
+	const int mAlpha;
+	std::map<std::string, TempValues> mFilterValues;
 };
 
 } /* namespace LogicNs */
