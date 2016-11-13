@@ -8,7 +8,7 @@
 </settings>
 <grid distance="25" unitdist="mil" unit="mm" style="lines" multiple="1" display="yes" altdistance="0.025" altunitdist="inch" altunit="inch"/>
 <layers>
-<layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
+<layer number="1" name="Top" color="4" fill="1" visible="no" active="yes"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
 <layer number="17" name="Pads" color="2" fill="1" visible="yes" active="yes"/>
 <layer number="18" name="Vias" color="2" fill="1" visible="yes" active="yes"/>
@@ -155,6 +155,7 @@
 <text x="43.6118" y="45.0088" size="2.0828" layer="125" ratio="10" rot="SR0">U1</text>
 <text x="41.021" y="43.18" size="1.27" layer="125" ratio="10" rot="R270">X1</text>
 <text x="60.96" y="27.94" size="1.27" layer="126" rot="MR90">XB1</text>
+<text x="38.1" y="51.435" size="0.8128" layer="16" rot="MR270">Sensor 1.0</text>
 </plain>
 <libraries>
 <library name="rcl">
