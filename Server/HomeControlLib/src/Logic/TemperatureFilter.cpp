@@ -106,4 +106,12 @@ void TemperatureFilter::writeSetTemperature(const std::string& sensorId, double 
 		mSource->writeSetTemperature(sensorId, temperature);
 	}
 }
+
+void TemperatureFilter::writeCalibration(const std::string& sensorId, double calibration)
+{
+	if (mSource)
+	{
+		mSource->writeCalibration(sensorId, calibration);
+	}
+}
 } /* namespace LogicNs */

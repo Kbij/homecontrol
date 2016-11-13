@@ -40,6 +40,7 @@ public:
 	void unRegisterTemperatureListener(LogicNs::TemperatureListenerIf* listener);
 
 	void writeSetTemperature(const std::string& sensorId, double temperature);
+	void writeCalibration(const std::string& sensorId, double calibration);
 private:
 	CommNs::TemperatureSourceIf* mSource;
 	std::mutex mDataMutex;
