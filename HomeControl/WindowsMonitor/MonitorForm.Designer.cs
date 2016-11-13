@@ -33,10 +33,13 @@
             this.colName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colDist = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.collastConnected = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colLastLocation = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.tmrUpdate = new System.Windows.Forms.Timer(this.components);
             this.cmbHours = new System.Windows.Forms.ComboBox();
             this.btnKML = new System.Windows.Forms.Button();
-            this.colLastLocation = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.btnTemperatureViewer = new System.Windows.Forms.Button();
+            this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
+            this.backgroundWorker2 = new System.ComponentModel.BackgroundWorker();
             this.SuspendLayout();
             // 
             // listSummary
@@ -71,6 +74,11 @@
             this.collastConnected.Text = "LastConnected";
             this.collastConnected.Width = 120;
             // 
+            // colLastLocation
+            // 
+            this.colLastLocation.Text = "LastLocation";
+            this.colLastLocation.Width = 120;
+            // 
             // tmrUpdate
             // 
             this.tmrUpdate.Enabled = true;
@@ -98,16 +106,23 @@
             this.btnKML.UseVisualStyleBackColor = true;
             this.btnKML.Click += new System.EventHandler(this.btnKML_Click);
             // 
-            // colLastLocation
+            // btnTemperatureViewer
             // 
-            this.colLastLocation.Text = "LastLocation";
-            this.colLastLocation.Width = 120;
+            this.btnTemperatureViewer.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnTemperatureViewer.Location = new System.Drawing.Point(398, 163);
+            this.btnTemperatureViewer.Name = "btnTemperatureViewer";
+            this.btnTemperatureViewer.Size = new System.Drawing.Size(79, 23);
+            this.btnTemperatureViewer.TabIndex = 11;
+            this.btnTemperatureViewer.Text = "Temperatuur";
+            this.btnTemperatureViewer.UseVisualStyleBackColor = true;
+            this.btnTemperatureViewer.Click += new System.EventHandler(this.button1_Click_1);
             // 
             // MonitorForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(489, 194);
+            this.Controls.Add(this.btnTemperatureViewer);
             this.Controls.Add(this.btnKML);
             this.Controls.Add(this.cmbHours);
             this.Controls.Add(this.listSummary);
@@ -126,6 +141,9 @@
         private System.Windows.Forms.ComboBox cmbHours;
         private System.Windows.Forms.Button btnKML;
         private System.Windows.Forms.ColumnHeader colLastLocation;
+        private System.Windows.Forms.Button btnTemperatureViewer;
+        private System.ComponentModel.BackgroundWorker backgroundWorker1;
+        private System.ComponentModel.BackgroundWorker backgroundWorker2;
     }
 }
 

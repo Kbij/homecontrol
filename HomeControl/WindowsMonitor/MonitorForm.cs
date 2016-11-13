@@ -56,18 +56,26 @@ namespace WindowsMonitor
                     if (cell.Value.Count > 0)
                     {
                         double distance = cell.Value.Last().distance(mHome);
+                        string distanceString;
                         if (distance > 1000)
                         {
                             distance = Math.Round((distance / 1000), 2);
+                            distanceString = string.Format("{0}km", distance);
                             item.SubItems.Add(string.Format("{0}km", distance));
                         }
                         else
                         {
                             distance = Math.Round(distance, 2);
-                            item.SubItems.Add(string.Format("{0}m", distance));
+                            distanceString = string.Format("{0}m", distance);
                         }
+                        item.SubItems.Add(distanceString);
                         item.SubItems.Add(string.Format("{0}", cell.Key.Item2));
                         item.SubItems.Add(string.Format("{0}", cell.Value.Last().TimeStamp));
+
+                        if (cell.Key.Item1 == "5042D")
+                        {
+                            this.Text = string.Format("{0}: {1}", distanceString, cell.Value.Last().TimeStamp.ToShortTimeString());
+                        }
                     }
                 }
             }
@@ -147,6 +155,12 @@ namespace WindowsMonitor
         private void cmbHours_SelectionChangeCommitted(object sender, EventArgs e)
         {
             refresh();
+        }
+
+        private void button1_Click_1(object sender, EventArgs e)
+        {
+            TemperatureViewer viewer = new TemperatureViewer();
+            viewer.Show();
         }
     }
 }
