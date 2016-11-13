@@ -144,4 +144,56 @@ RoomConfig* HomeControlDal::findRoomBySensorId(const std::string& sensorId)
 	return result;
 }
 
+double HomeControlDal::getSensorCalibration(const std::string& sensorId)
+{
+	LOG(INFO) << "Find Calibration for SendorId: " << sensorId;
+	double result = 0;
+	try
+	{
+		std::stringstream select;
+		select << "SELECT calibration FROM HC_DB.TemperatureSensor  ";
+		select << " WHERE sensorAddress = '" << sensorId << "'";
+
+		sql::Driver *driver;
+
+		sql::Connection *con;
+		sql::Statement *stmt;
+
+		/* Create a connection */
+		driver = get_driver_instance();
+		driver->threadInit();
+		con = driver->connect("tcp://127.0.0.1:3306", "hc", "bugs bunny");
+		/* Connect to the MySQL test database */
+		con->setSchema("HC_DB");
+
+		stmt = con->createStatement();
+		sql::ResultSet *res =  stmt->executeQuery(select.str());
+
+		if (res->rowsCount() > 0)
+		{
+			while (res->next())
+			{
+				result = res->getDouble("calibration");
+			}
+		}
+		else
+		{
+			LOG(ERROR) << "Calibration not found";
+		}
+		delete res;
+		delete stmt;
+
+		con->close();
+		delete con;
+		driver->threadEnd();
+
+	}
+	catch (sql::SQLException &ex)
+	{
+		LOG(ERROR) << "clientConnected, SQLExceptin: " << ex.what() << ", MySQL error code: " << ex.getErrorCode() << ", SQLState: " << ex.getSQLState();
+	}
+
+	LOG(INFO) << "Calibration for sensor: " << sensorId << ": " << result;
+	return result;
+}
 } /* namespace DalNs */

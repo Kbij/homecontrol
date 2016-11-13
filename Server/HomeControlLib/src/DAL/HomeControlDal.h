@@ -20,6 +20,8 @@ public:
 
 	RoomConfig* findRoomByRoomId(const std::string& roomId);
 	RoomConfig* findRoomBySensorId(const std::string& sensorId);
+
+	double getSensorCalibration(const std::string& sensorId);
 };
 
 } /* namespace DalNs */

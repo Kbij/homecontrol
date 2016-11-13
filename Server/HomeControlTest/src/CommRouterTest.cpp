@@ -36,6 +36,8 @@ public:
 		mRoomConfig = nullptr;
 		return result;
 	}
+	double getSensorCalibration(const std::string& sensorId) {return 0;};
+
 	DalNs::RoomConfig* mRoomConfig;
 };
 

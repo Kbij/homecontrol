@@ -143,6 +143,11 @@ void CommRouter::sensorStarted(const std::string& sensorId)
 	{
 		LOG(INFO) << "Sensor for room: '" << room->roomName() << "' started";
 	}
+
+	if (mSensors)
+	{
+		mSensors->writeCalibration(sensorId, mDal->getSensorCalibration(sensorId));
+	}
 }
 
 void CommRouter::sensorTemperature(const std::string& sensorId, double temperature)

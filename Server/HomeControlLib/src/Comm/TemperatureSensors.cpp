@@ -27,6 +27,7 @@ const std::string MSG_SERVER_DISCOVERY_RESPONSE = "4";
 const std::string MSG_SET_TEMPERATURE = "5";
 const std::string MSG_SET_TEMPERATURE_UP = "6";
 const std::string MSG_SET_TEMPERATURE_DOWN = "7";
+const std::string MSG_SET_CALIBRATION = "8";
 }
 
 namespace CommNs {
@@ -87,6 +88,32 @@ void TemperatureSensors::writeSetTemperature(const std::string& sensorId, double
 		else
 		{
 			LOG(ERROR) << "Unable to write set temperature, sensor unknown: " << sensorId;
+		}
+	}
+}
+
+void TemperatureSensors::writeCalibration(const std::string& sensorId, double calibration)
+{
+	if (mDMComm)
+	{
+		std::stringstream ss;
+		ss << "[" << MSG_SET_CALIBRATION << ":"  << std::fixed << std::setprecision(2) << calibration << "]";
+		std::string dataString(ss.str());
+		VLOG(1) << "Writing calibration (" << calibration << ") to sensor: " << sensorId;
+
+		if (mSensorAddress.find(sensorId) != mSensorAddress.end())
+		{
+			TxMessage* txMessage = new TxMessage(std::vector<uint8_t>(dataString.begin(), dataString.end()), mSensorAddress[sensorId]);
+			//Send synchronously (avoid sending to fast)
+			DMMessageIf* result = mDMComm->sendMessage(txMessage, 10000);
+			if (result != nullptr)
+			{
+				delete result;
+			}
+		}
+		else
+		{
+			LOG(ERROR) << "Unable to write calibration, sensor unknown: " << sensorId;
 		}
 	}
 }

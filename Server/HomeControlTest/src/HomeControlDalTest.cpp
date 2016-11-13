@@ -70,4 +70,12 @@ TEST(HomeControlDal, NonExistentRoom)
 
 	delete dal;
 }
+TEST(HomeControlDal, FindCalibration)
+{
+	DalNs::HomeControlDal* dal = new DalNs::HomeControlDal;
 
+	EXPECT_EQ(1, dal->getSensorCalibration("sensor1"));
+	EXPECT_EQ(1.1, dal->getSensorCalibration("sensor1.1"));
+
+	delete dal;
+}
