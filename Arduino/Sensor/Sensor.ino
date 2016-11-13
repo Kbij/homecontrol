@@ -12,9 +12,9 @@ const int TOUCH_UP = 4;
 const int TOUCH_DOWN = 5;
 const int TRANSMIT_LED = 6;
 const int OLED_ENABLE = 7;
-const int OLED_ADDRESS = 0x3C;
-const unsigned long TEMP_INTERVAL_SECONDS = 120;
-const int TEMP_MEASURE_TIME_SECONDS = 1;
+const unsigned long TEMP_INTERVAL_SECONDS = 30;
+const unsigned long TEMP_MEASURE_TIME_SECONDS = 1;
+const int TEMP_FILTER_LENGTH = 5; // Take the average of 3 samples;
 
 // LCD Setup
 U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_DEV_0|U8G_I2C_OPT_NO_ACK|U8G_I2C_OPT_FAST);  // Fast I2C / TWI 
@@ -32,7 +32,10 @@ XBee xbee = XBee();
 char ADDR_STR[17];
 char SET_TEMPERATURE[10];
 float tempSet = 0;
-float tempCurrent = 0;
+float tempCurrent[TEMP_FILTER_LENGTH];
+float dispTemp = 0;
+float calibrationTemp = 0;
+
 unsigned long tempStartTime = millis();
 unsigned long dispStartTime = millis();
 unsigned long setSendStartTime = millis();
@@ -103,7 +106,7 @@ void draw()
     writeMid(18, "Temp:");
   
     char tempStr[4];
-    dtostrf(tempCurrent, 2, 1, tempStr);
+    dtostrf(dispTemp, 2, 1, tempStr);
     char fullTempStr[20];
     sprintf(fullTempStr, "%s \260C", tempStr);
   
@@ -186,6 +189,12 @@ void setup()
   {
     u8g.setColorIndex(1);
   }
+
+  //Init temperature filter, set negative temperature
+  for(int i = 0; i < TEMP_FILTER_LENGTH; ++i)
+  {
+    tempCurrent[i] = -1;
+  }
 }
 
 void loop()
@@ -234,13 +243,46 @@ void loop()
     debugSerial.println("Read temperature");  
     tempStartTime = millis();
     tempRequested = false;
-    tempCurrent = sensors.getTempCByIndex(0);    
-    char tempStr[4];
-    dtostrf(tempCurrent, 2, 2, tempStr);
-    debugSerial.print("Temperature:");  
-    debugSerial.println(tempStr);
 
-    //Send the temperature
+    //Move the filter values
+    for(int i = (TEMP_FILTER_LENGTH - 1); i > 0  ; i--)
+    {
+      debugSerial.print(i);
+      debugSerial.print(":");
+      tempCurrent[i] = tempCurrent[i-1];
+      debugSerial.println(tempCurrent[i]);
+    }
+
+    //Get the current temperature
+    tempCurrent[0] = sensors.getTempCByIndex(0);
+    //Use the calibration value
+    tempCurrent[0] += calibrationTemp;
+    
+    //If we have a full filter -> calculate the average
+    if (tempCurrent[TEMP_FILTER_LENGTH - 1] > 0)
+    {
+      debugSerial.println("Calc average");  
+      float totTemp = 0;
+      for(int i = 0; i < TEMP_FILTER_LENGTH; ++i)
+      {
+        totTemp = totTemp + tempCurrent[i];
+      }
+      debugSerial.print("sum:");  
+      debugSerial.println(totTemp);  
+      
+      dispTemp = totTemp / TEMP_FILTER_LENGTH;
+      debugSerial.print("disp:");  
+      debugSerial.println(dispTemp);  
+    }
+    else
+    {// Filter not full; use the current
+      dispTemp = tempCurrent[0];
+    }    
+
+    //Send the unfiltered temperature
+    char tempStr[4];
+    dtostrf(tempCurrent[0], 2, 2, tempStr);
+    
     //If still using the broadcast address
     if (sensorListener.getMsb() == 0 && sensorListener.getLsb() == 0x0000FFFF)
     {
@@ -303,6 +345,19 @@ void loop()
                 displaySetTemperature = true;
                 setTempReceived = true;
               }
+
+              //We received the calibraion temperature from the server
+              if (rawData[1] == '8')
+              {
+                char calibrationStr[6];
+                memset(calibrationStr, 0, sizeof(calibrationStr));
+                memcpy(calibrationStr, &rawData[3], xbRx.getDataLength() - 4); // len([8:])
+                String calStr(calibrationStr);
+                calibrationTemp = calStr.toFloat();
+                
+                debugSerial.print("Calibration:");
+                debugSerial.println(calibrationTemp);
+              }              
             }
           }
         }
