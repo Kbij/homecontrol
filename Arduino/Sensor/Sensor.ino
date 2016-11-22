@@ -5,7 +5,10 @@
 #include <XBee.h>
 #include <U8glib.h>
 #include <stdlib.h>
+#include <avr/sleep.h>
+#include <avr/power.h>
 
+volatile int f_timer=0;
 const int ONEWIRE_PIN = 2;
 const int TOUCH_COMMON = 3;
 const int TOUCH_UP = 4;
@@ -36,6 +39,7 @@ float tempCurrent[TEMP_FILTER_LENGTH];
 float dispTemp = 0;
 float calibrationTemp = 0;
 
+
 unsigned long tempStartTime = millis();
 unsigned long dispStartTime = millis();
 unsigned long setSendStartTime = millis();
@@ -45,6 +49,7 @@ bool displaySetTemperature = false;
 bool setTempReceived = true;
 bool lastAcknowledged = false;
 bool oledPresent = false;
+bool measuring = false;
 
 //At startup we are broadcasting
 XBeeAddress64 sensorListener = XBeeAddress64(0x00000000, 0x0000FFFF);
@@ -56,6 +61,9 @@ uint8_t chCmd[] = {'C','H'};
 uint8_t chValue[] = {0x0B};
 uint8_t idCmd[] = {'I','D'};
 uint8_t idValue[] = {0x12, 0x13};
+uint8_t pwCmd[] = {'P','L'};
+uint8_t pwHigh[] = {'4'};
+uint8_t pwLow[] = {'0'};
 
 AtCommandRequest atRequest = AtCommandRequest(chCmd);
 void blinkLed()
@@ -136,6 +144,24 @@ void sendAtCommand()
   xbee.readPacket(1000);
 }
 
+void xBeePowerHigh()
+{
+  atRequest.clearCommandValue();
+  atRequest.setCommand(pwCmd);  
+  atRequest.setCommandValue(pwHigh);
+  atRequest.setCommandValueLength(sizeof(pwHigh));  
+  sendAtCommand();  
+}
+
+void xBeePowerLow()
+{
+  atRequest.clearCommandValue();
+  atRequest.setCommand(pwCmd);  
+  atRequest.setCommandValue(pwLow);
+  atRequest.setCommandValueLength(sizeof(pwLow));  
+  sendAtCommand();   
+}
+
 void setup()
 {
   pinMode(TRANSMIT_LED, OUTPUT);
@@ -196,6 +222,63 @@ void setup()
   {
     tempCurrent[i] = -1;
   }
+  
+  /*** Configure the timer.***/
+  
+  /* Normal timer operation.*/
+  TCCR1A = 0x00; 
+  
+  /* Clear the timer counter register.
+   * You can pre-load this register with a value in order to 
+   * reduce the timeout period, say if you wanted to wake up
+   * ever 4.0 seconds exactly.
+   */
+  TCNT1=0x0000; 
+  
+  /* Configure the prescaler for 1:1024, giving us a 
+   * timeout of 4.09 seconds.
+   */
+  TCCR1B = 0x05;
+  
+  /* Enable the timer overlow interrupt. */
+  TIMSK1=0x01;  
+}
+
+ISR(TIMER1_OVF_vect)
+{
+  /* set the flag. */
+   if(f_timer == 0)
+   {
+     f_timer = 1;
+   }
+}
+
+void enterSleep(void)
+{
+  set_sleep_mode(SLEEP_MODE_IDLE);
+  
+  sleep_enable();
+
+
+  /* Disable all of the unused peripherals. This will reduce power
+   * consumption further and, more importantly, some of these
+   * peripherals may generate interrupts that will wake our Arduino from
+   * sleep!
+   */
+  power_adc_disable();
+  power_spi_disable();
+  power_timer0_disable();
+  power_timer2_disable();
+  power_twi_disable();  
+
+  /* Now enter sleep mode. */
+  sleep_mode();
+  
+  /* The program will continue from here after the timer timeout*/
+  sleep_disable(); /* First thing to do is disable sleep. */
+  
+  /* Re-enable the peripherals. */
+  power_all_enable();
 }
 
 void loop()
@@ -231,9 +314,13 @@ void loop()
   //Request measurement of the temperature
   if (!tempRequested && (((currentTime - tempStartTime) > TEMP_INTERVAL_SECONDS * 1000ul) || bootFlag))
   {
+    xBeePowerLow();
+    u8g.sleepOn();
+    measuring = true;
     debugSerial.println("Request temperature");  
     tempStartTime = millis();
     sensors.requestTemperatures(); // Send the command to get temperatures
+    enterSleep();
     tempRequested = true;
     bootFlag = false;
   }
@@ -279,11 +366,14 @@ void loop()
     {// Filter not full; use the current
       dispTemp = tempCurrent[0];
     }    
-
+    
+    xBeePowerHigh();
+    
     //Send the unfiltered temperature
     char tempStr[4];
     dtostrf(tempCurrent[0], 2, 2, tempStr);
-    
+    u8g.sleepOff();
+    measuring = false;
     //If still using the broadcast address
     if (sensorListener.getMsb() == 0 && sensorListener.getLsb() == 0x0000FFFF)
     {
@@ -354,7 +444,7 @@ void loop()
                 memset(calibrationStr, 0, sizeof(calibrationStr));
                 memcpy(calibrationStr, &rawData[3], xbRx.getDataLength() - 4); // len([8:])
                 String calStr(calibrationStr);
-                calibrationTemp = calStr.toFloat();
+                calibrationTemp = 0;//calStr.toFloat();
                 
                 debugSerial.print("Calibration:");
                 debugSerial.println(calibrationTemp);
@@ -365,7 +455,7 @@ void loop()
       }        
   }
 
-  if (oledPresent)
+  if (oledPresent && !measuring)
   {
     u8g.firstPage();  
     do
