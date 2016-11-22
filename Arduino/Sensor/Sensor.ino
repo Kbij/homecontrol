@@ -170,6 +170,7 @@ void setup()
   
   // Start up the library
   sensors.begin(); // IC Default 9 bit. If you have troubles consider upping it 12. Ups the delay giving the IC more time to process the temperature measurement
+  sensors.setResolution(12);
   
   //Get the address if the first onewire device
   uint8_t sensorAddr[8];
