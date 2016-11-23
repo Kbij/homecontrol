@@ -44,7 +44,7 @@ public:
 	}
 	void sensorTemperature(const std::string& sensorId, double temperature)
 	{
-		LOG(INFO) << "Temperature, sensor: " << sensorId << "Temp: " << temperature;
+		//LOG(INFO) << "Temperature, sensor: " << sensorId << "Temp: " << temperature;
 		mLastId = sensorId;
 		mLastTemperature = temperature;
 	}
@@ -301,6 +301,43 @@ TEST(TemperatureSensors, Filter)
 //	filter("../testdata/LivingTemperatuur2.csv", "Processed2.csv");
 }
 */
+
+void filter2(const std::string& inputFile, const std::string& outputFile, double k)
+{
+	TemperatureListenerStub tempListenerStub;
+	LogicNs::TemperatureFilter* filter = new LogicNs::TemperatureFilter(nullptr, k);
+	filter->registerTemperatureListener(&tempListenerStub);
+	std::remove(outputFile.c_str());
+	std::ifstream inFile(inputFile);
+	std::ofstream ofFile(outputFile);
+	std::string line;
+	while (std::getline(inFile, line))
+	{
+		try
+		{
+			std::replace(line.begin(), line.end(), ',', '.');
+			float tempRead = std::stof(line);
+			filter->sensorTemperature("MYSENSOR", tempRead);
+			std::stringstream ss;
+			ss << tempListenerStub.mLastTemperature << "\n";
+			std::string outputLine = ss.str();
+			std::replace(outputLine.begin(), outputLine.end(), '.', ',');
+			ofFile << outputLine;
+		}
+		catch (...) {};
+	}
+	ofFile.close();
+
+	filter->unRegisterTemperatureListener(&tempListenerStub);
+	delete filter;
+}
+
+TEST(TemperatureSensors, Filter2)
+{
+	filter2("Unfiltered.csv", "Processed_0-2.csv", 0.2);
+//	filter2("Unfiltered.csv", "Processed_0-9.csv", 0.9);
+}
+
 TEST(TemperatureSensors, SendSetTemperature)
 {
 //	SerialStub serialStub;

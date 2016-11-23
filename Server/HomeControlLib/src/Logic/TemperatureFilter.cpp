@@ -55,9 +55,12 @@ void TemperatureFilter::sensorTemperature(const std::string& sensorId, double te
 	if (mFilterValues[sensorId].mStarted)
     {
     	sendValue =  mFilterValues[sensorId].mValue;
-    	LOG(INFO) << "Filter not yet stable (" << sensorId << ");";
     }
-    if (!mFilterValues[sensorId].mStarted && abs(temperature - mFilterValues[sensorId].mValue) < 0.2)
+	else
+	{
+    	LOG(WARNING) << "Filter not stable: " << sensorId << ", diff: " << fabs(temperature - mFilterValues[sensorId].mValue);
+	}
+    if (!mFilterValues[sensorId].mStarted && (fabs(temperature - mFilterValues[sensorId].mValue) < 0.2))
     {
         //Return the filtered value next time
     	mFilterValues[sensorId].mStarted = true;

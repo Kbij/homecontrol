@@ -45,7 +45,7 @@ private:
 	CommNs::TemperatureSourceIf* mSource;
 	std::mutex mDataMutex;
 	std::set<TemperatureListenerIf*> mListeners;
-	const int mAlpha;
+	const double mAlpha;
 	std::map<std::string, TempValues> mFilterValues;
 };
 
