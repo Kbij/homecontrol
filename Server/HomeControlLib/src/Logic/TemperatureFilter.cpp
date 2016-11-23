@@ -7,6 +7,7 @@
 
 #include <Logic/TemperatureFilter.h>
 #include <numeric>
+#include <glog/logging.h>
 namespace
 {
 const int SAMPLE_COUNT = 30;
