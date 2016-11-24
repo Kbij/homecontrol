@@ -35,6 +35,7 @@
             this.btnRefresh = new System.Windows.Forms.Button();
             this.dtFrom = new System.Windows.Forms.DateTimePicker();
             this.dtTo = new System.Windows.Forms.DateTimePicker();
+            this.btnRefreshGraph = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // zedGraph
@@ -51,17 +52,17 @@
             this.zedGraph.ScrollMinX = 0D;
             this.zedGraph.ScrollMinY = 0D;
             this.zedGraph.ScrollMinY2 = 0D;
-            this.zedGraph.Size = new System.Drawing.Size(811, 316);
+            this.zedGraph.Size = new System.Drawing.Size(810, 318);
             this.zedGraph.TabIndex = 0;
             this.zedGraph.UseExtendedPrintDialog = true;
             // 
             // lstRooms
             // 
             this.lstRooms.CheckBoxes = true;
-            this.lstRooms.Location = new System.Drawing.Point(12, 12);
+            this.lstRooms.Location = new System.Drawing.Point(12, 31);
             this.lstRooms.MultiSelect = false;
             this.lstRooms.Name = "lstRooms";
-            this.lstRooms.Size = new System.Drawing.Size(278, 97);
+            this.lstRooms.Size = new System.Drawing.Size(197, 78);
             this.lstRooms.TabIndex = 3;
             this.lstRooms.UseCompatibleStateImageBehavior = false;
             this.lstRooms.View = System.Windows.Forms.View.List;
@@ -69,7 +70,7 @@
             // 
             // btnRefresh
             // 
-            this.btnRefresh.Location = new System.Drawing.Point(297, 12);
+            this.btnRefresh.Location = new System.Drawing.Point(12, 2);
             this.btnRefresh.Name = "btnRefresh";
             this.btnRefresh.Size = new System.Drawing.Size(75, 23);
             this.btnRefresh.TabIndex = 4;
@@ -81,7 +82,7 @@
             // 
             this.dtFrom.CustomFormat = "dd/MM/yyyy HH:mm";
             this.dtFrom.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-            this.dtFrom.Location = new System.Drawing.Point(297, 42);
+            this.dtFrom.Location = new System.Drawing.Point(215, 31);
             this.dtFrom.Name = "dtFrom";
             this.dtFrom.Size = new System.Drawing.Size(200, 20);
             this.dtFrom.TabIndex = 5;
@@ -90,16 +91,27 @@
             // 
             this.dtTo.CustomFormat = "dd/MM/yyyy HH:mm";
             this.dtTo.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-            this.dtTo.Location = new System.Drawing.Point(297, 81);
+            this.dtTo.Location = new System.Drawing.Point(215, 57);
             this.dtTo.Name = "dtTo";
             this.dtTo.Size = new System.Drawing.Size(200, 20);
             this.dtTo.TabIndex = 6;
+            // 
+            // btnRefreshGraph
+            // 
+            this.btnRefreshGraph.Location = new System.Drawing.Point(216, 85);
+            this.btnRefreshGraph.Name = "btnRefreshGraph";
+            this.btnRefreshGraph.Size = new System.Drawing.Size(118, 23);
+            this.btnRefreshGraph.TabIndex = 7;
+            this.btnRefreshGraph.Text = "Refresh Graph";
+            this.btnRefreshGraph.UseVisualStyleBackColor = true;
+            this.btnRefreshGraph.Click += new System.EventHandler(this.btnRefreshGraph_Click);
             // 
             // TemperatureViewer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(835, 469);
+            this.ClientSize = new System.Drawing.Size(834, 471);
+            this.Controls.Add(this.btnRefreshGraph);
             this.Controls.Add(this.dtTo);
             this.Controls.Add(this.dtFrom);
             this.Controls.Add(this.btnRefresh);
@@ -120,5 +132,6 @@
         private System.Windows.Forms.Button btnRefresh;
         private System.Windows.Forms.DateTimePicker dtFrom;
         private System.Windows.Forms.DateTimePicker dtTo;
+        private System.Windows.Forms.Button btnRefreshGraph;
     }
 }

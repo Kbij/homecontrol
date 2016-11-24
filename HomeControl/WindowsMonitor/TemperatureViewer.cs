@@ -148,5 +148,10 @@ namespace WindowsMonitor
         {
             mGraphPane.CurveList.Clear();
         }
+
+        private void btnRefreshGraph_Click(object sender, EventArgs e)
+        {
+            lstRooms_ItemChecked(null, null);
+        }
     }
 }
