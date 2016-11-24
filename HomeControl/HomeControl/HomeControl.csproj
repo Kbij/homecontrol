@@ -60,6 +60,7 @@
     <Compile Include="Comm\MessageObject.cs" />
     <Compile Include="Comm\HCLogger.cs" />
     <Compile Include="Comm\RoomList.cs" />
+    <Compile Include="Comm\SetTemperature.cs" />
     <Compile Include="Comm\RoomTemperature.cs" />
     <Compile Include="Comm\TemperatureMonitoring.cs" />
     <Compile Include="Logic\ITemperatureListener.cs" />

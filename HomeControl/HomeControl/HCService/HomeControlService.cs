@@ -30,12 +30,12 @@ namespace HomeControl.HCService
 
         public HomeControlService()
         {
-            AppDomain currentDomain = AppDomain.CurrentDomain;
-            currentDomain.UnhandledException += HandleExceptions;
+           // AppDomain currentDomain = AppDomain.CurrentDomain;
+           // currentDomain.UnhandledException += HandleExceptions;
 
-            mLog = new HCLogger("192.168.10.10", 8001);
-            mLog.SendToHost("HomeControlService", "HCService constructor");
-            mCommModel = new CommModel(mLog);
+            //mLog = new HCLogger("192.168.10.10", 8001, "Service.log");
+            //mLog.SendToHost("HomeControlService", "HCService constructor");
+            //mCommModel = new CommModel(mLog);
         }
 
         static void HandleExceptions(object sender, UnhandledExceptionEventArgs ex)
@@ -51,8 +51,12 @@ namespace HomeControl.HCService
         #region lifetime
         public override StartCommandResult OnStartCommand(Android.Content.Intent intent, StartCommandFlags flags, int startId)
         {
-           
+
+            mLog = new HCLogger("192.168.10.10", 8001, "Service.log");
+    
             mLog.SendToHost("HomeControlService", "HomeControlService started");
+            //mLog.SendToHost("HomeControlService", "HCService constructor");
+            mCommModel = new CommModel(mLog);
             mCommModel.startComm();
 
             InitializeLocationManager();
@@ -62,7 +66,7 @@ namespace HomeControl.HCService
 
         public override void OnCreate()
         {
-            mLog.SendToHost("HomeControlService", "HomeControlService OnCreate");
+           // mLog.SendToHost("HomeControlService", "HomeControlService OnCreate");
         }
 
         public override void OnDestroy()

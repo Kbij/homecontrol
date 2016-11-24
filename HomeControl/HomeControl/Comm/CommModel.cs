@@ -5,7 +5,7 @@ using System.Threading;
 
 namespace HomeControl.Comm
 {
-    public class CommModel: IDisposable, ICloudSocketListener
+    public class CommModel: IDisposable
     {
         List<ICommReceiver> mReceivers;
         enum CommState {Init, Disconnected, Connecting, NameSend, Connected};
@@ -20,7 +20,8 @@ namespace HomeControl.Comm
         const int OBJ_SERVERNAME = 2;
 
         const int OBJ_ROOMLIST = 21;
-        const int OBJ_TEMPERATURE = 22;
+        const int OBJ_ROOM_TEMPERATURE = 22;
+        const int OBJ_SET_TEMPERATURE = 23;
 
         const int KEEPALIVE_INTERVAL_SECONDS = 30;
         const int RECONNECT_SECONDS = 10;
@@ -77,27 +78,39 @@ namespace HomeControl.Comm
         #endregion
 
         #region socketListener
-        public void receiveFrame(int objectId, List<byte> frame)
+        public void OnCloudFrameReceived(Object sender, FrameReceivedArgs e)
         {
-            lock (mLock)
+           // lock (mLock)
             {
-                switch (objectId)
+                switch (e.ObjectId)
                 {
                     case OBJ_KEEPALIVE:
                         mLog.SendToHost("CommModel", "keepalive received");
                         --mOutstandingKeepAlives;
                         break;
                     case OBJ_SERVERNAME:
-                        string serverName = System.Text.Encoding.ASCII.GetString(frame.ToArray());
+                        string serverName = System.Text.Encoding.ASCII.GetString(e.Frame.ToArray());
                         changeState(CommState.Connected);
 
                         mLog.SendToHost("CommModel", string.Format("Connected with server: {0}", serverName));
                         processSendQueue();
                         break;
-                    case OBJ_TEMPERATURE:
+                    case OBJ_ROOM_TEMPERATURE:
                         {
-                            string json = System.Text.Encoding.ASCII.GetString(frame.ToArray());
+                            string json = System.Text.Encoding.ASCII.GetString(e.Frame.ToArray());
                             RoomTemperature temp = new RoomTemperature();
+                            temp.deserialise(json);
+                            foreach (var receiver in mReceivers)
+                            {
+                                receiver.receiveObject(temp);
+                            }
+
+                        }
+                        break;
+                    case OBJ_SET_TEMPERATURE:
+                        {
+                            string json = System.Text.Encoding.ASCII.GetString(e.Frame.ToArray());
+                            SetTemperature temp = new SetTemperature();
                             temp.deserialise(json);
                             foreach (var receiver in mReceivers)
                             {
@@ -108,7 +121,7 @@ namespace HomeControl.Comm
                         break;
                     case OBJ_ROOMLIST:
                         { 
-                            string json = System.Text.Encoding.ASCII.GetString(frame.ToArray());
+                            string json = System.Text.Encoding.ASCII.GetString(e.Frame.ToArray());
                             RoomList roomList = new RoomList();
                             roomList.deserialise(json);
                             foreach (var receiver in mReceivers)
@@ -119,16 +132,16 @@ namespace HomeControl.Comm
 
                         break;
                     default:
-                        string payload = System.Text.Encoding.ASCII.GetString(frame.ToArray());
+                        string payload = System.Text.Encoding.ASCII.GetString(e.Frame.ToArray());
                         mLog.SendToHost("CommModel", "Payload received");
                         break;
                 }
             }
         }
 
-        public void socketConnected()
+        public void OnCloudSocketConnected(Object sender, EventArgs e)
         {
-            lock (mLock)
+           // lock (mLock)
             {
                 mLastObjectSendSeconds = 0;
                 string modelName = Android.OS.Build.Model;
@@ -215,7 +228,9 @@ namespace HomeControl.Comm
             {
                 mCloudSocket.Dispose();
             }
-            mCloudSocket = new CloudSocket(this, mLog);
+            mCloudSocket = new CloudSocket(mLog);
+            mCloudSocket.OnFrameReceived += OnCloudFrameReceived;
+            mCloudSocket.OnSocketConnected += OnCloudSocketConnected;
         }
 
         private void processSendQueue()
@@ -243,7 +258,7 @@ namespace HomeControl.Comm
 
         private bool sendObject(ICommObject obj)
         {
-            lock (mLock)
+          //  lock (mLock)
             {
                 mLastObjectSendSeconds = 0;
                 string json = obj.serialise();
@@ -265,7 +280,7 @@ namespace HomeControl.Comm
                 {
                     mLog.SendToHost("CommModem", "sending keepalive");
                     mLastObjectSendSeconds = 0;
-                    lock (mLock)
+                   // lock (mLock)
                     {
                         mCloudSocket.sendFrame(OBJ_KEEPALIVE, new List<byte>());
                     }
@@ -326,11 +341,13 @@ namespace HomeControl.Comm
                 try
                 {
                    Thread.Sleep(1000);
-                   lock (mLock)
+                  //  mLog.SendToHost("CommModel", "Maintenance Thread 1");
+                    //   lock (mLock)
                     {
 
                         if (mCommState == CommState.Disconnected)
                         {
+                            mLog.SendToHost("CommModel", "Maintenance Thread 2");
                             --mConnectTimeoutSeconds;
                             if (mConnectTimeoutSeconds <= 0)
                             {
@@ -340,11 +357,15 @@ namespace HomeControl.Comm
 
                         if (mCloudSocket != null)
                         {
+                     //       mLog.SendToHost("CommModel", "Maintenance Thread 3");
+
                             if (mCommState == CommState.Connected && mCloudSocket.isActive())
                             {
+                         //       mLog.SendToHost("CommModel", "Maintenance Thread 4");
                                 ++mLastObjectSendSeconds;
                                 if (mLastObjectSendSeconds > KEEPALIVE_INTERVAL_SECONDS)
                                 {
+                         //           mLog.SendToHost("CommModel", "Maintenance Thread 5");
                                     sendKeepAlive();
                                 }
                             }
@@ -364,6 +385,8 @@ namespace HomeControl.Comm
                     mLog.SendToHost("CommModel", "Maintenance thread exception:" + ex.Message);
                 }
             }
+
+            mLog.SendToHost("CommModel", "Maintenance Thread Exit thread");
         }
     }
 }

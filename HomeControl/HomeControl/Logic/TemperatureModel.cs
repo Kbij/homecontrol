@@ -83,14 +83,17 @@ namespace HomeControl.Logic
                 if (roomList != null)
                 {
                     mRoomTemperatures.Clear();
-                    foreach (var commRoom in roomList.rooms)
+                    if (roomList.rooms != null)
                     {
-                        Logic.RoomTemperature room = new RoomTemperature();
-                        room.roomId = commRoom.roomId;
-                        room.name = commRoom.name;
-                        room.roomTemperature = commRoom.roomTemperature;
-                        room.setTemperature = commRoom.setTemperature;
-                        mRoomTemperatures.Add(room);
+                        foreach (var commRoom in roomList.rooms)
+                        {
+                            Logic.RoomTemperature room = new RoomTemperature();
+                            room.roomId = commRoom.roomId;
+                            room.name = commRoom.name;
+                            room.roomTemperature = commRoom.roomTemperature;
+                            room.setTemperature = commRoom.setTemperature;
+                            mRoomTemperatures.Add(room);
+                        }
                     }
                 }
                 if ((obj as Comm.RoomTemperature) != null)

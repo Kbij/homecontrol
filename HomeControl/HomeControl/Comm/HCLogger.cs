@@ -11,10 +11,11 @@ namespace HomeControl.Comm
     {
         private UdpClient client;
         private string mFileName;
-        public HCLogger(string ipAddress, int port)
+        private object mLock;
+        public HCLogger(string ipAddress, int port, string fileName)
         {
             //string path = Environment.GetFolderPath(Environment.SpecialFolder.);
-            mFileName = "/sdcard/Android/data/HomeControl.HomeControl/files/HomeControl.log";//Path.Combine(path, "HomeControl.log");
+            mFileName = string.Format("/sdcard/Android/data/HomeControl.HomeControl/files/{0}", fileName);//Path.Combine(path, "HomeControl.log");
 
             try
             {
@@ -23,7 +24,7 @@ namespace HomeControl.Comm
 
             }
             catch (Exception) { }
-
+            mLock = new object();
             SendToHost("HCLog", "Path:" + mFileName);
         }
 
@@ -35,9 +36,12 @@ namespace HomeControl.Comm
             // log to file
             try
             {
-               using (var streamWriter = new StreamWriter(mFileName, true))
+                lock (mLock)
                 {
-                    streamWriter.WriteLine(string.Format("{0}:{1}: {2}/{3}", DateTime.Now, Android.OS.Build.Model, category, message));
+                    using (var streamWriter = new StreamWriter(mFileName, true))
+                    {
+                        streamWriter.WriteLine(string.Format("{0}:{1}: {2}/{3}", DateTime.Now, Android.OS.Build.Model, category, message));
+                    }
                 }
             }
             catch (Exception) { }
