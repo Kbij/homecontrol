@@ -196,4 +196,5 @@ double HomeControlDal::getSensorCalibration(const std::string& sensorId)
 	LOG(INFO) << "Calibration for sensor: " << sensorId << ": " << result;
 	return result;
 }
+
 } /* namespace DalNs */

@@ -28,7 +28,7 @@ public:
 
 	void writeSetTemperature(const std::string& sensorId, double temperature);
 
-	void writeCalibration(const std::string& sensorId, double calibration) {};
+	void writeSensorConfig(const std::string& sensorId, double calibration, const std::string& roomName) {};
 private:
 	void startSimulationThread();
 	void stopSimulationThread();

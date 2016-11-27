@@ -113,11 +113,11 @@ void TemperatureFilter::writeSetTemperature(const std::string& sensorId, double 
 	}
 }
 
-void TemperatureFilter::writeCalibration(const std::string& sensorId, double calibration)
+void TemperatureFilter::writeSensorConfig(const std::string& sensorId, double calibration, const std::string& roomName)
 {
 	if (mSource)
 	{
-		mSource->writeCalibration(sensorId, calibration);
+		mSource->writeSensorConfig(sensorId, calibration, roomName);
 	}
 }
 } /* namespace LogicNs */

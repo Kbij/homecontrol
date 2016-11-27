@@ -146,7 +146,7 @@ void CommRouter::sensorStarted(const std::string& sensorId)
 
 	if (mSensors)
 	{
-		mSensors->writeCalibration(sensorId, mDal->getSensorCalibration(sensorId));
+		mSensors->writeSensorConfig(sensorId, mDal->getSensorCalibration(sensorId), room->roomName());
 	}
 }
 

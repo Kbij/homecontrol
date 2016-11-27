@@ -25,7 +25,7 @@ public:
 	virtual void unRegisterTemperatureListener(LogicNs::TemperatureListenerIf* listener) = 0;
 
 	virtual void writeSetTemperature(const std::string& sensorId, double temperature) = 0;
-	virtual void writeCalibration(const std::string& sensorId, double calibration) = 0;
+	virtual void writeSensorConfig(const std::string& sensorId, double calibration, const std::string& roomName) = 0;
 };
 
 } /* namespace CommNs */

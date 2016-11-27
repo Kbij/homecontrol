@@ -92,12 +92,12 @@ void TemperatureSensors::writeSetTemperature(const std::string& sensorId, double
 	}
 }
 
-void TemperatureSensors::writeCalibration(const std::string& sensorId, double calibration)
+void TemperatureSensors::writeSensorConfig(const std::string& sensorId, double calibration, const std::string& roomName)
 {
 	if (mDMComm)
 	{
 		std::stringstream ss;
-		ss << "[" << MSG_SET_CALIBRATION << ":"  << std::fixed << std::setprecision(2) << calibration << "]";
+		ss << "[" << MSG_SET_CALIBRATION << ":"  << std::fixed << std::setprecision(2) << calibration << ":" << roomName << "]";
 		std::string dataString(ss.str());
 		VLOG(1) << "Writing calibration (" << calibration << ") to sensor: " << sensorId;
 
