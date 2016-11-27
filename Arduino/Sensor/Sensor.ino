@@ -34,6 +34,7 @@ XBee xbee = XBee();
 
 char ADDR_STR[17];
 char SET_TEMPERATURE[10];
+char ROOM_NAME[20];
 float tempSet = 0;
 float tempCurrent[TEMP_FILTER_LENGTH];
 float dispTemp = 0;
@@ -64,6 +65,7 @@ uint8_t idValue[] = {0x12, 0x13};
 uint8_t pwCmd[] = {'P','L'};
 uint8_t pwHigh[] = {'4'};
 uint8_t pwLow[] = {'0'};
+uint8_t nameCmd[] = {'N','I'};
 
 AtCommandRequest atRequest = AtCommandRequest(chCmd);
 void blinkLed()
@@ -144,7 +146,7 @@ void sendAtCommand()
   xbee.readPacket(1000);
 }
 
-void xBeePowerHigh()
+void setXBeePowerHigh()
 {
   atRequest.clearCommandValue();
   atRequest.setCommand(pwCmd);  
@@ -153,12 +155,21 @@ void xBeePowerHigh()
   sendAtCommand();  
 }
 
-void xBeePowerLow()
+void setXBeePowerLow()
 {
   atRequest.clearCommandValue();
   atRequest.setCommand(pwCmd);  
   atRequest.setCommandValue(pwLow);
   atRequest.setCommandValueLength(sizeof(pwLow));  
+  sendAtCommand();   
+}
+
+void setXBeeName()
+{
+  atRequest.clearCommandValue();
+  atRequest.setCommand(nameCmd);  
+  atRequest.setCommandValue(ROOM_NAME);
+  atRequest.setCommandValueLength(strlen(ROOM_NAME));  
   sendAtCommand();   
 }
 
@@ -314,7 +325,7 @@ void loop()
   //Request measurement of the temperature
   if (!tempRequested && (((currentTime - tempStartTime) > TEMP_INTERVAL_SECONDS * 1000ul) || bootFlag))
   {
-    xBeePowerLow();
+    setXBeePowerLow();
     u8g.sleepOn();
     measuring = true;
     debugSerial.println("Request temperature");  
@@ -367,7 +378,7 @@ void loop()
       dispTemp = tempCurrent[0];
     }    
     
-    xBeePowerHigh();
+    setXBeePowerHigh();
     
     //Send the unfiltered temperature
     char tempStr[4];
@@ -437,17 +448,29 @@ void loop()
                 setTempReceived = true;
               }
 
-              //We received the calibraion temperature from the server
+              //We received the calibration temperature & room name from the server
               if (rawData[1] == '8')
               {
-                char calibrationStr[6];
-                memset(calibrationStr, 0, sizeof(calibrationStr));
-                memcpy(calibrationStr, &rawData[3], xbRx.getDataLength() - 4); // len([8:])
-                String calStr(calibrationStr);
-                calibrationTemp = 0;//calStr.toFloat();
-                
-                debugSerial.print("Calibration:");
-                debugSerial.println(calibrationTemp);
+                char configStr[30];
+                memset(configStr, 0, sizeof(configStr));
+                memcpy(configStr, &rawData[3], xbRx.getDataLength() - 4); // len([8:])
+                String config(configStr);
+                int separator = config.indexOf(':');
+                if (separator > 0)
+                {
+                  String calStr = config.substring(0, separator);
+                  calibrationTemp = calStr.toFloat();
+
+                  String roomName = config.substring(separator + 1, config.length());
+                  roomName.toCharArray(ROOM_NAME, sizeof(ROOM_NAME));
+
+                  debugSerial.print("Room Name:");
+                  debugSerial.println(ROOM_NAME);
+                  
+                  debugSerial.print("Calibration:");
+                  debugSerial.println(calibrationTemp);
+                  setXBeeName();
+                }
               }              
             }
           }
