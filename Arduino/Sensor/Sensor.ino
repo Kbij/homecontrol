@@ -67,6 +67,7 @@ uint8_t pwHigh[] = {'4'};
 uint8_t pwLow[] = {'0'};
 uint8_t nameCmd[] = {'N','I'};
 
+
 AtCommandRequest atRequest = AtCommandRequest(chCmd);
 void blinkLed()
 {
@@ -167,11 +168,21 @@ void setXBeePowerLow()
 void setXBeeName()
 {
   atRequest.clearCommandValue();
-  atRequest.setCommand(nameCmd);  
+  atRequest.setCommand("NI");  
   atRequest.setCommandValue(ROOM_NAME);
   atRequest.setCommandValueLength(strlen(ROOM_NAME));  
   sendAtCommand();   
 }
+
+void setXBeeRetry(int retryValue)
+{
+  atRequest.clearCommandValue();
+  atRequest.setCommand("MR");  
+  atRequest.setCommandValue(retryValue);
+  atRequest.setCommandValueLength(1);  
+  sendAtCommand();   
+}
+
 
 void setup()
 {
@@ -233,7 +244,7 @@ void setup()
   {
     tempCurrent[i] = -1;
   }
-  
+  setXBeeRetry(3);
   /*** Configure the timer.***/
   
   /* Normal timer operation.*/
@@ -325,13 +336,13 @@ void loop()
   //Request measurement of the temperature
   if (!tempRequested && (((currentTime - tempStartTime) > TEMP_INTERVAL_SECONDS * 1000ul) || bootFlag))
   {
-    setXBeePowerLow();
+   // setXBeePowerLow();
     u8g.sleepOn();
     measuring = true;
     debugSerial.println("Request temperature");  
     tempStartTime = millis();
     sensors.requestTemperatures(); // Send the command to get temperatures
-    enterSleep();
+   // enterSleep();
     tempRequested = true;
     bootFlag = false;
   }
@@ -378,7 +389,7 @@ void loop()
       dispTemp = tempCurrent[0];
     }    
     
-    setXBeePowerHigh();
+    //setXBeePowerHigh();
     
     //Send the unfiltered temperature
     char tempStr[4];
