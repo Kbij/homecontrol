@@ -59,14 +59,14 @@ ZBRxResponse xbRx = ZBRxResponse();
 
 // AT Commands
 uint8_t chCmd[] = {'C','H'};
-uint8_t chValue[] = {0x0B};
+uint8_t chValue[] = {0x19};
 uint8_t idCmd[] = {'I','D'};
 uint8_t idValue[] = {0x12, 0x13};
 uint8_t pwCmd[] = {'P','L'};
 uint8_t pwHigh[] = {'4'};
 uint8_t pwLow[] = {'0'};
 uint8_t nameCmd[] = {'N','I'};
-
+uint8_t retryCmd[] = {'M','R'};
 
 AtCommandRequest atRequest = AtCommandRequest(chCmd);
 void blinkLed()
