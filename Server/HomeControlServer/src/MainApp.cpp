@@ -206,7 +206,7 @@ int main (int argc, char* argv[])
 			serial = new CommNs::Serial(FLAGS_serial, 38400);
 			serial->openSerial();
 			frameProcessor = new CommNs::DMFrameProcessor(serial);
-			dmComm = new CommNs::DMComm(frameProcessor, 0x0B, {0x12, 0x13});
+			dmComm = new CommNs::DMComm(frameProcessor, 0x19, {0x12, 0x13});
 			sensors = new CommNs::TemperatureSensors(dmComm);
 		}
 		else
