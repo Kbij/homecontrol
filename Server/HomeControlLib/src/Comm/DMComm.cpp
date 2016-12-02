@@ -246,12 +246,6 @@ void DMComm::printFrame(const std::vector<uint8_t>& data)
 void DMComm::init()
 {
 	mFrameId = 1;
-//	DMMessageIf* received = sendATCmd("A2", {0x06}, 100);
-//	if (received)
-//	{
-//		delete received;
-//	}
-
 	DMMessageIf* received = sendATCmd("NI", {'S', 'e', 'r', 'v', 'e', 'r'}, 100);
 	if (received)
 	{
@@ -281,9 +275,8 @@ void DMComm::init()
 	if (mSN.size() == 8)
 	{
 		LOG(INFO) << "Device initialised, Address: " << addressString();
-	//	sendATCmd("CH", {mChannel});
+		sendATCmd("CH", {mChannel});
 		sendATCmd("ID", mId);
-		sendATCmd("A2", {0x06});
 	}
 	else
 	{
