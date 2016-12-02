@@ -57,18 +57,7 @@ XBeeAddress64 sensorListener = XBeeAddress64(0x00000000, 0x0000FFFF);
 ZBTxStatusResponse xbTxStatus = ZBTxStatusResponse();
 ZBRxResponse xbRx = ZBRxResponse();
 
-// AT Commands
-uint8_t chCmd[] = {'C','H'};
-uint8_t chValue[] = {0x19};
-uint8_t idCmd[] = {'I','D'};
-uint8_t idValue[] = {0x12, 0x13};
-uint8_t pwCmd[] = {'P','L'};
-uint8_t pwHigh[] = {'4'};
-uint8_t pwLow[] = {'0'};
-uint8_t nameCmd[] = {'N','I'};
-uint8_t retryCmd[] = {'M','R'};
-
-AtCommandRequest atRequest = AtCommandRequest(chCmd);
+AtCommandRequest atRequest = AtCommandRequest("");
 void blinkLed()
 {
   digitalWrite(TRANSMIT_LED, LOW);
@@ -150,18 +139,18 @@ void sendAtCommand()
 void setXBeePowerHigh()
 {
   atRequest.clearCommandValue();
-  atRequest.setCommand(pwCmd);  
-  atRequest.setCommandValue(pwHigh);
-  atRequest.setCommandValueLength(sizeof(pwHigh));  
+  atRequest.setCommand("PL");  
+  atRequest.setCommandValue(4);
+  atRequest.setCommandValueLength(1);  
   sendAtCommand();  
 }
 
 void setXBeePowerLow()
 {
   atRequest.clearCommandValue();
-  atRequest.setCommand(pwCmd);  
-  atRequest.setCommandValue(pwLow);
-  atRequest.setCommandValueLength(sizeof(pwLow));  
+  atRequest.setCommand("PL");  
+  atRequest.setCommandValue(0);
+  atRequest.setCommandValueLength(1);  
   sendAtCommand();   
 }
 
@@ -174,11 +163,11 @@ void setXBeeName()
   sendAtCommand();   
 }
 
-void setXBeeRetry(int retryValue)
+void setXBeeRetry(uint8_t retryValue)
 {
   atRequest.clearCommandValue();
   atRequest.setCommand("MR");  
-  atRequest.setCommandValue(retryValue);
+  atRequest.setCommandValue(&retryValue);
   atRequest.setCommandValueLength(1);  
   sendAtCommand();   
 }
@@ -202,19 +191,21 @@ void setup()
   
   touchUp.set_CS_AutocaL_Millis(1000);
   touchDown.set_CS_AutocaL_Millis(1000);
+  
+  atRequest.clearCommandValue();
+  atRequest.setCommand("ID");  
+  atRequest.setCommandValue((const uint8_t[2]){0x12, 0x13});
+  atRequest.setCommandValueLength(2);  
+  sendAtCommand();
 
   //Setup Xbee module (DigiMesh protocol)
   atRequest.clearCommandValue();
-  atRequest.setCommand(chCmd);  
-  atRequest.setCommandValue(chValue);
-  atRequest.setCommandValueLength(sizeof(chValue));  
+  atRequest.setCommand("CH");  
+  atRequest.setCommandValue((const uint8_t[1]){0x0D});
+  atRequest.setCommandValueLength(1);  
   sendAtCommand();
 
-  atRequest.clearCommandValue();
-  atRequest.setCommand(idCmd);  
-  atRequest.setCommandValue(idValue);
-  atRequest.setCommandValueLength(sizeof(idValue));  
-  sendAtCommand();
+
   
   // Start up the library
   sensors.begin(); // IC Default 9 bit. If you have troubles consider upping it 12. Ups the delay giving the IC more time to process the temperature measurement
