@@ -8,6 +8,7 @@
 #include <avr/sleep.h>
 #include <avr/power.h>
 
+const uint8_t ZIGBEE_CHANNEL 26;
 volatile int f_timer=0;
 const int ONEWIRE_PIN = 2;
 const int TOUCH_COMMON = 3;
@@ -201,7 +202,7 @@ void setup()
   //Setup Xbee module (DigiMesh protocol)
   atRequest.clearCommandValue();
   atRequest.setCommand("CH");  
-  atRequest.setCommandValue((const uint8_t[1]){0x0D});
+  atRequest.setCommandValue((const uint8_t[1]){ZIGBEE_CHANNEL});
   atRequest.setCommandValueLength(1);  
   sendAtCommand();
 
