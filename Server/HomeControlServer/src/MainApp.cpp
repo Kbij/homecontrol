@@ -45,7 +45,7 @@ std::condition_variable exitCv;
 std::mutex exitMutex;
 bool exitMain = false;
 int pidFilehandle;
-
+uint8_t XBEE_CHANNEL = 26;
 void signal_handler(int sig)
 {
 	switch(sig)
@@ -206,7 +206,7 @@ int main (int argc, char* argv[])
 			serial = new CommNs::Serial(FLAGS_serial, 38400);
 			serial->openSerial();
 			frameProcessor = new CommNs::DMFrameProcessor(serial);
-			dmComm = new CommNs::DMComm(frameProcessor, 0x0D, {0x12, 0x13});
+			dmComm = new CommNs::DMComm(frameProcessor, XBEE_CHANNEL, {0x12, 0x13});
 			sensors = new CommNs::TemperatureSensors(dmComm);
 		}
 		else
