@@ -8,7 +8,7 @@
 #include <avr/sleep.h>
 #include <avr/power.h>
 
-const uint8_t ZIGBEE_CHANNEL 26;
+const uint8_t ZIGBEE_CHANNEL = 0x1A;
 volatile int f_timer=0;
 const int ONEWIRE_PIN = 2;
 const int TOUCH_COMMON = 3;
