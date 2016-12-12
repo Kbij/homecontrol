@@ -45,7 +45,7 @@ std::condition_variable exitCv;
 std::mutex exitMutex;
 bool exitMain = false;
 int pidFilehandle;
-uint8_t XBEE_CHANNEL = 0x19;
+uint8_t XBEE_CHANNEL = 0x1A;
 
 
 void signal_handler(int sig)
