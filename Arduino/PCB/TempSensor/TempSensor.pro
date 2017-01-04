@@ -2,24 +2,24 @@ EAGLE AutoRouter Statistics:
 
 Job           : D:/UserData/Koen/Documents/HomeControl/trunk/Arduino/PCB/TempSensor/TempSensor.brd
 
-Start at      : 16:51:27 (5/11/2016)
-End at        : 16:53:00 (5/11/2016)
-Elapsed time  : 00:01:27
+Start at      : 23:09:52 (29/12/2016)
+End at        : 23:11:11 (29/12/2016)
+Elapsed time  : 00:01:17
 
-Signals       :    29   RoutingGrid: 5.90551 mil  Layers: 2
-Connections   :    55   predefined:  13 ( 0 Vias )
+Signals       :    27   RoutingGrid: 2.95276 mil  Layers: 2
+Connections   :    82   predefined:  20 ( 0 Vias )
 
-Router memory :   395112
+Router memory :   1599936
 
 Passname          : TopRouter     Route Optimize1 Optimize2 Optimize3 Optimize4 Optimize5 Optimize6 Optimize7 Optimize8 Optimize9Optimize10Optimize11Optimize12
 
-Time per pass     :  00:01:22  00:00:00  00:00:01  00:00:00  00:00:00  00:00:01  00:00:00  00:00:00  00:00:01  00:00:00  00:00:01  00:00:00  00:00:00  00:00:01
-Number of Ripups  :         0         0         0         0         0         0         0         0         0         0         0         0         0         0
-max. Level        :         0         0         0         0         0         0         0         0         0         0         0         0         0         0
-max. Total        :         0         0         0         0         0         0         0         0         0         0         0         0         0         0
+Time per pass     :  00:01:01  00:00:01  00:00:02  00:00:01  00:00:01  00:00:01  00:00:01  00:00:02  00:00:01  00:00:01  00:00:01  00:00:01  00:00:01  00:00:02
+Number of Ripups  :         0         1         0         0         0         0         0         0         0         0         0         0         0         0
+max. Level        :         0         1         0         0         0         0         0         0         0         0         0         0         0         0
+max. Total        :         0         4         0         0         0         0         0         0         0         0         0         0         0         0
 
-Routed            :        16        42        42        42        42        42        42        42        42        42        42        42        42        42
-Vias              :         0        19        21        19        16        16        16        16        15        13        12        12        12        12
-Resolution        :    52.7 %   100.0 %   100.0 %   100.0 %   100.0 %   100.0 %   100.0 %   100.0 %   100.0 %   100.0 %   100.0 %   100.0 %   100.0 %   100.0 %
+Routed            :        15        62        61        61        61        61        61        61        61        61        61        61        61        61
+Vias              :         0        32        31        30        30        30        30        30        30        30        30        30        30        30
+Resolution        :    42.7 %   100.0 %    98.8 %    98.8 %    98.8 %    98.8 %    98.8 %    98.8 %    98.8 %    98.8 %    98.8 %    98.8 %    98.8 %    98.8 %
 
-Final             : 96.4% finished. Polygons may have fallen apart.
+Final             : 87.8% finished. Polygons may have fallen apart.
