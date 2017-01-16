@@ -9195,6 +9195,7 @@ Source: www.kingbright.com</description>
 <part name="P+1" library="supply1" deviceset="+3V3" device=""/>
 <part name="C11" library="rcl" deviceset="C-EU" device="C0805" value="10n"/>
 <part name="C12" library="rcl" deviceset="C-EU" device="C0805" value="1u"/>
+<part name="C13" library="rcl" deviceset="C-EU" device="C0805" value="10u"/>
 </parts>
 <sheets>
 <sheet>
@@ -9334,6 +9335,7 @@ from this device</text>
 <attribute name="NAME" x="49.784" y="106.299" size="1.778" layer="95" rot="MR180"/>
 <attribute name="VALUE" x="59.944" y="106.299" size="1.778" layer="96" rot="MR180"/>
 </instance>
+<instance part="C13" gate="G$1" x="-88.9" y="104.14" rot="MR180"/>
 </instances>
 <busses>
 </busses>
@@ -9436,9 +9438,10 @@ from this device</text>
 <wire x1="-60.96" y1="91.44" x2="-60.96" y2="88.9" width="0.1524" layer="91"/>
 <wire x1="-99.06" y1="116.84" x2="-93.98" y2="116.84" width="0.1524" layer="91"/>
 <wire x1="-93.98" y1="116.84" x2="-93.98" y2="91.44" width="0.1524" layer="91"/>
-<wire x1="-93.98" y1="91.44" x2="-60.96" y2="91.44" width="0.1524" layer="91"/>
+<wire x1="-93.98" y1="91.44" x2="-88.9" y2="91.44" width="0.1524" layer="91"/>
 <junction x="-60.96" y="91.44"/>
 <pinref part="C5" gate="G$1" pin="1"/>
+<wire x1="-88.9" y1="91.44" x2="-60.96" y2="91.44" width="0.1524" layer="91"/>
 <wire x1="-7.62" y1="106.68" x2="-7.62" y2="91.44" width="0.1524" layer="91"/>
 <wire x1="-7.62" y1="91.44" x2="-15.24" y2="91.44" width="0.1524" layer="91"/>
 <wire x1="-15.24" y1="91.44" x2="-27.94" y2="91.44" width="0.1524" layer="91"/>
@@ -9462,6 +9465,9 @@ from this device</text>
 <wire x1="45.72" y1="91.44" x2="55.88" y2="91.44" width="0.1524" layer="91"/>
 <wire x1="55.88" y1="91.44" x2="55.88" y2="101.6" width="0.1524" layer="91"/>
 <junction x="45.72" y="91.44"/>
+<pinref part="C13" gate="G$1" pin="1"/>
+<wire x1="-88.9" y1="101.6" x2="-88.9" y2="91.44" width="0.1524" layer="91"/>
+<junction x="-88.9" y="91.44"/>
 </segment>
 <segment>
 <pinref part="C6" gate="G$1" pin="1"/>
@@ -9766,11 +9772,15 @@ from this device</text>
 <wire x1="-99.06" y1="119.38" x2="-93.98" y2="119.38" width="0.1524" layer="91"/>
 <wire x1="-93.98" y1="119.38" x2="-93.98" y2="124.46" width="0.1524" layer="91"/>
 <pinref part="U2" gate="G$1" pin="VIN"/>
-<wire x1="-93.98" y1="124.46" x2="-76.2" y2="124.46" width="0.1524" layer="91"/>
+<wire x1="-93.98" y1="124.46" x2="-88.9" y2="124.46" width="0.1524" layer="91"/>
 <pinref part="R8" gate="G$1" pin="2"/>
+<wire x1="-88.9" y1="124.46" x2="-76.2" y2="124.46" width="0.1524" layer="91"/>
 <wire x1="-76.2" y1="124.46" x2="-73.66" y2="124.46" width="0.1524" layer="91"/>
 <wire x1="-76.2" y1="124.46" x2="-76.2" y2="121.92" width="0.1524" layer="91"/>
 <junction x="-76.2" y="124.46"/>
+<pinref part="C13" gate="G$1" pin="2"/>
+<wire x1="-88.9" y1="109.22" x2="-88.9" y2="124.46" width="0.1524" layer="91"/>
+<junction x="-88.9" y="124.46"/>
 </segment>
 </net>
 <net name="N$19" class="1">
