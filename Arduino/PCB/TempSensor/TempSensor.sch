@@ -9567,7 +9567,7 @@ from this device</text>
 <junction x="55.88" y="116.84"/>
 </segment>
 </net>
-<net name="N$8" class="0">
+<net name="SDA" class="0">
 <segment>
 <pinref part="U$2" gate="G$1" pin="SDA"/>
 <wire x1="-20.32" y1="7.62" x2="-17.78" y2="7.62" width="0.1524" layer="91"/>
@@ -9580,7 +9580,7 @@ from this device</text>
 <junction x="-17.78" y="7.62"/>
 </segment>
 </net>
-<net name="N$9" class="0">
+<net name="SCL" class="0">
 <segment>
 <pinref part="U$2" gate="G$1" pin="SCL"/>
 <wire x1="-20.32" y1="5.08" x2="-12.7" y2="5.08" width="0.1524" layer="91"/>
