@@ -7,6 +7,7 @@
 
 #include <Logic/RoomControl.h>
 #include "RoomListenerIf.h"
+#include <glog/logging.h>
 #include <iostream>
 
 namespace
