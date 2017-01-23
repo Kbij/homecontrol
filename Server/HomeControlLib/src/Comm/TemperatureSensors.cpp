@@ -180,7 +180,7 @@ void TemperatureSensors::receiveLine(const std::string& line, const std::vector<
 				std::string sensorId = lineParts[SERIAL_POS];
 				mSensorAddress[sensorId] = sourceAddress;
 				float temp = std::stof(lineParts[TEMPERATURE_POS]);
-				VLOG(1) << "Received unfiltered temperature: " << temp << ", from sensor: " << sensorId;
+				VLOG(3) << "Received unfiltered temperature: " << temp << ", from sensor: " << sensorId;
 				sendTemperature(sensorId, temp);
 				return;
 			}
@@ -192,7 +192,7 @@ void TemperatureSensors::receiveLine(const std::string& line, const std::vector<
 			if (lineParts[MESSAGE_TYPE_POS] == MSG_SET_TEMPERATURE_UP)
 			{
 				std::lock_guard<std::mutex> lg(mDataMutex);
-				VLOG(1) << "Received set temperature up, from sensor: " << lineParts[SERIAL_POS];
+				VLOG(3) << "Received set temperature up, from sensor: " << lineParts[SERIAL_POS];
 				for (auto listener: mListeners)
 				{
 					listener->sensorSetTemperatureUp(lineParts[SERIAL_POS]);
@@ -202,7 +202,7 @@ void TemperatureSensors::receiveLine(const std::string& line, const std::vector<
 			if (lineParts[MESSAGE_TYPE_POS] == MSG_SET_TEMPERATURE_DOWN)
 			{
 				std::lock_guard<std::mutex> lg(mDataMutex);
-				VLOG(1) << "Received set temperature down, from sensor: " << lineParts[SERIAL_POS];
+				VLOG(3) << "Received set temperature down, from sensor: " << lineParts[SERIAL_POS];
 				for (auto listener: mListeners)
 				{
 					listener->sensorSetTemperatureDown(lineParts[SERIAL_POS]);

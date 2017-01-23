@@ -163,6 +163,7 @@ void CommRouter::sensorTemperature(const std::string& sensorId, double temperatu
 
 void CommRouter::sensorSetTemperatureUp(const std::string& sensorId)
 {
+	VLOG(2) << "Set temperature up, from sensor: " << sensorId;
 	std::lock_guard<std::recursive_mutex> lg(mDataMutex);
 
 	RoomControl* room = findRoomBySensorId(sensorId);
@@ -174,6 +175,7 @@ void CommRouter::sensorSetTemperatureUp(const std::string& sensorId)
 
 void CommRouter::sensorSetTemperatureDown(const std::string& sensorId)
 {
+	VLOG(2) << "Set temperature down, from sensor: " << sensorId;
 	std::lock_guard<std::recursive_mutex> lg(mDataMutex);
 
 	RoomControl* room = findRoomBySensorId(sensorId);

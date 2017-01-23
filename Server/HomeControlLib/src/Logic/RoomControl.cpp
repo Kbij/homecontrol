@@ -54,6 +54,7 @@ void RoomControl::roomTemperature(double temperature)
 
 void RoomControl::setPointUp()
 {
+	VLOG(1) << "(" << mRoomId << ") setpoint Up";
 	++mUpRequested;
 	++mWorkReceived;
 	mWaitForWorkCondVar.notify_one();
@@ -61,6 +62,7 @@ void RoomControl::setPointUp()
 
 void RoomControl::setPointDown()
 {
+	VLOG(1) << "(" << mRoomId << ") setpoint Down";
 	++mDownRequested;
 	++mWorkReceived;
 	mWaitForWorkCondVar.notify_one();
