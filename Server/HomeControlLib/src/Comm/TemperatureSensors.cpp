@@ -192,6 +192,7 @@ void TemperatureSensors::receiveLine(const std::string& line, const std::vector<
 			if (lineParts[MESSAGE_TYPE_POS] == MSG_SET_TEMPERATURE_UP)
 			{
 				std::lock_guard<std::mutex> lg(mDataMutex);
+				VLOG(1) << "Received set temperature up, from sensor: " << sensorId;
 				for (auto listener: mListeners)
 				{
 					listener->sensorSetTemperatureUp(lineParts[SERIAL_POS]);
@@ -201,6 +202,7 @@ void TemperatureSensors::receiveLine(const std::string& line, const std::vector<
 			if (lineParts[MESSAGE_TYPE_POS] == MSG_SET_TEMPERATURE_DOWN)
 			{
 				std::lock_guard<std::mutex> lg(mDataMutex);
+				VLOG(1) << "Received set temperature down, from sensor: " << sensorId;
 				for (auto listener: mListeners)
 				{
 					listener->sensorSetTemperatureDown(lineParts[SERIAL_POS]);
