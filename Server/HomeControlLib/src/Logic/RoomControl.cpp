@@ -96,6 +96,7 @@ void RoomControl::stopWorkerThread()
 
 void RoomControl::workerThread()
 {
+	LOG(INFO) << "Workerthread started for room: " << mRoomId;
 	while(mWorkerThreadRunning)
 	{
 		auto until = std::chrono::system_clock::now() +std::chrono::seconds(WAIT_FOR_WORK_TIMEOUT_SEC);
