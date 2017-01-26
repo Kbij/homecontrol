@@ -58,6 +58,7 @@ void RoomControl::setPointUp()
 	VLOG(1) << "(" << mRoomId << ") setpoint Up";
 	++mUpRequested;
 	++mWorkReceived;
+	VLOG(1) << "Uprequested: " << mUpRequested;
 	mWaitForWorkCondVar.notify_one();
 }
 
@@ -102,6 +103,8 @@ void RoomControl::workerThread()
 		auto until = std::chrono::system_clock::now() +std::chrono::seconds(WAIT_FOR_WORK_TIMEOUT_SEC);
 		std::unique_lock<std::mutex> lock(mConditionVarMutex);
 		mWaitForWorkCondVar.wait_until(lock, until,[&]{return (bool)(mWorkReceived > 0);});
+		VLOG(1) << "Woke up ...";
+
 		if ((mWorkReceived > 0) && mWorkerThreadRunning)
 		{
 			while (mUpRequested)
