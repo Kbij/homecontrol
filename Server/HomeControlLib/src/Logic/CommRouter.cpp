@@ -64,6 +64,7 @@ void CommRouter::setPointChanged(const std::string& roomId, double setTemperatur
 {
 	if (mSensors)
 	{
+		VLOG(1) << "Setpoint changed for room: " << roomId << ", temperaute: " << setTemperature;
 		std::lock_guard<std::recursive_mutex> lg(mDataMutex);
 		for (const auto& room: mRooms)
 		{
