@@ -51,7 +51,7 @@ bool displaySetTemperature = false;
 bool setTempReceived = true;
 bool lastAcknowledged = false;
 bool oledPresent = false;
-bool measuring = false;
+
 
 //At startup we are broadcasting
 XBeeAddress64 sensorListener = XBeeAddress64(0x00000000, 0x0000FFFF);
@@ -305,7 +305,7 @@ void loop()
     currentTime = millis();
     tempRequested = false;
   }
-  if (touchUp.capacitiveSensor(30) > 100)
+  if (touchUp.capacitiveSensor(40) > 100)
   {
     if (setTempReceived || ((currentTime - setSendStartTime) > 3000)) //If response received, or more than 3 sec ago send
     {
@@ -315,7 +315,7 @@ void loop()
       setTempReceived = false;
     }
   }
-  if (touchDown.capacitiveSensor(30) > 100)
+  if (touchDown.capacitiveSensor(40) > 100)
   {
     if (setTempReceived || ((currentTime - setSendStartTime) > 3000)) //If response received, or more than 3 sec ago send
     {
@@ -328,13 +328,9 @@ void loop()
   //Request measurement of the temperature
   if (!tempRequested && (((currentTime - tempStartTime) > TEMP_INTERVAL_SECONDS * 1000ul) || bootFlag))
   {
-   // setXBeePowerLow();
-    u8g.sleepOn();
-    measuring = true;
     debugSerial.println("Request temperature");  
     tempStartTime = millis();
     sensors.requestTemperatures(); // Send the command to get temperatures
-   // enterSleep();
     tempRequested = true;
     bootFlag = false;
   }
@@ -386,8 +382,7 @@ void loop()
     //Send the unfiltered temperature
     char tempStr[4];
     dtostrf(tempCurrent[0], 2, 2, tempStr);
-    u8g.sleepOff();
-    measuring = false;
+    
     //If still using the broadcast address
     if (sensorListener.getMsb() == 0 && sensorListener.getLsb() == 0x0000FFFF)
     {
@@ -481,7 +476,7 @@ void loop()
       }        
   }
 
-  if (oledPresent && !measuring)
+  if (oledPresent)
   {
     u8g.firstPage();  
     do
