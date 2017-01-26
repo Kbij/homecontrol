@@ -166,8 +166,10 @@ void RoomControl::workerThread()
 					}
 				}
 			}
+
+			--mWorkReceived;
 		}
-		--mWorkReceived;
+
 	}
 }
 } /* namespace LogicNs */
