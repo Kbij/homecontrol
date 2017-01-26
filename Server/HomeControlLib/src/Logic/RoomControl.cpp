@@ -105,6 +105,7 @@ void RoomControl::workerThread()
 		{
 			while (mUpRequested)
 			{
+				VLOG(1) << "Processing Temperature Up";
 				--mUpRequested;
 				mSetTemperature += SET_TEMP_DELTA;
 				if (mRoomListener)
@@ -125,6 +126,8 @@ void RoomControl::workerThread()
 
 			while (mDownRequested)
 			{
+				VLOG(1) << "Processing Temperature Down";
+
 				--mDownRequested;
 				mSetTemperature -= SET_TEMP_DELTA;
 				if (mRoomListener)
