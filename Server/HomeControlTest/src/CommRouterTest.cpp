@@ -74,7 +74,7 @@ public:
 class TemperatureSourceStub: public  CommNs::TemperatureSourceIf
 {
 public:
-	TemperatureSourceStub() : mLastCalibration(), mLastRoomName() {};
+	TemperatureSourceStub() : mLastCalibration(), mLastRoomName(), mLastSensorId(), mLastTemperature()  {};
 	virtual ~TemperatureSourceStub() {};
 
 	void registerTemperatureListener(LogicNs::TemperatureListenerIf* listener) {};
@@ -82,8 +82,10 @@ public:
 
 	void writeSetTemperature(const std::string& sensorId, double temperature)
 	{
-
+		mLastSensorId = sensorId;
+		mLastTemperature = temperature;
 	};
+
 	void writeSensorConfig(const std::string& sensorId, double calibration, const std::string& roomName)
 	{
 		mLastCalibration = calibration;
@@ -91,6 +93,8 @@ public:
 	};
 	double mLastCalibration;
 	std::string mLastRoomName;
+	std::string mLastSensorId;
+	double mLastTemperature;
 };
 
 TEST(CommRouter, Constructor)
@@ -201,6 +205,34 @@ TEST(CommRouter, SendSensorConfig)
 
 	EXPECT_EQ(1.5, tempSourceStub.mLastCalibration);
 	EXPECT_EQ("RoomName", tempSourceStub.mLastRoomName);
+
+
+	delete router;
+}
+
+TEST(CommRouter, SetTempChanged)
+{
+	HomeControlDalStub dalStub;
+	CommServerStub commServerStub;
+	TemperatureSourceStub tempSourceStub;
+	// Will be deleted by CommRouter
+	dalStub.mRoomConfig = new DalNs::RoomConfig;
+	dalStub.mRoomConfig->RoomId = "RoomId";
+	dalStub.mRoomConfig->RoomName = "RoomName";
+	dalStub.mRoomConfig->mSensorIds.push_back("SensorId1");
+	LogicNs::CommRouter* router = new LogicNs::CommRouter(&dalStub, &commServerStub, &tempSourceStub, nullptr);
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
+	dalStub.mSensorCalibration = 1.5;
+
+	router->sensorStarted("SensorId1");
+
+	router->setPointChanged("RoomId", 20);
+
+	EXPECT_EQ(20, tempSourceStub.mLastTemperature);
+	EXPECT_EQ("SensorId1", tempSourceStub.mLastSensorId);
+
+	router->setPointChanged("RoomId", 22);
+	EXPECT_EQ(22, tempSourceStub.mLastTemperature);
 
 
 	delete router;

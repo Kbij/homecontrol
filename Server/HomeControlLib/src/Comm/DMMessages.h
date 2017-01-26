@@ -70,7 +70,7 @@ public:
 	std::string toString() const
 	{
 		std::stringstream ss;
-		ss << "Tx Data, data size: " << mTxData.size();
+		ss << "Tx Data, data size: " << mTxData.size() << ": " << toReadableString(mTxData, true);
 		return ss.str();
 	}
 

@@ -82,6 +82,8 @@ void RoomControl::stopWorkerThread()
 {
 	mWorkerThreadRunning = false;
 	++mWorkReceived;
+
+//	std::lock_guard<std::mutex> lg(mConditionVarMutex);
 	mWaitForWorkCondVar.notify_one();
 
     if (mWorkerThread)

@@ -41,7 +41,7 @@ private:
 	double mRoomTemperature;
 	double mSetTemperature;
 	std::thread* mWorkerThread;
-	bool mWorkerThreadRunning;
+	std::atomic_bool mWorkerThreadRunning;
 	std::atomic_int mUpRequested;
 	std::atomic_int mDownRequested;
 	std::atomic_bool mTempReceived;

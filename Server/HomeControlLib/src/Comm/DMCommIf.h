@@ -25,8 +25,8 @@ public:
 	virtual void init() = 0;
 	virtual std::string addressString() = 0;
 
-	virtual void sendATCmd(const std::string& atCmd, std::vector<uint8_t> parameters) = 0;
-	virtual DMMessageIf* sendATCmd(const std::string& atCmd, std::vector<uint8_t> parameters, int timeOutMilliseconds) = 0;
+	//virtual void sendATCmd(const std::string& atCmd, std::vector<uint8_t> parameters) = 0;
+	//virtual DMMessageIf* sendATCmd(const std::string& atCmd, std::vector<uint8_t> parameters, int timeOutMilliseconds) = 0;
 	virtual void sendMessage(DMMessageIf* message) = 0;
 	virtual DMMessageIf* sendMessage(DMMessageIf* message, int timeOutMilliseconds) = 0;
 
