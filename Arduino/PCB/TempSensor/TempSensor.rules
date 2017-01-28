@@ -11,16 +11,16 @@
     (via_costs 50)
     (plane_via_costs 5)
     (start_ripup_costs 100)
-    (start_pass_no 2699)
+    (start_pass_no 2107)
     (layer_rule 1#Top
       (active on)
-      (preferred_direction horizontal)
+      (preferred_direction vertical)
       (preferred_direction_trace_costs 1.0)
       (against_preferred_direction_trace_costs 2.0)
     )
     (layer_rule 16#Bottom
       (active on)
-      (preferred_direction vertical)
+      (preferred_direction horizontal)
       (preferred_direction_trace_costs 1.0)
       (against_preferred_direction_trace_costs 2.0)
     )
@@ -46,17 +46,29 @@
     )
     (attach off)
   )
+  (padstack Square1$0.600000
+    (shape
+      (rect 1#Top -0.45 -0.45 0.45 0.45)
+    )
+    (shape
+      (rect 16#Bottom -0.45 -0.45 0.45 0.45)
+    )
+    (attach off)
+  )
   (via 
     Round1$0.350000 Round1$0.350000 via
+  )
+  (via 
+    Square1$0.600000 Square1$0.600000 via
   )
   (via_rule
     default Round1$0.350000
   )
   (class default
-    N$1 N$2 N$3 N$4 N$5 N$6 N$8 N$9
-    N$10 N$12 N$13 N$14 N$15 N$16 N$17 N$18
-    N$20 N$21 N$22 N$23 N$24 N$25 N$26 N$27
-    N$29
+    N$1 N$2 N$3 N$4 N$5 N$6 N$10 N$12
+    N$13 N$14 N$15 N$16 N$17 N$18 N$20 N$21
+    N$22 N$23 N$24 N$25 N$26 N$27 N$29 SCL
+    SDA
     (clearance_class default)
     (via_rule default)
     (rule
@@ -67,7 +79,7 @@
     )
   )
   (class Power
-    +3V3 GND GND2 N$11 N$19 VIN VO
+    +3V3 GND N$11 N$19 VIN VO
     (clearance_class default)
     (via_rule default)
     (rule
