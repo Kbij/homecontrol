@@ -19,6 +19,8 @@
 #include <thread>
 #include <atomic>
 
+namespace
+{
 class HomeControlDalStub: public DalNs::HomeControlDalIf
 {
 public:
@@ -96,6 +98,7 @@ public:
 	std::string mLastSensorId;
 	double mLastTemperature;
 };
+}
 
 TEST(CommRouter, Constructor)
 {

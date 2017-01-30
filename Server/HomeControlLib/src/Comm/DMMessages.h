@@ -74,6 +74,12 @@ public:
 		return ss.str();
 	}
 
+	std::string txString()
+	{
+		std::string result(mTxData.begin(), mTxData.end());
+		return result;
+	}
+
 	std::vector<uint8_t> serialise(uint8_t frameId)
 	{
 		std::vector<uint8_t> data;

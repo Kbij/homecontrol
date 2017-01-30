@@ -26,7 +26,11 @@
 #include <string>
 #include <thread>
 #include <atomic>
+#include <queue>
+#include <queue>
 
+namespace
+{
 class HomeControlDalStub: public DalNs::HomeControlDalIf
 {
 public:
@@ -54,8 +58,16 @@ public:
 class DMCommStub: public CommNs::DMCommIf
 {
 public:
-	DMCommStub(): mAddressString(), mLastMessage(nullptr) {};
-	virtual ~DMCommStub() {};
+	DMCommStub(): mAddressString(), mDataMutex(), mMessages() {};
+	virtual ~DMCommStub()
+	{
+		while (mMessages.size() > 0)
+		{
+			CommNs::DMMessageIf* message = mMessages.front();
+			delete message;
+			mMessages.pop();
+		}
+	};
 
 	void registerListener(CommNs::DMCommListenerIf* listener) {};
 	void unRegisterListener(CommNs::DMCommListenerIf* listener) {};
@@ -69,17 +81,38 @@ public:
 	void sendMessage(CommNs::DMMessageIf* message)
 	{
 		LOG(INFO) << "Async sendMessage: " << message->toString();
-		mLastMessage = message;
+		mMessages.push(message);
 	};
+
 	CommNs::DMMessageIf* sendMessage(CommNs::DMMessageIf* message, int timeOutMilliseconds)
 	{
 		LOG(INFO) << "Sync sendMessage: " << message->toString();
-		mLastMessage = message;
+		mMessages.push(message);
 		return nullptr;
 	};
-	std::string mAddressString;
-	CommNs::DMMessageIf* mLastMessage;
 
+	size_t queueSize()
+	{
+		std::lock_guard<std::mutex> lg(mDataMutex);
+		return mMessages.size();
+	}
+
+	CommNs::DMMessageIf* popMessage()
+	{
+		CommNs::DMMessageIf* result = nullptr;
+		std::lock_guard<std::mutex> lg(mDataMutex);
+		if (mMessages.size() > 0)
+		{
+			result = mMessages.front();
+			mMessages.pop();
+		}
+		return result;
+	}
+	std::string mAddressString;
+
+private:
+	std::mutex mDataMutex;
+	std::queue<CommNs::DMMessageIf*> mMessages;
 };
 
 class CommServerStub: public CommNs::CommServerIf
@@ -97,6 +130,7 @@ public:
 		delete object;
 	};
 };
+}
 
 TEST(FullTest, FullSetup)
 {
@@ -120,29 +154,182 @@ TEST(FullTest, FullSetup)
 																			'[', '1', ':', 'A', 'B', ']'});
 
 	sensors->receiveMessage(message);
+	delete message;
 
 	//Calibration data
 	std::this_thread::sleep_for(std::chrono::seconds(1));
-	ASSERT_NE(nullptr, dmCommStub.mLastMessage);
-	delete dmCommStub.mLastMessage;
-	dmCommStub.mLastMessage = nullptr;
+	ASSERT_EQ(1, dmCommStub.queueSize());
+	CommNs::DMMessageIf* receivedMessage = dmCommStub.popMessage();
+	ASSERT_NE(nullptr, receivedMessage);
+	CommNs::TxMessage* txMessage = dynamic_cast<CommNs::TxMessage*> (receivedMessage);
+	ASSERT_NE(nullptr, txMessage);
+	//Calibration data
+	EXPECT_EQ("[8:0.00:RoomName]", txMessage->txString());
 
-	//Temp Up
-	message = new CommNs::RxMessage(std::vector<uint8_t> {0, '1', '2', '3', '4', '5', '6', '7', '8', '9', 0, 0,
-																			'[', '6', ':', 'A', 'B', ']'});
-	sensors->receiveMessage(message);
+	delete txMessage;
 
-	//Set temperature
-	std::this_thread::sleep_for(std::chrono::seconds(1));
-	ASSERT_NE(nullptr, dmCommStub.mLastMessage);
 
-	delete dmCommStub.mLastMessage;
-	dmCommStub.mLastMessage = nullptr;
-
-	std::this_thread::sleep_for(std::chrono::seconds(30));
 	delete router;
 	delete commServerStub;
 	delete filter;
 	delete sensors;
-
 }
+
+TEST(FullTest, SingleTempDown)
+{
+	DMCommStub dmCommStub;
+	CommNs::TemperatureSensors* sensors = new CommNs::TemperatureSensors(&dmCommStub);
+	LogicNs::TemperatureFilter* filter = new LogicNs::TemperatureFilter(sensors, 0.2);
+	CommServerStub* commServerStub = new CommServerStub();
+	HomeControlDalStub dalStub;
+
+	// Will be deleted by CommRouter
+	dalStub.mRoomConfig = new DalNs::RoomConfig;
+	dalStub.mRoomConfig->RoomId = "RoomId";
+	dalStub.mRoomConfig->RoomName = "RoomName";
+	dalStub.mRoomConfig->mSensorIds.push_back("AB");
+
+	//DalNs::HomeControlDalIf* dal, CommNs::CommServerIf* server, CommNs::TemperatureSourceIf* sensors, HeaterListenerIf* heaterListener
+	LogicNs::CommRouter* router = new LogicNs::CommRouter(&dalStub, commServerStub, filter, nullptr);
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+
+	CommNs::RxMessage* message = new CommNs::RxMessage(std::vector<uint8_t> {0, '1', '2', '3', '4', '5', '6', '7', '8', '9', 0, 0,
+																			'[', '1', ':', 'A', 'B', ']'});
+
+	sensors->receiveMessage(message);
+	delete message;
+
+	//Calibration data
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+	ASSERT_EQ(1, dmCommStub.queueSize());
+	CommNs::DMMessageIf* receivedMessage = dmCommStub.popMessage();
+	ASSERT_NE(nullptr, receivedMessage);
+	CommNs::TxMessage* txMessage = dynamic_cast<CommNs::TxMessage*> (receivedMessage);
+	ASSERT_NE(nullptr, txMessage);
+	//Calibration data
+	EXPECT_EQ("[8:0.00:RoomName]", txMessage->txString());
+
+	delete txMessage;
+
+	//Temp Down
+	message = new CommNs::RxMessage(std::vector<uint8_t> {0, '1', '2', '3', '4', '5', '6', '7', '8', '9', 0, 0,
+																			'[', '7', ':', 'A', 'B', ']'});
+	sensors->receiveMessage(message);
+	delete message;
+
+	//Set temperature
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+	ASSERT_EQ(1, dmCommStub.queueSize());
+	receivedMessage = dmCommStub.popMessage();
+	ASSERT_NE(nullptr, receivedMessage);
+	txMessage = dynamic_cast<CommNs::TxMessage*> (receivedMessage);
+	ASSERT_NE(nullptr, txMessage);
+	EXPECT_EQ("[5:16.2]", txMessage->txString());
+	delete txMessage;
+
+	const int MESSAGES = 40;
+
+	for (int i = 0; i < MESSAGES; ++i)
+	{
+		message = new CommNs::RxMessage(std::vector<uint8_t> {0, '1', '2', '3', '4', '5', '6', '7', '8', '9', 0, 0,
+																				'[', '7', ':', 'A', 'B', ']'});
+		sensors->receiveMessage(message);
+		delete message;
+	}
+
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+	//Will have received 20 set temperature's
+	EXPECT_EQ(MESSAGES, dmCommStub.queueSize());
+
+	delete router;
+	delete commServerStub;
+	delete filter;
+	delete sensors;
+}
+
+TEST(FullTest, TempDownToLimit)
+{
+	DMCommStub dmCommStub;
+	CommNs::TemperatureSensors* sensors = new CommNs::TemperatureSensors(&dmCommStub);
+	LogicNs::TemperatureFilter* filter = new LogicNs::TemperatureFilter(sensors, 0.2);
+	CommServerStub* commServerStub = new CommServerStub();
+	HomeControlDalStub dalStub;
+
+	// Will be deleted by CommRouter
+	dalStub.mRoomConfig = new DalNs::RoomConfig;
+	dalStub.mRoomConfig->RoomId = "RoomId";
+	dalStub.mRoomConfig->RoomName = "RoomName";
+	dalStub.mRoomConfig->mSensorIds.push_back("AB");
+
+	//DalNs::HomeControlDalIf* dal, CommNs::CommServerIf* server, CommNs::TemperatureSourceIf* sensors, HeaterListenerIf* heaterListener
+	LogicNs::CommRouter* router = new LogicNs::CommRouter(&dalStub, commServerStub, filter, nullptr);
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+
+	CommNs::RxMessage* message = new CommNs::RxMessage(std::vector<uint8_t> {0, '1', '2', '3', '4', '5', '6', '7', '8', '9', 0, 0,
+																			'[', '1', ':', 'A', 'B', ']'});
+
+	sensors->receiveMessage(message);
+	delete message;
+
+	//Calibration data
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+	ASSERT_EQ(1, dmCommStub.queueSize());
+	CommNs::DMMessageIf* receivedMessage = dmCommStub.popMessage();
+	ASSERT_NE(nullptr, receivedMessage);
+	CommNs::TxMessage* txMessage = dynamic_cast<CommNs::TxMessage*> (receivedMessage);
+	ASSERT_NE(nullptr, txMessage);
+	//Calibration data
+	EXPECT_EQ("[8:0.00:RoomName]", txMessage->txString());
+	delete txMessage;
+
+	const int MESSAGES = 40;
+	for (int i = 0; i < MESSAGES; ++i)
+	{
+		message = new CommNs::RxMessage(std::vector<uint8_t> {0, '1', '2', '3', '4', '5', '6', '7', '8', '9', 0, 0,
+																				'[', '7', ':', 'A', 'B', ']'});
+		sensors->receiveMessage(message);
+		delete message;
+	}
+
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
+	//Will have received 20 set temperature's
+	EXPECT_EQ(MESSAGES, dmCommStub.queueSize());
+
+	//Delete all but 1 messages
+	for (int i = 0; i < MESSAGES - 1; ++i)
+	{
+		receivedMessage = dmCommStub.popMessage();
+		delete receivedMessage;
+	}
+
+	ASSERT_EQ(1, dmCommStub.queueSize());
+	receivedMessage = dmCommStub.popMessage();
+	ASSERT_NE(nullptr, receivedMessage);
+	txMessage = dynamic_cast<CommNs::TxMessage*> (receivedMessage);
+	ASSERT_NE(nullptr, txMessage);
+	EXPECT_EQ("[5:10.0]", txMessage->txString());
+	delete txMessage;
+
+
+	// One up
+	message = new CommNs::RxMessage(std::vector<uint8_t> {0, '1', '2', '3', '4', '5', '6', '7', '8', '9', 0, 0,
+																					'[', '6', ':', 'A', 'B', ']'});
+	sensors->receiveMessage(message);
+	delete message;
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+	ASSERT_EQ(1, dmCommStub.queueSize());
+	receivedMessage = dmCommStub.popMessage();
+	ASSERT_NE(nullptr, receivedMessage);
+	txMessage = dynamic_cast<CommNs::TxMessage*> (receivedMessage);
+	ASSERT_NE(nullptr, txMessage);
+	EXPECT_EQ("[5:10.2]", txMessage->txString());
+	delete txMessage;
+
+
+	delete router;
+	delete commServerStub;
+	delete filter;
+	delete sensors;
+}
+
