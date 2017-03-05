@@ -9175,7 +9175,7 @@ Source: www.kingbright.com</description>
 <part name="U2" library="Components" deviceset="LM2736X" device=""/>
 <part name="R8" library="rcl" deviceset="R-EU_" device="R0805" value="10k"/>
 <part name="C4" library="rcl" deviceset="C-EU" device="C0805" value="100n"/>
-<part name="C5" library="rcl" deviceset="C-EU" device="C0805" value="100n"/>
+<part name="C5" library="rcl" deviceset="C-EU" device="C0805" value="10u"/>
 <part name="C6" library="rcl" deviceset="C-EU" device="C0805" value="100n"/>
 <part name="GND10" library="supply1" deviceset="GND" device=""/>
 <part name="C7" library="rcl" deviceset="C-EU" device="C0805" value="100n"/>
@@ -9188,9 +9188,9 @@ Source: www.kingbright.com</description>
 <part name="D2" library="Components" deviceset="BAT54HT1G" device=""/>
 <part name="GND12" library="supply1" deviceset="GND" device=""/>
 <part name="C9" library="rcl" deviceset="C-EU" device="C0805" value="100n"/>
-<part name="R11" library="rcl" deviceset="R-EU_" device="R0805" value="560"/>
+<part name="R11" library="rcl" deviceset="R-EU_" device="R0805" value="580"/>
 <part name="C10" library="rcl" deviceset="C-EU" device="C0805" value="100n"/>
-<part name="R13" library="rcl" deviceset="R-EU_" device="R0805" value="560"/>
+<part name="R13" library="rcl" deviceset="R-EU_" device="R0805" value="580"/>
 <part name="U3" library="Components" deviceset="XC6210" device=""/>
 <part name="P+1" library="supply1" deviceset="+3V3" device=""/>
 <part name="C11" library="rcl" deviceset="C-EU" device="C0805" value="10n"/>
