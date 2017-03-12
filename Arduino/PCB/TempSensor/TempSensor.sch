@@ -9181,16 +9181,16 @@ Source: www.kingbright.com</description>
 <part name="C7" library="rcl" deviceset="C-EU" device="C0805" value="100n"/>
 <part name="GND11" library="supply1" deviceset="GND" device=""/>
 <part name="C8" library="rcl" deviceset="C-EU" device="C0805" value="100n"/>
-<part name="R9" library="rcl" deviceset="R-EU_" device="R0805" value="10K"/>
-<part name="R10" library="rcl" deviceset="R-EU_" device="R0805" value="21K5"/>
+<part name="R9" library="rcl" deviceset="R-EU_" device="R0805" value="21K5"/>
+<part name="R10" library="rcl" deviceset="R-EU_" device="R0805" value="10K"/>
 <part name="L1" library="Components" deviceset="VLCF4020" device=""/>
 <part name="D1" library="Components" deviceset="RB161M-20TR" device=""/>
 <part name="D2" library="Components" deviceset="BAT54HT1G" device=""/>
 <part name="GND12" library="supply1" deviceset="GND" device=""/>
-<part name="C9" library="rcl" deviceset="C-EU" device="C0805" value="100n"/>
-<part name="R11" library="rcl" deviceset="R-EU_" device="R0805" value="580"/>
-<part name="C10" library="rcl" deviceset="C-EU" device="C0805" value="100n"/>
-<part name="R13" library="rcl" deviceset="R-EU_" device="R0805" value="580"/>
+<part name="C9" library="rcl" deviceset="C-EU" device="C0805" value="220p"/>
+<part name="R11" library="rcl" deviceset="R-EU_" device="R0805" value="100"/>
+<part name="C10" library="rcl" deviceset="C-EU" device="C0805" value="220p"/>
+<part name="R13" library="rcl" deviceset="R-EU_" device="R0805" value="100"/>
 <part name="U3" library="Components" deviceset="XC6210" device=""/>
 <part name="P+1" library="supply1" deviceset="+3V3" device=""/>
 <part name="C11" library="rcl" deviceset="C-EU" device="C0805" value="10n"/>

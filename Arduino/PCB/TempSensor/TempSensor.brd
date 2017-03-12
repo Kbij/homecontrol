@@ -9,7 +9,7 @@
 <grid distance="0.0125" unitdist="inch" unit="mm" style="lines" multiple="1" display="yes" altdistance="0.025" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
-<layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
+<layer number="16" name="Bottom" color="1" fill="1" visible="no" active="yes"/>
 <layer number="17" name="Pads" color="2" fill="1" visible="yes" active="yes"/>
 <layer number="18" name="Vias" color="2" fill="1" visible="yes" active="yes"/>
 <layer number="19" name="Unrouted" color="6" fill="1" visible="yes" active="yes"/>
@@ -2259,7 +2259,7 @@ Your Eurocircuits Team
 <attribute name="VALUE" x="51.435" y="35.56" size="1.27" layer="27" rot="R90"/>
 </element>
 <element name="C3" library="rcl" package="C0805" value="100n" x="48.895" y="32.385" smashed="yes" rot="R270">
-<attribute name="NAME" x="47.3075" y="33.655" size="0.6096" layer="25" rot="R270"/>
+<attribute name="NAME" x="47.3075" y="33.9725" size="0.6096" layer="25" rot="R270"/>
 <attribute name="VALUE" x="46.355" y="33.655" size="1.27" layer="27" rot="R270"/>
 </element>
 <element name="J2" library="SparkFun-Connectors" package="FTDI_DEVICE_SIDE" value="FTDI_DEVICE" x="56.515" y="44.7675" rot="R180"/>
@@ -2311,11 +2311,11 @@ Your Eurocircuits Team
 <attribute name="NAME" x="48.895" y="48.5775" size="1.27" layer="25"/>
 <attribute name="VALUE" x="50.4825" y="45.085" size="1.27" layer="27"/>
 </element>
-<element name="R9" library="rcl" package="R0805" value="10K" x="41.5925" y="48.5775" smashed="yes" rot="MR0">
+<element name="R9" library="rcl" package="R0805" value="21K5" x="41.5925" y="48.5775" smashed="yes" rot="MR0">
 <attribute name="NAME" x="44.7675" y="48.26" size="0.6096" layer="26" rot="MR0"/>
 <attribute name="VALUE" x="42.2275" y="46.0375" size="1.27" layer="28" rot="MR0"/>
 </element>
-<element name="R10" library="rcl" package="R0805" value="21K5" x="41.5925" y="46.6725" smashed="yes" rot="MR180">
+<element name="R10" library="rcl" package="R0805" value="10K" x="41.5925" y="46.6725" smashed="yes" rot="MR180">
 <attribute name="NAME" x="43.815" y="47.3075" size="0.6096" layer="26" rot="MR180"/>
 <attribute name="VALUE" x="40.9575" y="49.2125" size="1.27" layer="28" rot="MR180"/>
 </element>
@@ -2324,26 +2324,26 @@ Your Eurocircuits Team
 <attribute name="NAME" x="39.6025" y="39.28" size="0.6096" layer="25"/>
 </element>
 <element name="D1" library="Components" package="SOD123" value="RB161M-20TR" x="40.005" y="45.72" smashed="yes" rot="R180">
-<attribute name="NAME" x="43.645" y="45.99" size="0.6096" layer="25" rot="R180"/>
+<attribute name="NAME" x="37.6125" y="45.99" size="0.6096" layer="25" rot="R180"/>
 <attribute name="VALUE" x="41.105" y="48.02" size="1.27" layer="27" rot="R180"/>
 </element>
 <element name="D2" library="Components" package="SOD323_ST" value="BAT54HT1G" x="41.5925" y="45.085" smashed="yes" rot="MR0">
-<attribute name="NAME" x="41.9725" y="43.6125" size="0.6096" layer="26" rot="MR0"/>
+<attribute name="NAME" x="41.9725" y="43.93" size="0.6096" layer="26" rot="MR0"/>
 <attribute name="VALUE" x="43.2425" y="43.085" size="1.27" layer="28" rot="MR0"/>
 </element>
-<element name="C9" library="rcl" package="C0805" value="100n" x="61.9125" y="50.4825" smashed="yes">
+<element name="C9" library="rcl" package="C0805" value="220p" x="61.9125" y="50.4825" smashed="yes">
 <attribute name="NAME" x="61.595" y="51.1175" size="0.6096" layer="25"/>
 <attribute name="VALUE" x="60.6425" y="47.9425" size="1.27" layer="27"/>
 </element>
-<element name="R11" library="rcl" package="R0805" value="580" x="61.9125" y="50.165" smashed="yes" rot="MR0">
+<element name="R11" library="rcl" package="R0805" value="100" x="61.9125" y="50.165" smashed="yes" rot="MR0">
 <attribute name="NAME" x="61.2775" y="51.7525" size="0.6096" layer="26" rot="MR180"/>
 <attribute name="VALUE" x="62.5475" y="47.625" size="1.27" layer="28" rot="MR0"/>
 </element>
-<element name="C10" library="rcl" package="C0805" value="100n" x="61.9125" y="47.9425" smashed="yes">
+<element name="C10" library="rcl" package="C0805" value="220p" x="61.9125" y="47.9425" smashed="yes">
 <attribute name="NAME" x="58.7375" y="46.99" size="0.6096" layer="25"/>
 <attribute name="VALUE" x="60.6425" y="45.4025" size="1.27" layer="27"/>
 </element>
-<element name="R13" library="rcl" package="R0805" value="580" x="61.9125" y="47.625" smashed="yes" rot="MR0">
+<element name="R13" library="rcl" package="R0805" value="100" x="61.9125" y="47.625" smashed="yes" rot="MR0">
 <attribute name="NAME" x="62.5475" y="48.5775" size="0.6096" layer="26" rot="MR0"/>
 <attribute name="VALUE" x="62.5475" y="45.085" size="1.27" layer="28" rot="MR0"/>
 </element>
