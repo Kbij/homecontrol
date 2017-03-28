@@ -52,6 +52,7 @@ void CommRouter::temperatureChanged(const std::string& roomId, double temperatur
 		std::lock_guard<std::recursive_mutex> lg(mDataMutex);
 		for(const auto& client: mConnnectedClients)
 		{
+			VLOG(1) << "Send temperature to client: " << client;
 			CommNs::RoomTemperature* roomTemperature = new CommNs::RoomTemperature(roomId, temperature);
 
 			//CommServer takes ownership of the object (and free's the object)
