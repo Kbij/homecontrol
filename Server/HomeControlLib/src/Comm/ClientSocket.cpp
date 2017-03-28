@@ -53,7 +53,7 @@ void ClientSocket::start()
 {
 	mSocket.async_read_some(boost::asio::buffer(mSocketBuffer), boost::bind(&ClientSocket::handleRead, this,
 							boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
-	mLocalPort = mSocket.local_endpoint().port();
+	mLocalPort = mSocket.remote_endpoint().port();
 }
 
 void ClientSocket::registerSocketListener(SocketListenerIf* socketListener)
