@@ -103,7 +103,7 @@ void CommRouter::clientConnected(const std::string& name)
 	std::lock_guard<std::recursive_mutex> lg(mDataMutex);
 	LOG(INFO) << "Client connected, enable monitoring for: " << name;
 
-	mConnnectedClients.insert(name);
+	//mConnnectedClients.insert(name);
 }
 
 void CommRouter::clientDisConnected(const std::string& name)
@@ -111,7 +111,7 @@ void CommRouter::clientDisConnected(const std::string& name)
 	std::lock_guard<std::recursive_mutex> lg(mDataMutex);
 	LOG(INFO) << "Client disconnected, disable monitoring for: " << name;
 
-	mConnnectedClients.erase(name);
+	//mConnnectedClients.erase(name);
 }
 
 void CommRouter::receiveObject(const std::string name, const CommNs::CommObjectIf* object)
