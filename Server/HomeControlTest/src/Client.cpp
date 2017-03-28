@@ -72,6 +72,7 @@ public:
 		mLastSendObjectId = objectId;
 		mLastSendFrame = frame;
 	};
+	void name(const std::string& name) {};
 	boost::asio::io_service mIoService;
 	boost::asio::ip::tcp::tcp::socket mSocket;
 	uint8_t mLastSendObjectId;

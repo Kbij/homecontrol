@@ -32,12 +32,13 @@ public:
 	void registerSocketListener(SocketListenerIf* socketListener);
 	void unRegisterSocketListener();
 	void sendFrame(uint8_t objectId, const std::vector<uint8_t>& frame);
-
+	void name(const std::string& name) {mName = name;};
 private:
 	boost::asio::ip::tcp::tcp::socket mSocket;
 	boost::array<char, 1024> mSocketBuffer;
 	std::vector<uint8_t> mReceiveBuffer;
 	SocketListenerIf* mSocketListener;
+	std::string mName;
 	void handleRead(const boost::system::error_code& error, size_t bytesTransferred);
 	void processBuffer();
 };

@@ -28,7 +28,8 @@ ClientSocket::ClientSocket(boost::asio::io_service& ioService):
 	mSocket(ioService),
 	mSocketBuffer(),
 	mReceiveBuffer(),
-	mSocketListener(nullptr)
+	mSocketListener(nullptr),
+	mName()
 {
 
 }
@@ -37,7 +38,7 @@ ClientSocket::~ClientSocket()
 {
 	if (mSocket.is_open())
 	{
-		VLOG(1) << "Closing client socket";
+		VLOG(1) << "[" << mName << "] Closing client socket";
 		mSocket.close();
 	}
 }
@@ -67,7 +68,7 @@ void ClientSocket::sendFrame(uint8_t objectId, const std::vector<uint8_t>& frame
 {
 	if (mSocket.is_open())
 	{
-		VLOG(2) << "Send frame, length: " << frame.size() << ",objectId: " << (int) objectId;
+		VLOG(2) << "[" << mName << "] Send frame, length: " << frame.size() << ",objectId: " << (int) objectId;
 		std::vector<uint8_t> dataFrame(HC_HEADER.begin(), HC_HEADER.end());
 
         int length = frame.size();
@@ -86,7 +87,7 @@ void ClientSocket::handleRead(const boost::system::error_code& error, size_t byt
 {
 	if (!error)
 	{
-		VLOG(2) << "Bytes received: " << (int) bytesTransferred;
+		VLOG(2) << "[" << mName << "] Bytes received: " << (int) bytesTransferred;
 		mReceiveBuffer.insert(mReceiveBuffer.end(), mSocketBuffer.begin(), mSocketBuffer.begin() + bytesTransferred);
 		processBuffer();
 
@@ -95,7 +96,7 @@ void ClientSocket::handleRead(const boost::system::error_code& error, size_t byt
 	}
 	else
 	{
-		LOG(ERROR) << "Client socket error: " << error.category().name() << ':' << error.value();
+		LOG(ERROR) << "[" << mName << "] Client socket error: " << error.category().name() << ':' << error.value();
 		if (mSocketListener)
 		{
 			mSocketListener->socketClosed();
@@ -113,7 +114,7 @@ void ClientSocket::processBuffer()
 
 		if (mReceiveBuffer.size() < (size_t) HEADER_TOTAL_LENGTH)
 		{ // Not received the full buffer; return
-			VLOG(3) << "Not a full header received, buffer size: " << mReceiveBuffer.size();
+			VLOG(3) << "[" << mName << "] Not a full header received, buffer size: " << mReceiveBuffer.size();
 			return;
 		}
 
@@ -135,19 +136,19 @@ void ClientSocket::processBuffer()
 
 		if (mReceiveBuffer.size() < (size_t) dataLength + HEADER_TOTAL_LENGTH)
 		{ // Not all data received
-			VLOG(3) << "Not all data received, buffer size: " << mReceiveBuffer.size() << ", data length: " << dataLength;
+			VLOG(3) << "[" << mName << "] Not all data received, buffer size: " << mReceiveBuffer.size() << ", data length: " << dataLength;
 			return;
 		}
 
-		VLOG(3) << "Full packet received. buffer size: " << mReceiveBuffer.size() << ", packet length: " << dataLength;
+		VLOG(3) << "[" << mName << "] Full packet received. buffer size: " << mReceiveBuffer.size() << ", packet length: " << dataLength;
 		// All data received; send it to the CloudComm, and cleanup our buffer
 		hcmData.insert(hcmData.end(), itStartPosition +  HEADER_TOTAL_LENGTH, itStartPosition + HEADER_TOTAL_LENGTH + dataLength);
 		mReceiveBuffer.erase(mReceiveBuffer.begin(), itStartPosition + HEADER_TOTAL_LENGTH + dataLength);
 		packetFound = true;
-		VLOG(3) << "Buffer size: " << mReceiveBuffer.size();
+		VLOG(3) << "[" << mName << "] Buffer size: " << mReceiveBuffer.size();
 		if (mSocketListener)
 		{
-			VLOG(2) << "Payload received, length: " << hcmData.size();
+			VLOG(2) << "[" << mName << "] Payload received, length: " << hcmData.size();
 			mSocketListener->receiveFrame(objectId, hcmData);
 		}
 	}

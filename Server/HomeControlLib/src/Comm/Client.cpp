@@ -89,6 +89,7 @@ bool Client::isInactive(int milliSecondsPassed)
 
 void Client::sendFrame(uint8_t objectId, const std::vector<uint8_t>& frame)
 {
+	VLOG(2) << "[" << mName << "] Send objectId: " << (int) objectId;
 	if (mConnectionState == ConnectionState::Connected)
 	{
 		mClientSocket->sendFrame(objectId, frame);
@@ -97,7 +98,7 @@ void Client::sendFrame(uint8_t objectId, const std::vector<uint8_t>& frame)
 
 void Client::receiveFrame(uint8_t objectId, const std::vector<uint8_t>& frame)
 {
-	VLOG(2) << "Frame received, size: " << frame.size() << ", objectId: " << (int) objectId;
+	VLOG(2) << "[" << mName << "] Frame received, size: " << frame.size() << ", objectId: " << (int) objectId;
 	if (mClientListener)
 	{
 		switch(mConnectionState)
@@ -106,6 +107,7 @@ void Client::receiveFrame(uint8_t objectId, const std::vector<uint8_t>& frame)
 			{
 				mName = std::string(frame.begin(), frame.end());
 				LOG(INFO) << "Received client name: " << mName;
+				mClientSocket->name(mName);
 				mClientSocket->sendFrame(OBJ_SERVERNAME, {SERVERNAME.begin(), SERVERNAME.end()});
 				mConnectionState = ConnectionState::Connected;
 				mConnectingTime = 0;
@@ -122,7 +124,7 @@ void Client::receiveFrame(uint8_t objectId, const std::vector<uint8_t>& frame)
 				CommObjectIf* object = ObjectFactory::createObject(objectId, json);
 				if (object)
 				{
-					VLOG(2) << "Sending object to client";
+					VLOG(2) << "[" << mName << "] Sending object to client";
 					mClientListener->receiveObject(mName, object);
 
 					if (objectId == 0)
@@ -133,7 +135,7 @@ void Client::receiveFrame(uint8_t objectId, const std::vector<uint8_t>& frame)
 				}
 				else
 				{
-					LOG(ERROR) << "Unable to create object, objectId: " << (int) objectId;
+					LOG(ERROR) << "[" << mName << "] Unable to create object, objectId: " << (int) objectId;
 				}
 				break;
 			}
