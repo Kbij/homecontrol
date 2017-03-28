@@ -184,6 +184,7 @@ void Server::maintenanceThread()
 				{
 					if (deletedClient->name() == client->name())
 					{
+						LOG(INFO) << "Client still has an active connection open: " << client->name() << ", not sending clientDisconnected";
 						clientStillConnected = true;
 					}
 				}

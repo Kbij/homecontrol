@@ -124,7 +124,7 @@ void Client::receiveFrame(uint8_t objectId, const std::vector<uint8_t>& frame)
 				CommObjectIf* object = ObjectFactory::createObject(objectId, json);
 				if (object)
 				{
-					VLOG(2) << "[" << mName << "] Sending object to client";
+					VLOG(2) << "[" << mName << "] Object received, objectId: " << (int) objectId;
 					mClientListener->receiveObject(mName, object);
 
 					if (objectId == 0)

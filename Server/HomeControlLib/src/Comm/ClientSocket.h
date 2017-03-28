@@ -39,6 +39,7 @@ private:
 	std::vector<uint8_t> mReceiveBuffer;
 	SocketListenerIf* mSocketListener;
 	std::string mName;
+	const int mLocalPort;
 	void handleRead(const boost::system::error_code& error, size_t bytesTransferred);
 	void processBuffer();
 };
