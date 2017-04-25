@@ -36,7 +36,7 @@ Client::Client(ClientSocketIf* clientSocket, ClientListenerIf* clientListener):
 	mLastFrameTime(0)
 
 {
-	VLOG(1) << "Client created";
+	VLOG(3) << "Client created";
 	mClientSocket->registerSocketListener(this);
 }
 
@@ -44,6 +44,7 @@ Client::~Client()
 {
 	mClientSocket->unRegisterSocketListener();
 	delete mClientSocket;
+	VLOG(3) << "Client destroyed";
 }
 
 boost::asio::ip::tcp::tcp::socket& Client::socket()

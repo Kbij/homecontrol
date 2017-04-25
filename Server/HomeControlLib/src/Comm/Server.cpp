@@ -182,7 +182,7 @@ void Server::maintenanceThread()
 				bool clientStillConnected = false;
 				for(const auto& client: mClients)
 				{
-					if (deletedClient->name() == client->name())
+					if (deletedClient->name() == client->name() && deletedClient != client)
 					{
 						LOG(INFO) << "Client still has an active connection open: " << client->name() << ", not sending clientDisconnected";
 						clientStillConnected = true;
