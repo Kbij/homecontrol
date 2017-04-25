@@ -27,7 +27,7 @@ public:
 
 	boost::asio::ip::tcp::tcp::socket& socket();
 	void start();
-	std::string name() {return "unknown";}
+	std::string name() {return mName;}
 
 	void registerSocketListener(SocketListenerIf* socketListener);
 	void unRegisterSocketListener();

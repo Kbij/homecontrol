@@ -154,6 +154,8 @@ void Server::maintenanceThread()
 		std::this_thread::sleep_for(std::chrono::milliseconds(MAINTENANCE_INTERVAL_MS));
 
 		{
+			VLOG(3) << "Server maintenance";
+
 			std::lock_guard<std::mutex> lock(mDataMutex);
 			std::vector<Client*> deletedClients;
 			auto clientIt = mClients.begin();
@@ -199,7 +201,7 @@ void Server::maintenanceThread()
 
 				VLOG(3) << "Deleting client: " << deletedClient->name() << ", addr: " << deletedClient;
 				delete deletedClient;
-				VLOG(3) << "Client deletd";
+				VLOG(3) << "Client deleted";
 			}
 		}
 	}
