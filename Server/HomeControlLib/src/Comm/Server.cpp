@@ -18,7 +18,7 @@
 
 namespace
 {
-const int MAINTENANCE_INTERVAL_MS = 500;
+const int MAINTENANCE_INTERVAL_MS = 2000;
 }
 
 namespace CommNs {
@@ -154,9 +154,9 @@ void Server::maintenanceThread()
 		std::this_thread::sleep_for(std::chrono::milliseconds(MAINTENANCE_INTERVAL_MS));
 
 		{
-			VLOG(3) << "Server maintenance";
-
 			std::lock_guard<std::mutex> lock(mDataMutex);
+			VLOG(3) << "Server maintenance, clients: " << mClients.size();
+
 			std::vector<Client*> deletedClients;
 			auto clientIt = mClients.begin();
 			while (clientIt !=  mClients.end())
