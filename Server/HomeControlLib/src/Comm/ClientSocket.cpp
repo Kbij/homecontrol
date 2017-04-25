@@ -32,7 +32,6 @@ ClientSocket::ClientSocket(boost::asio::io_service& ioService):
 	mName(),
 	mLocalPort()
 {
-
 }
 
 ClientSocket::~ClientSocket()

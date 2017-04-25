@@ -197,7 +197,9 @@ void Server::maintenanceThread()
 					}
 				}
 
+				VLOG(3) << "Deleting client: " << deletedClient->name() << ", addr: " << deletedClient;
 				delete deletedClient;
+				VLOG(3) << "Client deletd";
 			}
 		}
 	}
