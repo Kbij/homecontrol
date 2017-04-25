@@ -44,7 +44,7 @@ Client::~Client()
 {
 	mClientSocket->unRegisterSocketListener();
 	delete mClientSocket;
-	VLOG(3) << "Client destroyed";
+	VLOG(3) << "ClientSocket destroyed";
 }
 
 boost::asio::ip::tcp::tcp::socket& Client::socket()

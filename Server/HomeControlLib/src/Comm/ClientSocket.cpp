@@ -40,7 +40,7 @@ ClientSocket::~ClientSocket()
 	if (mSocket.is_open())
 	{
 		VLOG(1) << "[" << mName << ", " << mLocalPort << "] Closing client socket";
-		mSocket.close();
+		//mSocket.close();
 		VLOG(1) << "[" << mName << ", " << mLocalPort << "] Socket destroyed";
 	}
 }
