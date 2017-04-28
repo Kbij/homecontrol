@@ -98,7 +98,6 @@ void ClientSocket::handleRead(const boost::system::error_code& error, size_t byt
 	}
 	else
 	{
-		LOG(ERROR) << "[" << mName << ", " << mLocalPort << "] Client socket error: " << error.category().name() << ':' << error.value();
 		if (mSocketListener)
 		{
 			mSocketListener->socketClosed();
