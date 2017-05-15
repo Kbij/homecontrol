@@ -37,6 +37,7 @@ namespace WindowsMonitor
             cmbHours.Items.Add(new Item("12", 12));
             cmbHours.Items.Add(new Item("24", 24));
             cmbHours.Items.Add(new Item("48", 48));
+            cmbHours.Items.Add(new Item("240", 240));
             cmbHours.SelectedIndex = 0;
         }
 
@@ -61,7 +62,6 @@ namespace WindowsMonitor
                         {
                             distance = Math.Round((distance / 1000), 2);
                             distanceString = string.Format("{0}km", distance);
-                            item.SubItems.Add(string.Format("{0}km", distance));
                         }
                         else
                         {

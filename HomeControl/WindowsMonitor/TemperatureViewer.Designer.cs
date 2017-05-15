@@ -36,6 +36,8 @@
             this.dtFrom = new System.Windows.Forms.DateTimePicker();
             this.dtTo = new System.Windows.Forms.DateTimePicker();
             this.btnRefreshGraph = new System.Windows.Forms.Button();
+            this.chbQuality = new System.Windows.Forms.CheckBox();
+            this.lstInterval = new System.Windows.Forms.ComboBox();
             this.SuspendLayout();
             // 
             // zedGraph
@@ -98,7 +100,7 @@
             // 
             // btnRefreshGraph
             // 
-            this.btnRefreshGraph.Location = new System.Drawing.Point(216, 85);
+            this.btnRefreshGraph.Location = new System.Drawing.Point(407, 83);
             this.btnRefreshGraph.Name = "btnRefreshGraph";
             this.btnRefreshGraph.Size = new System.Drawing.Size(118, 23);
             this.btnRefreshGraph.TabIndex = 7;
@@ -106,11 +108,37 @@
             this.btnRefreshGraph.UseVisualStyleBackColor = true;
             this.btnRefreshGraph.Click += new System.EventHandler(this.btnRefreshGraph_Click);
             // 
+            // chbQuality
+            // 
+            this.chbQuality.AutoSize = true;
+            this.chbQuality.Location = new System.Drawing.Point(216, 91);
+            this.chbQuality.Name = "chbQuality";
+            this.chbQuality.Size = new System.Drawing.Size(58, 17);
+            this.chbQuality.TabIndex = 8;
+            this.chbQuality.Text = "Quality";
+            this.chbQuality.UseVisualStyleBackColor = true;
+            // 
+            // lstInterval
+            // 
+            this.lstInterval.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.lstInterval.FormattingEnabled = true;
+            this.lstInterval.Items.AddRange(new object[] {
+            "15",
+            "30",
+            "60",
+            "120"});
+            this.lstInterval.Location = new System.Drawing.Point(280, 91);
+            this.lstInterval.Name = "lstInterval";
+            this.lstInterval.Size = new System.Drawing.Size(95, 21);
+            this.lstInterval.TabIndex = 9;
+            // 
             // TemperatureViewer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(834, 471);
+            this.Controls.Add(this.lstInterval);
+            this.Controls.Add(this.chbQuality);
             this.Controls.Add(this.btnRefreshGraph);
             this.Controls.Add(this.dtTo);
             this.Controls.Add(this.dtFrom);
@@ -121,6 +149,7 @@
             this.Text = "TemperatureViewer";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.TemperatureViewer_FormClosing);
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -133,5 +162,7 @@
         private System.Windows.Forms.DateTimePicker dtFrom;
         private System.Windows.Forms.DateTimePicker dtTo;
         private System.Windows.Forms.Button btnRefreshGraph;
+        private System.Windows.Forms.CheckBox chbQuality;
+        private System.Windows.Forms.ComboBox lstInterval;
     }
 }
