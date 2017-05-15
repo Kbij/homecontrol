@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows.Forms;
 
 using System.Reflection;
+using System.IO;
 
 namespace LogHost
 {
@@ -30,15 +31,15 @@ namespace LogHost
 
         private void ShowLog(string data)
         {
-            if (listBox1.InvokeRequired)
+            if (lstLogging.InvokeRequired)
             {
                 BeginInvoke(new ShowLogDelegate(ShowLog), data);
             }
             else
             {
-                listBox1.Items.Add(data);
-                int visibleItems = listBox1.ClientSize.Height / listBox1.ItemHeight;
-                listBox1.TopIndex = Math.Max(listBox1.Items.Count - visibleItems + 1, 0);
+                lstLogging.Items.Add(data);
+                int visibleItems = lstLogging.ClientSize.Height / lstLogging.ItemHeight;
+                lstLogging.TopIndex = Math.Max(lstLogging.Items.Count - visibleItems + 1, 0);
             }
         }
 
@@ -60,7 +61,7 @@ namespace LogHost
             txtPort.Enabled = (status == LogStatus.Stopped);
             btnStop.Enabled = (status == LogStatus.Running);
             btnStart.Enabled = (status == LogStatus.Stopped);
-            btnClear.Enabled = (status == LogStatus.Stopped);
+        //    btnClear.Enabled = (status == LogStatus.Stopped);
         }
 
         private void InitialiseReceiver()
@@ -97,13 +98,24 @@ namespace LogHost
 
         void btnClear_Click(object sender, EventArgs e)
         {
-            listBox1.Items.Clear();
+            lstLogging.Items.Clear();
         }
 
         private enum LogStatus
         {
             Stopped,
             Running
+        }
+
+        private void btnSave_Click(object sender, EventArgs e)
+        {
+            using (StreamWriter outputFile = new StreamWriter(@"c:\temp\logmonitor.txt"))
+            {
+                foreach(var line in lstLogging.Items)
+                {
+                    outputFile.WriteLine(line.ToString());
+                }
+            }
         }
     }
 }
