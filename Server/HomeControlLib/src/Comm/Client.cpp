@@ -36,7 +36,7 @@ Client::Client(ClientSocketIf* clientSocket, ClientListenerIf* clientListener):
 	mLastFrameTime(0)
 
 {
-	VLOG(3) << "Client created";
+	VLOG(1) << "Client created";
 	mClientSocket->registerSocketListener(this);
 }
 
@@ -44,7 +44,6 @@ Client::~Client()
 {
 	mClientSocket->unRegisterSocketListener();
 	delete mClientSocket;
-	VLOG(3) << "ClientSocket destroyed";
 }
 
 boost::asio::ip::tcp::tcp::socket& Client::socket()
@@ -64,12 +63,17 @@ bool Client::isInactive(int milliSecondsPassed)
 	{
 		case ConnectionState::Idle:
 		{
+			VLOG(2) << "[" << mName << "] Client inactive: Idle";
 			return false;
 			break;
 		}
 		case ConnectionState::Connecting:
 		{
 			mConnectingTime += milliSecondsPassed;
+			if (mConnectingTime >= CONNECTING_TIMEOUT_MS)
+			{
+				VLOG(2) << "[" << mName << "] Client inactive: mConnectingTime=" << mConnectingTime;
+			}
 			return mConnectingTime >= CONNECTING_TIMEOUT_MS;
 			break;
 		}
@@ -85,10 +89,12 @@ bool Client::isInactive(int milliSecondsPassed)
 		}
 		default:
 		{
+			VLOG(2) << "[" << mName << "] Client inactive: default";
 			return true;
 		}
 	}
-
+	
+	VLOG(2) << "[" << mName << "] Client inactive: should not happen";
 	return true;
 }
 
