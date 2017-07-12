@@ -63,7 +63,6 @@ bool Client::isInactive(int milliSecondsPassed)
 	{
 		case ConnectionState::Idle:
 		{
-			VLOG(2) << "[" << mName << "] Client inactive: Idle";
 			return false;
 			break;
 		}
