@@ -76,6 +76,10 @@ bool Client::isInactive(int milliSecondsPassed)
 		case ConnectionState::Connected:
 		{
 			mLastFrameTime += milliSecondsPassed;
+			if (mLastFrameTime >= RECEIVE_TIMEOUT_MS)
+			{
+				VLOG(2) << "[" << mName << "] mLastFrameTime: " << mLastFrameTime;
+			}
 			return mLastFrameTime >= RECEIVE_TIMEOUT_MS;
 			break;
 		}
