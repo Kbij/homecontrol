@@ -58,6 +58,7 @@ void ClientSocket::start()
 
 void ClientSocket::registerSocketListener(SocketListenerIf* socketListener)
 {
+	VLOG(2) << "Socket listener: " << socketListener;
 	mSocketListener = socketListener;
 }
 
