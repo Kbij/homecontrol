@@ -88,7 +88,7 @@ bool Client::isInactive(int milliSecondsPassed)
 		}
 		default:
 		{
-			VLOG(2) << "[" << this << "][" << mName << "] Client inactive: default, mConnectionState:" << mConnectionState;
+			VLOG(2) << "[" << this << "][" << mName << "] Client inactive: default, mConnectionState:" << (int) mConnectionState;
 			return true;
 		}
 	}
