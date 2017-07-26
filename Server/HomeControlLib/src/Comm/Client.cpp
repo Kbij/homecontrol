@@ -22,7 +22,7 @@ const int OBJ_HCNAME = 1;
 const int OBJ_SERVERNAME = 2;
 
 const int CONNECTING_TIMEOUT_MS = 1000;
-const int RECEIVE_TIMEOUT_MS = 2 * 60 * 1000; // 2 Minutes
+const int RECEIVE_TIMEOUT_MS = 5 * 60 * 1000; // 2 Minutes
 }
 
 namespace CommNs {

@@ -99,7 +99,8 @@ void ClientSocket::handleRead(const boost::system::error_code& error, size_t byt
 	}
 	else
 	{
-		LOG(ERROR) << "[" << mName << ", " << mLocalPort << "] Socket read error, error code: " << error;
+		//Hier geen ogging aan toevoegen !!
+		//LOG(ERROR) << "[" << mName << ", " << mLocalPort << "] Socket read error, error code: " << error;
 		if (mSocketListener)
 		{
 			mSocketListener->socketClosed();
