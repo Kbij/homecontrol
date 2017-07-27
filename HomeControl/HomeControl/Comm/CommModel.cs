@@ -30,7 +30,7 @@ namespace HomeControl.Comm
         Thread mThread;
         bool mThreadRunning = false;
         const int CONNECT_TIMEOUT_SECONDS = 30;
-        int mLastObjectSendSeconds;
+     //   int mLastObjectSendSeconds;
         private Object mLock;
 
         public CommModel(HCLogger logger)
@@ -70,6 +70,7 @@ namespace HomeControl.Comm
         {
             lock(mSendQueue)
             {
+                mLog.SendToHost("CommModel", "Adding object to Queue");
                 mSendQueue.Enqueue(obj);
             }
 
@@ -143,7 +144,7 @@ namespace HomeControl.Comm
         {
            // lock (mLock)
             {
-                mLastObjectSendSeconds = 0;
+              //  mLastObjectSendSeconds = 0;
                 string modelName = Android.OS.Build.Model;
                 changeState(mCommState = CommState.NameSend);
                 mCloudSocket.sendFrame(OBJ_HCNAME, System.Text.Encoding.ASCII.GetBytes(modelName).ToList());
@@ -260,7 +261,7 @@ namespace HomeControl.Comm
         {
           //  lock (mLock)
             {
-                mLastObjectSendSeconds = 0;
+              //  mLastObjectSendSeconds = 0;
                 string json = obj.serialise();
                 return mCloudSocket.sendFrame(obj.objectId(), System.Text.Encoding.ASCII.GetBytes(json).ToList());
             }
@@ -279,7 +280,7 @@ namespace HomeControl.Comm
                 else
                 {
                     mLog.SendToHost("CommModem", "sending keepalive");
-                    mLastObjectSendSeconds = 0;
+                  //  mLastObjectSendSeconds = 0;
                    // lock (mLock)
                     {
                         mCloudSocket.sendFrame(OBJ_KEEPALIVE, new List<byte>());
@@ -336,11 +337,13 @@ namespace HomeControl.Comm
 
         private void maintenanceThread()
         {
+            const int THREAD_INTERVAL_SECONDS = 1;
+            int keepAliveSendSecondsAgo = 0;
             while (mThreadRunning)
             {
                 try
                 {
-                   Thread.Sleep(1000);
+                   Thread.Sleep(THREAD_INTERVAL_SECONDS * 1000);
                   //  mLog.SendToHost("CommModel", "Maintenance Thread 1");
                     //   lock (mLock)
                     {
@@ -362,10 +365,11 @@ namespace HomeControl.Comm
                             if (mCommState == CommState.Connected && mCloudSocket.isActive())
                             {
                          //       mLog.SendToHost("CommModel", "Maintenance Thread 4");
-                                ++mLastObjectSendSeconds;
-                                if (mLastObjectSendSeconds > KEEPALIVE_INTERVAL_SECONDS)
+                                ++keepAliveSendSecondsAgo;
+                                if (keepAliveSendSecondsAgo > KEEPALIVE_INTERVAL_SECONDS)
                                 {
-                         //           mLog.SendToHost("CommModel", "Maintenance Thread 5");
+                                    //           mLog.SendToHost("CommModel", "Maintenance Thread 5");
+                                    keepAliveSendSecondsAgo = 0;
                                     sendKeepAlive();
                                 }
                             }

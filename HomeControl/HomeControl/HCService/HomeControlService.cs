@@ -80,6 +80,17 @@ namespace HomeControl.HCService
             base.OnDestroy();
         }
 
+        public override void OnTaskRemoved(Intent rootIntent)
+        {
+            mLog.SendToHost("HomeControlService", "HomeControlService ontaskremoved");
+            // TODO Auto-generated method stub
+            //Intent restartService = new Intent(getApplicationContext(), this.getClass());
+            //restartService.setPackage(getPackageName());
+            //PendingIntent restartServicePI = PendingIntent.getService(getApplicationContext(), 1, restartService, PendingIntent.FLAG_ONE_SHOT);
+            //AlarmManager alarmService = (AlarmManager)getApplicationContext().getSystemService(Context.ALARM_SERVICE);
+            //alarmService.set(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime() + 1000, restartServicePI);
+        }
+
         public override IBinder OnBind(Intent intent)
         {
             mBinder = new HCServiceBinder(this);
@@ -136,7 +147,7 @@ namespace HomeControl.HCService
 
         public void OnLocationChanged(Location location)
         {
-            mLog.SendToHost(TAG, string.Format("Location:  ", location.ToString()));
+            mLog.SendToHost(TAG, string.Format("Location: {0}", location.ToString()));
             //_currentLocation = location;
             if (location == null)
             {

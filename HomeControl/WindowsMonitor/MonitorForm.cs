@@ -72,7 +72,7 @@ namespace WindowsMonitor
                         item.SubItems.Add(string.Format("{0}", cell.Key.Item2));
                         item.SubItems.Add(string.Format("{0}", cell.Value.Last().TimeStamp));
 
-                        if (cell.Key.Item1 == "5042D")
+                        if (cell.Key.Item1 == "Moto G (5)")
                         {
                             this.Text = string.Format("{0}: {1}", distanceString, cell.Value.Last().TimeStamp.ToShortTimeString());
                         }
@@ -80,6 +80,7 @@ namespace WindowsMonitor
                 }
             }
         }
+
         private void listSummary_DoubleClick(object sender, EventArgs e)
         {
             ListView listView = sender as ListView;
@@ -107,6 +108,7 @@ namespace WindowsMonitor
                 }
             }
         }
+
         private void refresh()
         {
             lock(mLocations)

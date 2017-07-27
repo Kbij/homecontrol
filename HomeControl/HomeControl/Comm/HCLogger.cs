@@ -19,8 +19,8 @@ namespace HomeControl.Comm
 
             try
             {
-                //client = new UdpClient();
-                //client.Connect(new IPEndPoint(IPAddress.Parse(ipAddress), port));
+                client = new UdpClient();
+                client.Connect(new IPEndPoint(IPAddress.Parse(ipAddress), port));
 
             }
             catch (Exception) { }
@@ -49,10 +49,13 @@ namespace HomeControl.Comm
             //Log to network
             try
             {
-                //byte[] data = Encoding.ASCII.GetBytes(string.Format("{0}:{1}: {2}/{3}", DateTime.Now, Android.OS.Build.Model, category, message));
-                //client.Send(data, data.Length);
+                byte[] data = Encoding.ASCII.GetBytes(string.Format("{0}:{1}: {2}/{3}", DateTime.Now, Android.OS.Build.Model, category, message));
+                client.Send(data, data.Length);
             }
-            catch (Exception) { }
+            catch (Exception ex)
+            {
+                Log.Debug(category, "HCLog send Exception:" + ex.Message);
+            }
         }
     }
 }

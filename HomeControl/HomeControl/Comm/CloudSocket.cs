@@ -77,7 +77,7 @@ namespace HomeControl.Comm
 
         public bool sendFrame(byte objectId, List<byte> frame)
         {
-        //    mLog.SendToHost("CloudSocket", "SendFrame 1");
+            mLog.SendToHost("CloudSocket", "SendFrame 1");
 
             if (mSocket.Connected)
             {
