@@ -13,6 +13,7 @@
 #include <atomic>
 #include <vector>
 #include <stdint.h>
+#include <mutex>
 
 namespace CommNs {
 class DMFrameProcessorIf;

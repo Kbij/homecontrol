@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <iomanip>
 #include <sstream>
+#include <numeric>
 
 namespace
 {
