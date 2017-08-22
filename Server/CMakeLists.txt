@@ -24,7 +24,7 @@ message(STATUS "Sysroot: " ${SYSROOT})
 #add_subdirectory (./libraries/build/gflags)
 #add_library(gflags ALIAS gflags_static)
 #add_subdirectory (./libraries/build/glog)
-
+link_directories(${SYSROOT}/lib/)
 add_subdirectory (./HomeControlLib)
 add_subdirectory (./HomeControlServer)
 
