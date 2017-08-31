@@ -163,7 +163,7 @@ void Server::maintenanceThread()
 			{
 				if ((*clientIt)->isInactive(MAINTENANCE_INTERVAL_MS))
 				{
-					LOG(INFO) << "Deleting client: " << (*clientIt)->name() << " because it is inactive";
+					LOG(INFO) << "Deleting client [" << (*clientIt) << "]: " << (*clientIt)->name() << " because it is inactive";
 					if ((*clientIt)->name() != "")
 					{
 						deletedClients.push_back(*clientIt);
