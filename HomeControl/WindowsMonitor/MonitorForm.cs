@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
 using WindowsMonitor.DAL;
+using System.Text;
 
 namespace WindowsMonitor
 {
@@ -130,33 +131,65 @@ namespace WindowsMonitor
 
         private void btnKML_Click(object sender, EventArgs e)
         {
-            string foorter = @"</coordinates></LineString></Placemark>";
-
             lock (mLocations)
             {
                 foreach (var client in mLocations)
                 {
-                    using (System.IO.StreamWriter file = new System.IO.StreamWriter(string.Format("c:\\temp\\{0}.kml", client.Key.Item1)))
+                    if (client.Value.Count > 2)
                     {
-                        file.Write(header(client.Key.Item1));
-                        foreach (var gpsloc in client.Value)
+                        using (System.IO.StreamWriter file = new System.IO.StreamWriter(string.Format("c:\\temp\\{0}.kml", client.Key.Item1)))
                         {
-                            file.WriteLine(string.Format("{0},{1},0", gpsloc.Longitude.ToString(CultureInfo.InvariantCulture), gpsloc.Latitude.ToString(CultureInfo.InvariantCulture)));
+                            file.WriteLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?> <kml xmlns=\"http://earth.google.com/kml/2.0\"><Document>");
+                            placeMark(client.Value.First(), string.Format("Start {0}", client.Value.First().TimeStamp.ToString("HH:mm")), file);
+                            line(client.Value, file);
+                            GpsLocation previousLocation = client.Value.First();
+                            foreach (var gpsloc in client.Value)
+                            {
+                                if (previousLocation.distance(gpsloc) > 500)
+                                {
+                                    placeMark(gpsloc, string.Format("{0}", gpsloc.TimeStamp.ToString("HH:mm")), file);
+                                }
+                                previousLocation = gpsloc;
+                            }
+                            file.WriteLine("</Document></kml>");
                         }
-                        file.Write(foorter);
                     }
                 }
             }
         }
 
-        private string header(string name)
+        private void line(List<GpsLocation> list, System.IO.TextWriter stream)
         {
-            return string.Format("<Placemark><name>{0}</name><description></description><styleUrl>#msn_ylw-pushpin_copy1</styleUrl><LineString><tessellate>1</tessellate><coordinates>", name);
+            if (list.Count < 2) return;
+
+            stream.WriteLine("<Placemark>");
+            stream.WriteLine("<LineString><tessellate>1</tessellate>");
+            stream.WriteLine("<coordinates>");
+            foreach(var point in list)
+            {
+                stream.WriteLine(string.Format("{0},{1},0", point.Longitude.ToString(CultureInfo.InvariantCulture), point.Latitude.ToString(CultureInfo.InvariantCulture)));
+            }
+            stream.WriteLine("</coordinates>");
+            stream.WriteLine("</LineString>");
+            stream.WriteLine("</Placemark>");
         }
 
         private void cmbHours_SelectionChangeCommitted(object sender, EventArgs e)
         {
             refresh();
+        }
+
+        private void placeMark(GpsLocation location, string name, System.IO.TextWriter stream)
+        {
+            StringBuilder output = new StringBuilder();
+            output.Append("<Placemark>");
+            output.Append("<name>");
+            output.Append(name);
+            output.Append("</name>\n");
+            output.Append("<Point><coordinates>\n");
+            output.Append(string.Format("{0}, {1}, 0\n", location.Longitude.ToString(CultureInfo.InvariantCulture), location.Latitude.ToString(CultureInfo.InvariantCulture)));
+            output.Append("</coordinates></Point></Placemark>\n");
+            stream.WriteLine(output.ToString());
         }
 
         private void button1_Click_1(object sender, EventArgs e)
