@@ -143,11 +143,27 @@ namespace WindowsMonitor
                             placeMark(client.Value.First(), string.Format("Start {0}", client.Value.First().TimeStamp.ToString("HH:mm")), file);
                             line(client.Value, file);
                             GpsLocation previousLocation = client.Value.First();
+                            List<GpsLocation> sameLocation = new List<GpsLocation>();
                             foreach (var gpsloc in client.Value)
                             {
                                 if (previousLocation.distance(gpsloc) > 500)
                                 {
                                     placeMark(gpsloc, string.Format("{0}", gpsloc.TimeStamp.ToString("HH:mm")), file);
+                                }
+
+                                //If no entries, or if current location is near the first of this location
+                                if ((sameLocation.Count == 0) && (gpsloc.distance(previousLocation) < 100) || ((sameLocation.Count > 0) && (sameLocation.First().distance(gpsloc) < 100)))
+                                {
+                                    sameLocation.Add(gpsloc);
+                                }
+                                else
+                                {
+                                    if (sameLocation.Count > 2)
+                                    {
+                                        //Left the location
+                                        placeMark(average(sameLocation), string.Format("{0} - {1}", sameLocation.First().TimeStamp.ToString("HH:mm"), sameLocation.Last().TimeStamp.ToString("HH:mm")), file);
+                                    }
+                                    sameLocation.Clear();
                                 }
                                 previousLocation = gpsloc;
                             }
@@ -156,6 +172,23 @@ namespace WindowsMonitor
                     }
                 }
             }
+        }
+
+        private GpsLocation average(List<GpsLocation> list)
+        {
+            if (list.Count > 1)
+            {
+                double latitudeSum = 0;
+                double longitudeSum = 0;
+                foreach(var loc in list)
+                {
+                    latitudeSum += loc.Latitude;
+                    longitudeSum += loc.Longitude;
+                }
+                return new GpsLocation(latitudeSum / list.Count, longitudeSum / list.Count, 0, list.First().TimeStamp);
+            }
+
+            return new GpsLocation(0, 0, 0, DateTime.Now);
         }
 
         private void line(List<GpsLocation> list, System.IO.TextWriter stream)
