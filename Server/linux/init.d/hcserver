@@ -1,0 +1,66 @@
+#! /bin/sh
+# /etc/init.d/hcserver
+
+### BEGIN INIT INFO
+# Provides:        hcserver
+# Required-Start:  $remote_fs $syslog $mysql
+# Required-Stop:   $remote_fs $syslog $mysql
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6 
+# Short-Description: Start HC Server daemon
+### END INIT INFO
+
+
+
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+
+DAEMON=/home/pi/HCServer
+DAEMON_NAME=hcserver
+PIDFILE=/var/run/$DAEMON_NAME.pid
+LOGDIR=/var/log/hcserver
+
+#DAEMON_USER=root
+
+test -x $DAEMON || exit 5
+. /lib/lsb/init-functions
+
+do_start () {
+	log_daemon_msg "Starting system $DAEMON_NAME daemon"
+#--user $DAEMON_USER
+	start-stop-daemon --start --pidfile $PIDFILE  --startas $DAEMON --  -daemon true -pidfile $PIDFILE -log_dir $LOGDIR  -logbufsecs 0 
+
+	log_end_msg $?
+}
+
+do_stop () {
+	log_daemon_msg "Stopping system $DAEMON_NAME daemon"
+	start-stop-daemon --stop --pidfile $PIDFILE --retry 10
+
+	log_end_msg $?
+}
+
+
+case "$1" in
+
+	start|stop)
+		do_${1}
+		;;
+
+	restart|reload|force-reload)
+		do_stop
+		do_start
+		;;
+
+	status)
+		status_of_proc "$DAEMON_NAME" "$DAEMON" && exit 0 || exit $?
+		;;
+
+	*)
+	echo "Usage: /etc/init.d/$DAEMON_NAME {start|stop|restart|status}"
+		exit 1
+	;;
+
+esac
+
+
+exit 0
