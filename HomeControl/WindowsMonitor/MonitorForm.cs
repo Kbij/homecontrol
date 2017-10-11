@@ -6,6 +6,7 @@ using System.Linq;
 using System.Windows.Forms;
 using WindowsMonitor.DAL;
 using System.Text;
+using System.IO;
 
 namespace WindowsMonitor
 {
@@ -39,6 +40,8 @@ namespace WindowsMonitor
             cmbHours.Items.Add(new Item("24", 24));
             cmbHours.Items.Add(new Item("48", 48));
             cmbHours.Items.Add(new Item("240", 240));
+            cmbHours.Items.Add(new Item("1 Month", 24 * 31));
+            cmbHours.Items.Add(new Item("6 Months", 24 * 31 * 6));
             cmbHours.SelectedIndex = 0;
         }
 
@@ -52,6 +55,7 @@ namespace WindowsMonitor
             lock (mLocations)
             {
                 listSummary.Items.Clear();
+                cmbClient.Items.Clear();
                 foreach (var cell in mLocations)
                 {
                     ListViewItem item = listSummary.Items.Add(cell.Key.Item1);
@@ -78,8 +82,11 @@ namespace WindowsMonitor
                             this.Text = string.Format("{0}: {1}", distanceString, cell.Value.Last().TimeStamp.ToShortTimeString());
                         }
                     }
+
+                    cmbClient.Items.Add(cell.Key.Item1);
                 }
             }
+            if (cmbClient.Items.Count > 0) cmbClient.SelectedIndex = 0;
         }
 
         private void listSummary_DoubleClick(object sender, EventArgs e)
@@ -135,9 +142,12 @@ namespace WindowsMonitor
             {
                 foreach (var client in mLocations)
                 {
+                    if (cmbClient.SelectedItem.ToString() != client.Key.Item1) return;
+
                     if (client.Value.Count > 2)
                     {
-                        using (System.IO.StreamWriter file = new System.IO.StreamWriter(string.Format("c:\\temp\\{0}.kml", client.Key.Item1)))
+                        string kmlFileName = string.Format("{0}\\{1}.kml", Path.GetTempPath(), client.Key.Item1);
+                        using (System.IO.StreamWriter file = new System.IO.StreamWriter(kmlFileName))
                         {
                             file.WriteLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?> <kml xmlns=\"http://earth.google.com/kml/2.0\"><Document>");
                             placeMark(client.Value.First(), string.Format("Start {0}", client.Value.First().TimeStamp.ToString("HH:mm")), file);
@@ -169,6 +179,8 @@ namespace WindowsMonitor
                             }
                             file.WriteLine("</Document></kml>");
                         }
+
+                        System.Diagnostics.Process.Start(kmlFileName);
                     }
                 }
             }

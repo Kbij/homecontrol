@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MonitorForm));
             this.listSummary = new System.Windows.Forms.ListView();
             this.colName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colDist = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -40,6 +41,7 @@
             this.btnTemperatureViewer = new System.Windows.Forms.Button();
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.backgroundWorker2 = new System.ComponentModel.BackgroundWorker();
+            this.cmbClient = new System.Windows.Forms.ComboBox();
             this.SuspendLayout();
             // 
             // listSummary
@@ -55,7 +57,7 @@
             this.listSummary.FullRowSelect = true;
             this.listSummary.Location = new System.Drawing.Point(9, 12);
             this.listSummary.Name = "listSummary";
-            this.listSummary.Size = new System.Drawing.Size(468, 147);
+            this.listSummary.Size = new System.Drawing.Size(538, 171);
             this.listSummary.TabIndex = 8;
             this.listSummary.UseCompatibleStateImageBehavior = false;
             this.listSummary.View = System.Windows.Forms.View.Details;
@@ -89,7 +91,7 @@
             this.cmbHours.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.cmbHours.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbHours.FormattingEnabled = true;
-            this.cmbHours.Location = new System.Drawing.Point(9, 165);
+            this.cmbHours.Location = new System.Drawing.Point(9, 188);
             this.cmbHours.Name = "cmbHours";
             this.cmbHours.Size = new System.Drawing.Size(94, 21);
             this.cmbHours.TabIndex = 9;
@@ -98,7 +100,7 @@
             // btnKML
             // 
             this.btnKML.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.btnKML.Location = new System.Drawing.Point(109, 163);
+            this.btnKML.Location = new System.Drawing.Point(213, 187);
             this.btnKML.Name = "btnKML";
             this.btnKML.Size = new System.Drawing.Size(75, 23);
             this.btnKML.TabIndex = 10;
@@ -109,7 +111,7 @@
             // btnTemperatureViewer
             // 
             this.btnTemperatureViewer.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnTemperatureViewer.Location = new System.Drawing.Point(398, 163);
+            this.btnTemperatureViewer.Location = new System.Drawing.Point(468, 187);
             this.btnTemperatureViewer.Name = "btnTemperatureViewer";
             this.btnTemperatureViewer.Size = new System.Drawing.Size(79, 23);
             this.btnTemperatureViewer.TabIndex = 11;
@@ -117,15 +119,27 @@
             this.btnTemperatureViewer.UseVisualStyleBackColor = true;
             this.btnTemperatureViewer.Click += new System.EventHandler(this.button1_Click_1);
             // 
+            // cmbClient
+            // 
+            this.cmbClient.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.cmbClient.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbClient.FormattingEnabled = true;
+            this.cmbClient.Location = new System.Drawing.Point(110, 188);
+            this.cmbClient.Name = "cmbClient";
+            this.cmbClient.Size = new System.Drawing.Size(97, 21);
+            this.cmbClient.TabIndex = 12;
+            // 
             // MonitorForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(489, 194);
+            this.ClientSize = new System.Drawing.Size(559, 218);
+            this.Controls.Add(this.cmbClient);
             this.Controls.Add(this.btnTemperatureViewer);
             this.Controls.Add(this.btnKML);
             this.Controls.Add(this.cmbHours);
             this.Controls.Add(this.listSummary);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "MonitorForm";
             this.Text = "HC Monitor";
             this.ResumeLayout(false);
@@ -144,6 +158,7 @@
         private System.Windows.Forms.Button btnTemperatureViewer;
         private System.ComponentModel.BackgroundWorker backgroundWorker1;
         private System.ComponentModel.BackgroundWorker backgroundWorker2;
+        private System.Windows.Forms.ComboBox cmbClient;
     }
 }
 
