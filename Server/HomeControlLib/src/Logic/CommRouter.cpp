@@ -144,11 +144,10 @@ void CommRouter::sensorStarted(const std::string& sensorId)
 	if (room)
 	{
 		LOG(INFO) << "Sensor for room: '" << room->roomName() << "' started";
-	}
-
-	if (mSensors)
-	{
-		mSensors->writeSensorConfig(sensorId, mDal->getSensorCalibration(sensorId), room->roomName());
+		if (mSensors)
+		{
+			mSensors->writeSensorConfig(sensorId, mDal->getSensorCalibration(sensorId), room->roomName());
+		}
 	}
 }
 
