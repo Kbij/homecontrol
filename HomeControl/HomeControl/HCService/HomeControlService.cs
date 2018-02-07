@@ -26,7 +26,7 @@ namespace HomeControl.HCService
         CommModel mCommModel;
         HCLogger mLog;
         Location lastLocation;
-        private int TWO_MINUTES = 1000 * 60 * 2;
+        private int MAXIMUM_LOCATION_AGE = 1000 * 60 * 2;
 
         public HomeControlService()
         {
@@ -137,7 +137,7 @@ namespace HomeControl.HCService
                 _locationProvider = string.Empty;
             }
             mLog.SendToHost("HomeControlService", string.Format("Location provider used: {0}", _locationProvider));
-            _locationManager.RequestLocationUpdates(_locationProvider, 1 * 60 * 1000, 0, this); // Min 1 minute
+            _locationManager.RequestLocationUpdates(_locationProvider, 1 * 10 * 1000, 10, this); // Min 10 second, 10 meters
             //_locationManager.RequestLocationUpdates(_locationProvider, 0, 0, this); // Min 1 minute
 
             MessageObject msg = new MessageObject();
@@ -160,6 +160,7 @@ namespace HomeControl.HCService
                     Log.Debug(TAG, string.Format("lat: {0:f6}, lon: {1:f6}, acc:{2}", location.Latitude, location.Longitude, location.Accuracy));
                     if (isBetterLocation(location, lastLocation))
                     {
+                        lastLocation = location;
                         GpsLocation loc = new GpsLocation { Latitude = location.Latitude, Longitude = location.Longitude, Accuracy = location.Accuracy };
                         mCommModel.sendObjectQueued(loc);
                     }
@@ -168,8 +169,6 @@ namespace HomeControl.HCService
                         mLog.SendToHost(TAG, "Received location is worse than previous");
                     }
                 }
-
-                lastLocation = location;
             }
         }
 
@@ -210,10 +209,17 @@ namespace HomeControl.HCService
 
             // Check whether the new location fix is newer or older
             long timeDelta = location.Time - currentBestLocation.Time;
-            bool isSignificantlyNewer = timeDelta > TWO_MINUTES;
-            bool isSignificantlyOlder = timeDelta < -TWO_MINUTES;
+            bool isSignificantlyNewer = timeDelta > MAXIMUM_LOCATION_AGE;
+            bool isSignificantlyOlder = timeDelta < -MAXIMUM_LOCATION_AGE;
             bool isNewer = timeDelta > 0;
-
+            double distanceBetween = distance(location, currentBestLocation);
+            double accuracySum = location.Accuracy + currentBestLocation.Accuracy;
+            
+            // If the distance between both is larger than the sum of the accuracy
+            if (distanceBetween > accuracySum)
+            {
+                return true;
+            }
             // If it's been more than two minutes since the current location, use the new location
             // because the user has likely moved
             if (isSignificantlyNewer)
@@ -261,6 +267,35 @@ namespace HomeControl.HCService
             }
             return provider1.Equals(provider2);
         }
+
+        public double distance(Location first, Location second)
+        {
+            double theta = first.Longitude - second.Longitude;
+            double dist = Math.Sin(deg2rad(first.Latitude)) * Math.Sin(deg2rad(second.Latitude)) + Math.Cos(deg2rad(first.Latitude)) * Math.Cos(deg2rad(second.Latitude)) * Math.Cos(deg2rad(theta));
+            dist = Math.Acos(dist);
+            dist = rad2deg(dist);
+            dist = dist * 60 * 1.1515;
+            dist = dist * 1609.344;
+
+            return (dist);
+        }
+
+        //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        //::  This function converts decimal degrees to radians             :::
+        //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        private double deg2rad(double deg)
+        {
+            return (deg * Math.PI / 180.0);
+        }
+
+        //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        //::  This function converts radians to decimal degrees             :::
+        //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+        private double rad2deg(double rad)
+        {
+            return (rad / Math.PI * 180.0);
+        }
+
         #endregion hcservice
     }
 

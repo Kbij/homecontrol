@@ -50,7 +50,7 @@ namespace WindowsMonitor.DAL
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception /*ex*/)
             {
 
             }

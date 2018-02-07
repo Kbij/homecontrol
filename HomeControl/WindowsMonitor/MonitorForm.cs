@@ -33,7 +33,7 @@ namespace WindowsMonitor
         {
             InitializeComponent();
             mLocations = new Dictionary<Tuple<string, DateTime>, List<GpsLocation>>();
-            mHome = new GpsLocation(51.0536328, 3.6439627, 0, DateTime.Now);
+            mHome = new GpsLocation(51.0536, 3.64393, 0, DateTime.Now);
             mDal = new LocationDal();
             cmbHours.Items.Add(new Item("6", 6));
             cmbHours.Items.Add(new Item("12", 12));
@@ -74,6 +74,7 @@ namespace WindowsMonitor
                             distanceString = string.Format("{0}m", distance);
                         }
                         item.SubItems.Add(distanceString);
+                        item.SubItems.Add(string.Format("{0}m", cell.Value.Last().Accuracy));
                         item.SubItems.Add(string.Format("{0}", cell.Key.Item2));
                         item.SubItems.Add(string.Format("{0}", cell.Value.Last().TimeStamp));
 
@@ -241,6 +242,16 @@ namespace WindowsMonitor
         {
             TemperatureViewer viewer = new TemperatureViewer();
             viewer.Show();
+        }
+
+        private void MonitorForm_KeyPress(object sender, KeyPressEventArgs e)
+        {
+        }
+
+        private void MonitorForm_KeyDown(object sender, KeyEventArgs e)
+        {
+            LocationViewer location = new LocationViewer(cmbClient.SelectedItem.ToString());
+            location.Show();
         }
     }
 }

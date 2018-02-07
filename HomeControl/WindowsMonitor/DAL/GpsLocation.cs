@@ -40,7 +40,7 @@ namespace WindowsMonitor.DAL
             dist = rad2deg(dist);
             dist = dist * 60 * 1.1515;
             dist = dist * 1609.344;
-
+            dist = dist < 4 ? 0 : dist;
             return (dist);
         }
 

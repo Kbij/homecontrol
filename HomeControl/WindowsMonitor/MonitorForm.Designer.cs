@@ -42,6 +42,7 @@
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.backgroundWorker2 = new System.ComponentModel.BackgroundWorker();
             this.cmbClient = new System.Windows.Forms.ComboBox();
+            this.colAccuracy = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.SuspendLayout();
             // 
             // listSummary
@@ -52,6 +53,7 @@
             this.listSummary.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.colName,
             this.colDist,
+            this.colAccuracy,
             this.collastConnected,
             this.colLastLocation});
             this.listSummary.FullRowSelect = true;
@@ -111,7 +113,7 @@
             // btnTemperatureViewer
             // 
             this.btnTemperatureViewer.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnTemperatureViewer.Location = new System.Drawing.Point(468, 187);
+            this.btnTemperatureViewer.Location = new System.Drawing.Point(468, 189);
             this.btnTemperatureViewer.Name = "btnTemperatureViewer";
             this.btnTemperatureViewer.Size = new System.Drawing.Size(79, 23);
             this.btnTemperatureViewer.TabIndex = 11;
@@ -129,6 +131,10 @@
             this.cmbClient.Size = new System.Drawing.Size(97, 21);
             this.cmbClient.TabIndex = 12;
             // 
+            // colAccuracy
+            // 
+            this.colAccuracy.Text = "Accuracy";
+            // 
             // MonitorForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -140,8 +146,11 @@
             this.Controls.Add(this.cmbHours);
             this.Controls.Add(this.listSummary);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.KeyPreview = true;
             this.Name = "MonitorForm";
             this.Text = "HC Monitor";
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.MonitorForm_KeyDown);
+            this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.MonitorForm_KeyPress);
             this.ResumeLayout(false);
 
         }
@@ -159,6 +168,7 @@
         private System.ComponentModel.BackgroundWorker backgroundWorker1;
         private System.ComponentModel.BackgroundWorker backgroundWorker2;
         private System.Windows.Forms.ComboBox cmbClient;
+        private System.Windows.Forms.ColumnHeader colAccuracy;
     }
 }
 

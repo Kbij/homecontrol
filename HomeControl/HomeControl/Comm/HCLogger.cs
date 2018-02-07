@@ -9,23 +9,23 @@ namespace HomeControl.Comm
 {
     public class HCLogger 
     {
-        private UdpClient client;
-        private string mFileName;
-        private object mLock;
+        //private UdpClient client;
+        //private string mFileName;
+        //private object mLock;
         public HCLogger(string ipAddress, int port, string fileName)
         {
-            //string path = Environment.GetFolderPath(Environment.SpecialFolder.);
-            mFileName = string.Format("/sdcard/Android/data/HomeControl.HomeControl/files/{0}", fileName);//Path.Combine(path, "HomeControl.log");
+            ////string path = Environment.GetFolderPath(Environment.SpecialFolder.);
+            //mFileName = string.Format("/sdcard/Android/data/HomeControl.HomeControl/files/{0}", fileName);//Path.Combine(path, "HomeControl.log");
 
-            try
-            {
-                client = new UdpClient();
-                client.Connect(new IPEndPoint(IPAddress.Parse(ipAddress), port));
+            //try
+            //{
+            //    client = new UdpClient();
+            //    client.Connect(new IPEndPoint(IPAddress.Parse(ipAddress), port));
 
-            }
-            catch (Exception) { }
-            mLock = new object();
-            SendToHost("HCLog", "Path:" + mFileName);
+            //}
+            //catch (Exception) { }
+            //mLock = new object();
+            //SendToHost("HCLog", "Path:" + mFileName);
         }
 
         public void SendToHost(string category, string message)
@@ -33,29 +33,29 @@ namespace HomeControl.Comm
             //Log to Studio
             Log.Debug(category, "HCLog:" + message);
 
-            // log to file
-            try
-            {
-                lock (mLock)
-                {
-                    using (var streamWriter = new StreamWriter(mFileName, true))
-                    {
-                        streamWriter.WriteLine(string.Format("{0}:{1}: {2}/{3}", DateTime.Now, Android.OS.Build.Model, category, message));
-                    }
-                }
-            }
-            catch (Exception) { }
+            //// log to file
+            //try
+            //{
+            //    lock (mLock)
+            //    {
+            //        using (var streamWriter = new StreamWriter(mFileName, true))
+            //        {
+            //            streamWriter.WriteLine(string.Format("{0}:{1}: {2}/{3}", DateTime.Now, Android.OS.Build.Model, category, message));
+            //        }
+            //    }
+            //}
+            //catch (Exception) { }
 
-            //Log to network
-            try
-            {
-                byte[] data = Encoding.ASCII.GetBytes(string.Format("{0}:{1}: {2}/{3}", DateTime.Now, Android.OS.Build.Model, category, message));
-                client.Send(data, data.Length);
-            }
-            catch (Exception ex)
-            {
-                Log.Debug(category, "HCLog send Exception:" + ex.Message);
-            }
+            ////Log to network
+            //try
+            //{
+            //    byte[] data = Encoding.ASCII.GetBytes(string.Format("{0}:{1}: {2}/{3}", DateTime.Now, Android.OS.Build.Model, category, message));
+            //    client.Send(data, data.Length);
+            //}
+            //catch (Exception ex)
+            //{
+            //    Log.Debug(category, "HCLog send Exception:" + ex.Message);
+            //}
         }
     }
 }
