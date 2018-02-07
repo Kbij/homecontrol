@@ -4,7 +4,7 @@
   <profile>
     <description_file>xb24-dm_8073.xml</description_file>
     <settings>
-      <setting command="CH">19</setting>
+      <setting command="CH">17</setting>
       <setting command="ID">1213</setting>
       <setting command="MT">3</setting>
       <setting command="PL">4</setting>

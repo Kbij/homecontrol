@@ -93,40 +93,41 @@ void draw()
 {
   // graphic commands to redraw the complete screen should be placed here  
   u8g.setFont(u8g_font_unifont);
-
+  writeMid(10, ROOM_NAME);
+  
   if (displaySetTemperature)
   {
-    writeMid(18, "Set:");
+    writeMid(30, "Set:");
     char fullTempStr[20];
     sprintf(fullTempStr, "%s \260C", SET_TEMPERATURE);
   
-    writeMid(50, fullTempStr);    
+    writeMid(55, fullTempStr);    
   }
   else
   {
-    writeMid(18, "Temp:");
+    writeMid(30, "Temp:");
   
     char tempStr[4];
     dtostrf(dispTemp, 2, 1, tempStr);
     char fullTempStr[20];
     sprintf(fullTempStr, "%s \260C", tempStr);
   
-    writeMid(50, fullTempStr);  
+    writeMid(55, fullTempStr);  
   }
 
   if (!lastAcknowledged)
   { 
-    u8g.drawStr( 118, 15, "?");  
+    u8g.drawStr( 118, 10, "?");  
   }
   else if (sensorListener.getMsb() == 0 && sensorListener.getLsb() == 0x0000FFFF)
   {//We still have the broadcast address
-    u8g.drawStr( 118, 15, "!");  
+    u8g.drawStr( 118, 10, "!");  
   } else
   {
-    u8g.drawStr( 118, 15, " ");
+    u8g.drawStr( 118, 10, " ");
   }
 
-  u8g.drawFrame(0, 0, 128, 64);
+//  u8g.drawFrame(0, 0, 128, 64);
 }
 
 void sendAtCommand()
@@ -305,6 +306,7 @@ void loop()
     currentTime = millis();
     tempRequested = false;
   }
+  /*
   if (touchUp.capacitiveSensor(40) > 100)
   {
     if (setTempReceived || ((currentTime - setSendStartTime) > 3000)) //If response received, or more than 3 sec ago send
@@ -325,6 +327,7 @@ void loop()
       setTempReceived = false;
     }
   }
+  */
   //Request measurement of the temperature
   if (!tempRequested && (((currentTime - tempStartTime) > TEMP_INTERVAL_SECONDS * 1000ul) || bootFlag))
   {
