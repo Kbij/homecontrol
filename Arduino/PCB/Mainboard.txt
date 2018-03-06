@@ -1,0 +1,30 @@
+Relais:
+http://be.farnell.com/panasonic-electric-works/js1-12v-f/relay-spdt-250vac-30vdc-10a/dp/1200953
+
+Power:
+http://be.farnell.com/recom-power/r-78b5-0-2-0/dc-dc-converter-5v-2a/dp/2747528
+
+Power Suppply:
+http://be.farnell.com/xp-power/vel24us120-eu-ja/adaptor-ac-dc-12v-2a/dp/2643258
+
+Power plug:
+http://be.farnell.com/cliff-electronic-components/fc68148-dc10a/socket-pcb-dc-power-2-1mm-pk10/dp/224959
+
+
+Driver:
+http://be.farnell.com/texas-instruments/uln2803adwr/array-darlington-8-x-50v-18soic/dp/1652419?st=uln2803
+
+spoel:
+http://be.farnell.com/wurth-elektronik/744777910/choke-smd-10uh/dp/1635988
+
+terminal block:
+http://be.farnell.com/metz-connect/31071109/terminal-block-wire-to-brd-9pos/dp/2434257?st=terminal%20block%205mm
+
+Kleiner relay:
+http://be.farnell.com/omron-electronic-components/g5nb-1a-e12dc/relay-spst-125vac-30vdc-3a/dp/1333632
+
+
+flyback diode:
+http://be.farnell.com/vishay/gf1a-e3-67a/diode-standard-1a-50v-smd/dp/9549560
+led:
+http://be.farnell.com/kingbright/kpt-1608lvzgck/led-green-50mcd-525nm-smd/dp/2610409
