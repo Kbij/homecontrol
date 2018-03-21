@@ -10095,7 +10095,6 @@ Grid 5.08 mm&lt;p&gt;
 <class number="1" name="Power" width="0.508" drill="0">
 </class>
 <class number="2" name="Relay" width="1.778" drill="0">
-<clearance class="2" value="1.778"/>
 </class>
 </classes>
 <parts>
@@ -10194,6 +10193,8 @@ Grid 5.08 mm&lt;p&gt;
 <part name="JP3" library="jumper" deviceset="JP2E" device=""/>
 <part name="GND17" library="supply1" deviceset="GND" device=""/>
 <part name="P+10" library="supply1" deviceset="+12V" device=""/>
+<part name="R11" library="rcl" deviceset="R-EU_" device="R0603" value="580"/>
+<part name="LED10" library="led" deviceset="LED" device="3MM" value="2mA"/>
 </parts>
 <sheets>
 <sheet>
@@ -10226,15 +10227,15 @@ from this device</text>
 <attribute name="NAME" x="182.88" y="55.88" size="1.778" layer="95"/>
 <attribute name="VALUE" x="177.8" y="27.94" size="1.778" layer="96"/>
 </instance>
-<instance part="LED1" gate="G$1" x="165.1" y="55.88"/>
-<instance part="R2" gate="G$1" x="160.02" y="48.26" smashed="yes">
-<attribute name="NAME" x="156.21" y="49.7586" size="1.778" layer="95"/>
-<attribute name="VALUE" x="161.29" y="50.038" size="1.778" layer="96"/>
+<instance part="LED1" gate="G$1" x="165.1" y="86.36"/>
+<instance part="R2" gate="G$1" x="165.1" y="73.66" smashed="yes" rot="R90">
+<attribute name="NAME" x="163.6014" y="69.85" size="1.778" layer="95" rot="R90"/>
+<attribute name="VALUE" x="163.322" y="74.93" size="1.778" layer="96" rot="R90"/>
 </instance>
 <instance part="R3" gate="G$1" x="-53.34" y="25.4" rot="R90"/>
 <instance part="+3V9" gate="G$1" x="-53.34" y="33.02"/>
 <instance part="C3" gate="G$1" x="45.72" y="-35.56" rot="R90"/>
-<instance part="P+4" gate="G$1" x="165.1" y="60.96"/>
+<instance part="P+4" gate="G$1" x="165.1" y="96.52"/>
 <instance part="P+5" gate="G$1" x="0" y="71.12"/>
 <instance part="J2" gate="G$1" x="-119.38" y="50.8" smashed="yes" rot="R90">
 <attribute name="NAME" x="-129.54" y="55.88" size="1.778" layer="95" rot="R180"/>
@@ -10384,6 +10385,11 @@ from this device</text>
 <instance part="JP3" gate="1" x="-48.26" y="-48.26" rot="R90"/>
 <instance part="GND17" gate="1" x="-40.64" y="-55.88"/>
 <instance part="P+10" gate="1" x="111.76" y="-86.36"/>
+<instance part="R11" gate="G$1" x="157.48" y="73.66" smashed="yes" rot="R90">
+<attribute name="NAME" x="155.9814" y="69.85" size="1.778" layer="95" rot="R90"/>
+<attribute name="VALUE" x="155.702" y="74.93" size="1.778" layer="96" rot="R90"/>
+</instance>
+<instance part="LED10" gate="G$1" x="157.48" y="86.36"/>
 </instances>
 <busses>
 <bus name="D[0..7]">
@@ -10506,6 +10512,8 @@ from this device</text>
 <junction x="-195.58" y="86.36"/>
 <wire x1="-195.58" y1="86.36" x2="-193.04" y2="86.36" width="0.1524" layer="91"/>
 <junction x="-193.04" y="86.36"/>
+<junction x="-187.96" y="81.28"/>
+<junction x="-172.72" y="81.28"/>
 </segment>
 <segment>
 <pinref part="IC1" gate="G$1" pin="GND"/>
@@ -10599,10 +10607,6 @@ from this device</text>
 <wire x1="-185.42" y1="20.32" x2="-177.8" y2="20.32" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<pinref part="P+4" gate="G$1" pin="+3V3"/>
-<pinref part="LED1" gate="G$1" pin="A"/>
-</segment>
-<segment>
 <pinref part="P+3" gate="G$1" pin="+3V3"/>
 <wire x1="-83.82" y1="0" x2="-83.82" y2="-5.08" width="0.1524" layer="91"/>
 <pinref part="IC2" gate="G$1" pin="VCC"/>
@@ -10613,6 +10617,16 @@ from this device</text>
 <wire x1="-149.86" y1="-83.82" x2="-139.7" y2="-83.82" width="0.1524" layer="91"/>
 <pinref part="P+9" gate="G$1" pin="+3V3"/>
 <wire x1="-139.7" y1="-83.82" x2="-139.7" y2="-73.66" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="LED1" gate="G$1" pin="A"/>
+<pinref part="P+4" gate="G$1" pin="+3V3"/>
+<wire x1="165.1" y1="88.9" x2="165.1" y2="91.44" width="0.1524" layer="91"/>
+<pinref part="LED10" gate="G$1" pin="A"/>
+<wire x1="165.1" y1="91.44" x2="165.1" y2="93.98" width="0.1524" layer="91"/>
+<wire x1="157.48" y1="88.9" x2="157.48" y2="91.44" width="0.1524" layer="91"/>
+<wire x1="157.48" y1="91.44" x2="165.1" y2="91.44" width="0.1524" layer="91"/>
+<junction x="165.1" y="91.44"/>
 </segment>
 </net>
 <net name="N$20" class="0">
@@ -11035,29 +11049,6 @@ from this device</text>
 <junction x="228.6" y="53.34"/>
 </segment>
 </net>
-<net name="N$8" class="0">
-<segment>
-<pinref part="LED1" gate="G$1" pin="C"/>
-<pinref part="R2" gate="G$1" pin="2"/>
-<wire x1="165.1" y1="50.8" x2="165.1" y2="48.26" width="0.1524" layer="91"/>
-</segment>
-</net>
-<net name="N$11" class="0">
-<segment>
-<pinref part="U1" gate="A" pin="(PCINT23/AIN1)_PD7"/>
-<pinref part="R2" gate="G$1" pin="1"/>
-<wire x1="142.24" y1="48.26" x2="154.94" y2="48.26" width="0.1524" layer="91"/>
-</segment>
-</net>
-<net name="N$12" class="0">
-<segment>
-<pinref part="IC2" gate="G$1" pin="VBAT"/>
-<pinref part="G1" gate="1" pin="+"/>
-<wire x1="-121.92" y1="-10.16" x2="-139.7" y2="-10.16" width="0.1524" layer="91"/>
-<pinref part="G1" gate="1" pin="+@1"/>
-<wire x1="-139.7" y1="-10.16" x2="-139.7" y2="-12.7" width="0.1524" layer="91"/>
-</segment>
-</net>
 <net name="+12V" class="1">
 <segment>
 <pinref part="L1" gate="G$1" pin="1"/>
@@ -11075,6 +11066,7 @@ from this device</text>
 <junction x="-182.88" y="93.98"/>
 <pinref part="C4" gate="G$1" pin="1"/>
 <wire x1="-187.96" y1="91.44" x2="-187.96" y2="93.98" width="0.1524" layer="91"/>
+<junction x="-187.96" y="93.98"/>
 </segment>
 <segment>
 <pinref part="P+8" gate="1" pin="+12V"/>
@@ -11290,15 +11282,6 @@ from this device</text>
 <wire x1="299.72" y1="-40.64" x2="304.8" y2="-40.64" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="N$32" class="2">
-<segment>
-<pinref part="REL7" gate="G$1" pin="NO"/>
-<wire x1="269.24" y1="-73.66" x2="302.26" y2="-73.66" width="0.1524" layer="91"/>
-<wire x1="302.26" y1="-73.66" x2="302.26" y2="-45.72" width="0.1524" layer="91"/>
-<pinref part="X4" gate="-8" pin="KL"/>
-<wire x1="302.26" y1="-45.72" x2="304.8" y2="-45.72" width="0.1524" layer="91"/>
-</segment>
-</net>
 <net name="N$33" class="2">
 <segment>
 <pinref part="REL7" gate="G$1" pin="C"/>
@@ -11361,6 +11344,7 @@ from this device</text>
 <wire x1="-40.64" y1="-38.1" x2="-40.64" y2="-48.26" width="0.1524" layer="91"/>
 <pinref part="JP3" gate="1" pin="2"/>
 <wire x1="-40.64" y1="-48.26" x2="-45.72" y2="-48.26" width="0.1524" layer="91"/>
+<junction x="-40.64" y="-38.1"/>
 </segment>
 </net>
 <net name="N$36" class="0">
@@ -11480,6 +11464,52 @@ from this device</text>
 <pinref part="JP1" gate="A" pin="3"/>
 <wire x1="-193.04" y1="17.78" x2="-177.8" y2="17.78" width="0.1524" layer="91"/>
 <label x="-190.5" y="17.78" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="N$12" class="0">
+<segment>
+<pinref part="IC2" gate="G$1" pin="VBAT"/>
+<pinref part="G1" gate="1" pin="+"/>
+<wire x1="-121.92" y1="-10.16" x2="-139.7" y2="-10.16" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$8" class="0">
+<segment>
+<pinref part="U1" gate="A" pin="(PCINT23/AIN1)_PD7"/>
+<wire x1="142.24" y1="48.26" x2="165.1" y2="48.26" width="0.1524" layer="91"/>
+<pinref part="R2" gate="G$1" pin="1"/>
+<wire x1="165.1" y1="48.26" x2="165.1" y2="68.58" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$11" class="0">
+<segment>
+<pinref part="R2" gate="G$1" pin="2"/>
+<pinref part="LED1" gate="G$1" pin="C"/>
+<wire x1="165.1" y1="78.74" x2="165.1" y2="81.28" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$24" class="0">
+<segment>
+<pinref part="LED10" gate="G$1" pin="C"/>
+<pinref part="R11" gate="G$1" pin="2"/>
+<wire x1="157.48" y1="81.28" x2="157.48" y2="78.74" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$44" class="0">
+<segment>
+<pinref part="R11" gate="G$1" pin="1"/>
+<wire x1="157.48" y1="68.58" x2="157.48" y2="50.8" width="0.1524" layer="91"/>
+<pinref part="U1" gate="A" pin="(PCINT22/OC0A/AIN0)_PD6"/>
+<wire x1="157.48" y1="50.8" x2="142.24" y2="50.8" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$23" class="2">
+<segment>
+<pinref part="X4" gate="-8" pin="KL"/>
+<wire x1="304.8" y1="-45.72" x2="302.26" y2="-45.72" width="0.1524" layer="91"/>
+<wire x1="302.26" y1="-45.72" x2="302.26" y2="-73.66" width="0.1524" layer="91"/>
+<pinref part="REL7" gate="G$1" pin="NO"/>
+<wire x1="302.26" y1="-73.66" x2="269.24" y2="-73.66" width="0.1524" layer="91"/>
 </segment>
 </net>
 </nets>
