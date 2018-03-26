@@ -28,3 +28,6 @@ flyback diode:
 http://be.farnell.com/vishay/gf1a-e3-67a/diode-standard-1a-50v-smd/dp/9549560
 led:
 http://be.farnell.com/kingbright/kpt-1608lvzgck/led-green-50mcd-525nm-smd/dp/2610409
+
+batterij:
+http://www.newark.com/keystone/1066/battery-holder-20mm-coin-cell/dp/58K2751?mckv=sdwGXr5rI_dc|pcrid|219902965816|plid||kword|+keystone%20+1066|match|b&CMP=KNC-GUSA-GEN-SKU-MDC-NF&gclid=Cj0KCQjwy9LVBRDOARIsAGqoVnte_hrJZlJg6GoTvLrMlZqx9jYnkGiVfh6eC_bjZBwO5isrup3BZ5EaAhcxEALw_wcB
