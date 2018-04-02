@@ -14,6 +14,7 @@
 namespace
 {
 const int MAINTENANCE_INTERVAL_MS = 1000;
+const int BROADCAST_REPEAT = 3;
 }
 
 namespace LogicNs {
@@ -55,15 +56,23 @@ void Timer::stopTimerThread()
 
 void Timer::timerThread()
 {
+	int lastMinutes = -1;
 	while(mTimerThreadRunning)
 	{
 		std::this_thread::sleep_for(std::chrono::milliseconds(MAINTENANCE_INTERVAL_MS));
-		if (mTimeListener)
+		LocalTime time = mSystemClock.localTime();
+
+		if (mTimeListener && time.mMin != lastMinutes)
 		{
-			std::stringstream ss;
-			LocalTime time = mSystemClock.localTime();
-			ss << (int) time.mHour << ":" << std::setfill('0') << std::setw(2) << (int) time.mMin;
-			mTimeListener->writeTime(ss.str());
+			for(int i = 0; i < BROADCAST_REPEAT; ++i)
+			{
+				std::stringstream ss;
+				ss << (int) time.mHour << ":" << std::setfill('0') << std::setw(2) << (int) time.mMin;
+				mTimeListener->writeTime(ss.str());
+				std::this_thread::sleep_for(std::chrono::milliseconds(MAINTENANCE_INTERVAL_MS));
+			}
+
+			lastMinutes = time.mMin;
 		}
 	}
 

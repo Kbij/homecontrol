@@ -128,19 +128,17 @@ void TemperatureSensors::writeTime(const std::string& time)
 		std::stringstream ss;
 		ss << "[" << MSG_WRITE_TIME << ":"  << time << "]";
 		std::string dataString(ss.str());
-		std::lock_guard<std::mutex> lg(mDataMutex);
+		std::vector<uint8_t> broadcast({0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF});
 
-		for(const auto& sensor: mSensorAddress)
+		VLOG(1) << "Broadcast time: " << time;
+		TxMessage* txMessage = new TxMessage(std::vector<uint8_t>(dataString.begin(), dataString.end()), broadcast);
+		//Send synchronously (avoid sending to fast)
+		DMMessageIf* result = mDMComm->sendMessage(txMessage, 10000);
+		if (result != nullptr)
 		{
-			VLOG(1) << "Writing time (" << time << ") to sensor: " << sensor.first;
-			TxMessage* txMessage = new TxMessage(std::vector<uint8_t>(dataString.begin(), dataString.end()), mSensorAddress[sensor.first]);
-			//Send synchronously (avoid sending to fast)
-			DMMessageIf* result = mDMComm->sendMessage(txMessage, 10000);
-			if (result != nullptr)
-			{
-				delete result;
-			}
+			delete result;
 		}
+
 	}
 }
 
