@@ -209,7 +209,7 @@ void TemperatureSensors::receiveLine(const std::string& line, const std::vector<
 			}
 			if (lineParts[MESSAGE_TYPE_POS] == MSG_SET_TEMPERATURE_UP)
 			{
-				std::lock_guard<std::mutex> lg(mDataMutex);
+				std::lock_guard<std::recursive_mutex> lg(mDataMutex);
 				VLOG(3) << "Received set temperature up, from sensor: " << lineParts[SERIAL_POS];
 				for (auto listener: mListeners)
 				{
@@ -219,7 +219,7 @@ void TemperatureSensors::receiveLine(const std::string& line, const std::vector<
 			}
 			if (lineParts[MESSAGE_TYPE_POS] == MSG_SET_TEMPERATURE_DOWN)
 			{
-				std::lock_guard<std::mutex> lg(mDataMutex);
+				std::lock_guard<std::recursive_mutex> lg(mDataMutex);
 				VLOG(3) << "Received set temperature down, from sensor: " << lineParts[SERIAL_POS];
 				for (auto listener: mListeners)
 				{
@@ -242,7 +242,7 @@ void TemperatureSensors::receiveLine(const std::string& line, const std::vector<
 
 void TemperatureSensors::sendSensorStarted(const std::string& sensorId)
 {
-	std::lock_guard<std::mutex> lg(mDataMutex);
+	std::lock_guard<std::recursive_mutex> lg(mDataMutex);
 	for (auto listener: mListeners)
 	{
 		listener->sensorStarted(sensorId);
@@ -251,7 +251,7 @@ void TemperatureSensors::sendSensorStarted(const std::string& sensorId)
 
 void TemperatureSensors::sendTemperature(const std::string& sensorId, float temperature)
 {
-	std::lock_guard<std::mutex> lg(mDataMutex);
+	std::lock_guard<std::recursive_mutex> lg(mDataMutex);
 	for (auto listener: mListeners)
 	{
 		listener->sensorTemperature(sensorId, temperature);
@@ -260,7 +260,7 @@ void TemperatureSensors::sendTemperature(const std::string& sensorId, float temp
 
 void TemperatureSensors::sendSetTemperatureUp(const std::string& sensorId)
 {
-	std::lock_guard<std::mutex> lg(mDataMutex);
+	std::lock_guard<std::recursive_mutex> lg(mDataMutex);
 	for (auto listener: mListeners)
 	{
 		listener->sensorSetTemperatureUp(sensorId);
@@ -269,7 +269,7 @@ void TemperatureSensors::sendSetTemperatureUp(const std::string& sensorId)
 
 void TemperatureSensors::sendSetTemperatureDown(const std::string& sensorId)
 {
-	std::lock_guard<std::mutex> lg(mDataMutex);
+	std::lock_guard<std::recursive_mutex> lg(mDataMutex);
 	for (auto listener: mListeners)
 	{
 		listener->sensorSetTemperatureDown(sensorId);
@@ -291,7 +291,5 @@ void TemperatureSensors::sendXBeeListenerAddress(const std::string& sensorId, co
 		TxMessage* txMessage = new TxMessage(std::vector<uint8_t>(dataString.begin(), dataString.end()), sourceAddress);
 		mDMComm->sendMessage(txMessage);
 	}
-
-
 }
 } /* namespace CommNs */
