@@ -14,11 +14,14 @@
 #include "Comm/TemperatureSensorsSimulator.h"
 #include "Comm/DMFrameProcessor.h"
 #include "Comm/DMComm.h"
+#include "Comm/TemperatureSourceIf.h"
 #include "DAL/TemperatureWriter.h"
 #include "DAL/HomeControlDal.h"
 #include "Logic/ObjectPrinter.h"
 #include "Logic/TemperatureFilter.h"
 #include "Logic/CommRouter.h"
+#include "Logic/SystemClock.h"
+#include "Logic/Timer.h"
 #include "DAL/ObjectWriter.h"
 #include <string>
 #include <glog/logging.h>
@@ -201,6 +204,7 @@ int main (int argc, char* argv[])
 		CommNs::DMFrameProcessor* frameProcessor = nullptr;
 		CommNs::DMComm* dmComm = nullptr;
 		CommNs::TemperatureSourceIf* sensors = nullptr;
+		LogicNs::SystemClock clock;
 
 		if (FLAGS_simulate == 0)
 		{
@@ -216,6 +220,8 @@ int main (int argc, char* argv[])
 			LOG(INFO) << "Simulating with number of sensors: " << FLAGS_simulate;
 			sensors = new CommNs::TemperatureSensorsSimulator(FLAGS_simulate);
 		}
+
+		LogicNs::Timer* timer = new LogicNs::Timer(clock, sensors);
 		DalNs::HomeControlDal* dal = new DalNs::HomeControlDal;
 		LogicNs::TemperatureFilter* filter = new LogicNs::TemperatureFilter(sensors, 0.2);
 		DalNs::TemperatureWriter* tempWriter = new DalNs::TemperatureWriter(filter);
@@ -229,7 +235,7 @@ int main (int argc, char* argv[])
         delete tempWriter;
         delete filter;
         delete dal;
-
+        delete timer;
         if (serial != nullptr)
         {
         	delete sensors;

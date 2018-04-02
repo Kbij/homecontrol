@@ -170,6 +170,7 @@ void RoomControl::workerThread()
 						mRoomListener->heaterOff(mRoomId);
 					}
 				}
+				mTempReceived = false;
 			}
 
 			--mWorkReceived;

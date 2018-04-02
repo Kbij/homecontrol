@@ -5,11 +5,12 @@
  *      Author: koen
  */
 
-#include <lib/SystemClock.h>
+#include "SystemClock.h"
 #include <ctime>
 
 
-namespace Hardware {
+namespace LogicNs
+{
 
 SystemClock::SystemClock()
 {
@@ -32,4 +33,4 @@ LocalTime SystemClock::localTime()
 
 	return result;
 }
-} /* namespace Hardware */
+} /* namespace LogicNs */

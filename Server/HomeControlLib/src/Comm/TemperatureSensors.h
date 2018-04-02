@@ -9,6 +9,7 @@
 #define COMM_TEMPERATURESENSORS_H_
 #include <Comm/TemperatureSourceIf.h>
 #include "Comm/DMCommListenerIf.h"
+#include "Comm/TimeListenerIf.h"
 #include <set>
 #include <mutex>
 #include <vector>
@@ -37,8 +38,11 @@ public:
 	void unRegisterTemperatureListener(LogicNs::TemperatureListenerIf* listener);
 
 	void writeSetTemperature(const std::string& sensorId, double temperature);
-
 	void writeSensorConfig(const std::string& sensorId, double calibration, const std::string& roomName);
+
+	//TimeListenerIf
+	void writeTime(const std::string& time);
+
 private:
 	DMCommIf* mDMComm;
 	std::set<LogicNs::TemperatureListenerIf*> mListeners;

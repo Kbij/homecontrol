@@ -8,6 +8,7 @@
 #ifndef COMM_TEMPERATURESOURCEIF_H_
 #define COMM_TEMPERATURESOURCEIF_H_
 #include <string>
+#include "TimeListenerIf.h"
 
 namespace LogicNs
 {
@@ -16,7 +17,7 @@ class TemperatureListenerIf;
 
 namespace CommNs {
 
-class TemperatureSourceIf
+class TemperatureSourceIf: public TimeListenerIf
 {
 public:
 	virtual ~TemperatureSourceIf() {};

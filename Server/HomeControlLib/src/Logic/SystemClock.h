@@ -9,7 +9,8 @@
 #define SRC_LIB_SYSTEMCLOCK_H_
 #include "SystemClockIf.h"
 
-namespace Hardware {
+namespace LogicNs
+{
 
 class SystemClock: public SystemClockIf
 {
@@ -20,6 +21,6 @@ public:
 	LocalTime localTime();
 };
 
-} /* namespace Hardware */
+} /* namespace LogicNs */
 
 #endif /* SRC_LIB_SYSTEMCLOCK_H_ */
