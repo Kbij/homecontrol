@@ -132,13 +132,8 @@ void TemperatureSensors::writeTime(const std::string& time)
 
 		VLOG(1) << "Broadcast time: " << time;
 		TxMessage* txMessage = new TxMessage(std::vector<uint8_t>(dataString.begin(), dataString.end()), broadcast);
-		//Send synchronously (avoid sending to fast)
-		DMMessageIf* result = mDMComm->sendMessage(txMessage, 10000);
-		if (result != nullptr)
-		{
-			delete result;
-		}
-
+		//don't wait for response
+		mDMComm->sendMessage(txMessage);
 	}
 }
 

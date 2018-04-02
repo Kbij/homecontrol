@@ -62,7 +62,7 @@ void Timer::timerThread()
 		std::this_thread::sleep_for(std::chrono::milliseconds(MAINTENANCE_INTERVAL_MS));
 		LocalTime time = mSystemClock.localTime();
 
-		if (mTimeListener && time.mMin != lastMinutes)
+		if (mTimeListener && (time.mMin != lastMinutes))
 		{
 			for(int i = 0; i < BROADCAST_REPEAT; ++i)
 			{
