@@ -19,6 +19,7 @@ const int OLED_ENABLE = 7;
 const unsigned long TEMP_INTERVAL_SECONDS = 30;
 const unsigned long TEMP_MEASURE_TIME_SECONDS = 1;
 const int TEMP_FILTER_LENGTH = 5; // Take the average of 3 samples;
+const unsigned long MAX_TIME_AGE_MILLIS = 90000; // 90 seconds
 
 // LCD Setup
 U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_DEV_0|U8G_I2C_OPT_NO_ACK|U8G_I2C_OPT_FAST);  // Fast I2C / TWI 
@@ -36,6 +37,7 @@ XBee xbee = XBee();
 char ADDR_STR[17];
 char SET_TEMPERATURE[10];
 char ROOM_NAME[20];
+char TIME[10];
 float tempSet = 0;
 float tempCurrent[TEMP_FILTER_LENGTH];
 float dispTemp = 0;
@@ -51,7 +53,7 @@ bool displaySetTemperature = false;
 bool setTempReceived = true;
 bool lastAcknowledged = false;
 bool oledPresent = false;
-
+unsigned long timeReceivedMillis = 0;
 
 //At startup we are broadcasting
 XBeeAddress64 sensorListener = XBeeAddress64(0x00000000, 0x0000FFFF);
@@ -105,7 +107,18 @@ void draw()
   }
   else
   {
-    writeMid(30, "Temp:");
+    unsigned long currentMillis = millis();
+
+    if ((unsigned long)(currentMillis - timeReceivedMillis) < MAX_TIME_AGE_MILLIS)
+    {
+      writeMid(30, TIME);
+    }
+    else
+    {
+      debugSerial.print("currentMillis: ");
+      debugSerial.println(currentMillis);
+      writeMid(30, "      ");
+    }
   
     char tempStr[4];
     dtostrf(dispTemp, 2, 1, tempStr);
@@ -306,7 +319,7 @@ void loop()
     currentTime = millis();
     tempRequested = false;
   }
-  /*
+  
   if (touchUp.capacitiveSensor(40) > 100)
   {
     if (setTempReceived || ((currentTime - setSendStartTime) > 3000)) //If response received, or more than 3 sec ago send
@@ -327,7 +340,7 @@ void loop()
       setTempReceived = false;
     }
   }
-  */
+  
   //Request measurement of the temperature
   if (!tempRequested && (((currentTime - tempStartTime) > TEMP_INTERVAL_SECONDS * 1000ul) || bootFlag))
   {
@@ -452,6 +465,7 @@ void loop()
               //We received the calibration temperature & room name from the server
               if (rawData[1] == '8')
               {
+                debugSerial.println("Received config");
                 char configStr[30];
                 memset(configStr, 0, sizeof(configStr));
                 memcpy(configStr, &rawData[3], xbRx.getDataLength() - 4); // len([8:])
@@ -472,7 +486,17 @@ void loop()
                   debugSerial.println(calibrationTemp);
                   setXBeeName();
                 }
-              }              
+              }
+
+              //We received the current time from the server
+              if (rawData[1] == '9')
+              {
+                memset(TIME, 0, sizeof(TIME));
+                memcpy(TIME, &rawData[3], xbRx.getDataLength() - 4); // len([9:])
+                timeReceivedMillis = millis();
+                debugSerial.print("timeReceivedMillis: ");
+                debugSerial.println(timeReceivedMillis);
+              }                            
             }
           }
         }
