@@ -55,13 +55,13 @@ TemperatureSensors::~TemperatureSensors()
 
 void TemperatureSensors::registerTemperatureListener(LogicNs::TemperatureListenerIf* listener)
 {
-	std::lock_guard<std::mutex> lg(mDataMutex);
+	std::lock_guard<std::recursive_mutex> lg(mDataMutex);
 	mListeners.insert(listener);
 }
 
 void TemperatureSensors::unRegisterTemperatureListener(LogicNs::TemperatureListenerIf* listener)
 {
-	std::lock_guard<std::mutex> lg(mDataMutex);
+	std::lock_guard<std::recursive_mutex> lg(mDataMutex);
 	mListeners.erase(listener);
 }
 
@@ -75,7 +75,7 @@ void TemperatureSensors::writeSetTemperature(const std::string& sensorId, double
 		std::replace(outputLine.begin(), outputLine.end(), '.', ',');
 		std::string dataString(ss.str());
 		VLOG(1) << "Writing set temperature (" << temperature << ") to sensor: " << sensorId;
-		std::lock_guard<std::mutex> lg(mDataMutex);
+		std::lock_guard<std::recursive_mutex> lg(mDataMutex);
 
 		if (mSensorAddress.find(sensorId) != mSensorAddress.end())
 		{
@@ -102,7 +102,7 @@ void TemperatureSensors::writeSensorConfig(const std::string& sensorId, double c
 		ss << "[" << MSG_SET_CALIBRATION << ":"  << std::fixed << std::setprecision(2) << calibration << ":" << roomName << "]";
 		std::string dataString(ss.str());
 		VLOG(1) << "Writing calibration (" << calibration << ") to sensor: " << sensorId;
-		std::lock_guard<std::mutex> lg(mDataMutex);
+		std::lock_guard<std::recursive_mutex> lg(mDataMutex);
 
 		if (mSensorAddress.find(sensorId) != mSensorAddress.end())
 		{
@@ -137,7 +137,6 @@ void TemperatureSensors::writeTime(const std::string& time)
 	}
 }
 
-
 void TemperatureSensors::receiveMessage(const DMMessageIf* message)
 {
 	if (message)
@@ -169,7 +168,6 @@ void TemperatureSensors::receiveMessage(const DMMessageIf* message)
 				break;
 		}
 	}
-
 }
 
 void TemperatureSensors::receiveLine(const std::string& line, const std::vector<uint8_t> sourceAddress)
