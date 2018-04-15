@@ -2,7 +2,10 @@
 
 #include <Wire.h>
 const int I2C_SLAVE_ADR = 0x08;
-int counters[9];
+unsigned char counters[9];
+unsigned char receiveBuffer[3];
+bool commandReceived;
+
 const char REL0_CMD = '0';
 const char REL1_CMD = '1';
 const char REL2_CMD = '2';
@@ -39,10 +42,11 @@ const int PIN_WD = 8;
 bool watchdogEnabled;
 
 void setup() {
+  watchdogEnabled = false;
+  commandReceived = false;
   Wire.begin(I2C_SLAVE_ADR);                // join i2c bus with address #8
   Wire.onReceive(receiveEvent); // register event
   Serial.begin(19200);           // start serial for output
-  watchdogEnabled = false;
   
   pinMode(PIN_REL0, OUTPUT);
   pinMode(PIN_REL1, OUTPUT);
@@ -53,12 +57,8 @@ void setup() {
   pinMode(PIN_REL6, OUTPUT);
   pinMode(PIN_REL7, OUTPUT);
   pinMode(PIN_WD, OUTPUT);
-  
-  //Clear the counters
-  for(int pos = REL0; pos <= WD; pos++)
-  {
-    counters[pos] = 0;
-  }
+
+  memset(counters, 0, sizeof(counters));
 }
 
 void processCounters()
@@ -114,7 +114,7 @@ void processCounters()
         {
           //Reset Raspberry
           digitalWrite(PIN_WD, 1);
-          delay(100)
+          delay(100);
           watchdogEnabled = false;
         }
         digitalWrite(PIN_REL7, (counters[REL7] > 0));
@@ -124,59 +124,12 @@ void processCounters()
   }  
 }
 
-void loop()
+void processReceived(unsigned char received[3])
 {
-  delay(1000);
-  for(int pos = REL0; pos <= WD; pos++)
-  {
-    if (counters[pos] > 0)
-    {
-      counters[pos] -= 1;
-    }
-  }  
-  printCounters();
-  processCounters();
-}
-
-void printCounters()
-{
-  Serial.print("Counters: ");
-  bool first = true;
-  for(int pos = REL0; pos <= WD; pos++)
-  {
-    if (!first)
-    {
-      Serial.print(", ");
-    }
-    Serial.print(pos);
-    Serial.print(':');
-    Serial.print(counters[pos]);
-    first = false;
-  }  
-  Serial.print(", wd: ");
-  Serial.print(watchdogEnabled);
-  Serial.println();
-}
-
-void receiveEvent(int bytesReceived)
-{
-  Serial.print("Bytes received: ");
-  Serial.println(bytesReceived);
-
-  // 3 bytes = counter set (cmd, ~cmd, value )
-  if (bytesReceived == 3)
-  {
-    char received[5];
-    int pos = 0;
-    Serial.print("receive: ");
-    while (Wire.available() > 0 & pos < 3)
-    {
-      received[pos] = Wire.read();
-      Serial.print((int)received[pos]);
-      Serial.print(" ");
-      pos ++;
-    }
-    Serial.println("");
+      Serial.print((int) received[0]);
+      Serial.print((int) received[1]);
+      Serial.println((int) received[2]);
+  
     if (received[0] == ~received[1])
     {
       switch(received[0])
@@ -238,7 +191,77 @@ void receiveEvent(int bytesReceived)
     }
 
     printCounters();
-      
+}
+
+void loop()
+{
+  delay(1000);
+  for(int pos = REL0; pos <= WD; pos++)
+  {
+    if (counters[pos] > 0)
+    {
+      counters[pos] -= 1;
+    }
+  }  
+  printCounters();
+  processCounters();
+  unsigned char received[3];
+  bool process = false;
+  
+  noInterrupts();
+    if (commandReceived)
+    {
+      process = true;
+      memcpy(received, receiveBuffer, 3);
+      Serial.print((int) received[0]);
+      Serial.print((int) received[1]);
+      Serial.println((int) received[2]);
+      commandReceived = false;
+    }
+  interrupts();
+  
+  if (process)
+  {
+    processReceived(received);
+  }
+}
+
+void printCounters()
+{
+  Serial.print("Counters: ");
+  bool first = true;
+  for(int pos = REL0; pos <= WD; pos++)
+  {
+    if (!first)
+    {
+      Serial.print(", ");
+    }
+    Serial.print(pos);
+    Serial.print(':');
+    Serial.print(counters[pos]);
+    first = false;
+  }  
+  Serial.print(", wd: ");
+  Serial.print(watchdogEnabled);
+  Serial.println();
+}
+
+void receiveEvent(int bytesReceived)
+{
+  // 3 bytes = counter set (cmd, ~cmd, value )
+  if (bytesReceived == 3)
+  {
+    int pos = 0;
+    Serial.print("receive: ");
+    while (Wire.available() > 0 & pos < 3)
+    {
+      receiveBuffer[pos] = Wire.read();
+      Serial.print((int)receiveBuffer[pos]);
+      Serial.print(" ");
+      pos ++;
+    }
+    Serial.println("");
+    commandReceived = true;
   }
   else
   {
@@ -249,6 +272,5 @@ void receiveEvent(int bytesReceived)
       Serial.print(" ");
     }
     Serial.println();
-    
   }
 }
