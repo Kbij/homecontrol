@@ -9247,8 +9247,8 @@ Source: www.kingbright.com</description>
 <wire x1="20.5" y1="-7.2" x2="20.5" y2="0" width="0.127" layer="21"/>
 <pad name="A1" x="1.05" y="-1.15" drill="1.1" shape="square"/>
 <pad name="A2" x="1.05" y="-5.85" drill="1.1" shape="square"/>
-<pad name="C" x="12.55" y="-1.15" drill="1.1" shape="square"/>
-<pad name="NO" x="19.55" y="-1.15" drill="1.1" shape="square"/>
+<pad name="C" x="12.55" y="-5.85" drill="1.1" shape="square"/>
+<pad name="NO" x="19.55" y="-5.85" drill="1.1" shape="square"/>
 </package>
 <package name="JUMPER_JP1">
 <description>&lt;b&gt;JUMPER&lt;/b&gt;</description>
@@ -10178,6 +10178,10 @@ Grid 5.08 mm&lt;p&gt;
 <part name="R11" library="rcl" deviceset="R-EU_" device="R0603" value="580"/>
 <part name="LED10" library="led" deviceset="LED" device="3MM" value="2mA"/>
 <part name="U$1" library="MainboardComponents" deviceset="KEYSTONE_1066" device=""/>
+<part name="GND7" library="supply1" deviceset="GND" device=""/>
+<part name="GND18" library="supply1" deviceset="GND" device=""/>
+<part name="GND19" library="supply1" deviceset="GND" device=""/>
+<part name="GND20" library="supply1" deviceset="GND" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -10284,22 +10288,22 @@ from this device</text>
 <attribute name="NAME" x="248.92" y="-76.2" size="1.778" layer="94"/>
 <attribute name="VALUE" x="271.78" y="-81.28" size="1.778" layer="94"/>
 </instance>
-<instance part="X3" gate="-1" x="309.88" y="40.64" rot="R180"/>
-<instance part="X3" gate="-2" x="309.88" y="45.72" rot="R180"/>
-<instance part="X3" gate="-3" x="309.88" y="30.48" rot="R180"/>
-<instance part="X3" gate="-4" x="309.88" y="35.56" rot="R180"/>
-<instance part="X3" gate="-5" x="309.88" y="20.32" rot="R180"/>
-<instance part="X3" gate="-6" x="309.88" y="25.4" rot="R180"/>
-<instance part="X3" gate="-7" x="309.88" y="10.16" rot="R180"/>
-<instance part="X3" gate="-8" x="309.88" y="15.24" rot="R180"/>
-<instance part="X4" gate="-1" x="309.88" y="-20.32" rot="R180"/>
-<instance part="X4" gate="-2" x="309.88" y="-15.24" rot="R180"/>
-<instance part="X4" gate="-3" x="309.88" y="-30.48" rot="R180"/>
-<instance part="X4" gate="-4" x="309.88" y="-25.4" rot="R180"/>
-<instance part="X4" gate="-5" x="309.88" y="-40.64" rot="R180"/>
-<instance part="X4" gate="-6" x="309.88" y="-35.56" rot="R180"/>
-<instance part="X4" gate="-7" x="309.88" y="-50.8" rot="R180"/>
-<instance part="X4" gate="-8" x="309.88" y="-45.72" rot="R180"/>
+<instance part="X3" gate="-1" x="309.88" y="45.72" rot="R180"/>
+<instance part="X3" gate="-2" x="309.88" y="40.64" rot="R180"/>
+<instance part="X3" gate="-3" x="309.88" y="35.56" rot="R180"/>
+<instance part="X3" gate="-4" x="309.88" y="30.48" rot="R180"/>
+<instance part="X3" gate="-5" x="309.88" y="25.4" rot="R180"/>
+<instance part="X3" gate="-6" x="309.88" y="20.32" rot="R180"/>
+<instance part="X3" gate="-7" x="309.88" y="15.24" rot="R180"/>
+<instance part="X3" gate="-8" x="309.88" y="10.16" rot="R180"/>
+<instance part="X4" gate="-1" x="309.88" y="-15.24" rot="R180"/>
+<instance part="X4" gate="-2" x="309.88" y="-20.32" rot="R180"/>
+<instance part="X4" gate="-3" x="309.88" y="-25.4" rot="R180"/>
+<instance part="X4" gate="-4" x="309.88" y="-30.48" rot="R180"/>
+<instance part="X4" gate="-5" x="309.88" y="-35.56" rot="R180"/>
+<instance part="X4" gate="-6" x="309.88" y="-40.64" rot="R180"/>
+<instance part="X4" gate="-7" x="309.88" y="-45.72" rot="R180"/>
+<instance part="X4" gate="-8" x="309.88" y="-50.8" rot="R180"/>
 <instance part="JP2" gate="A" x="-33.02" y="76.2" rot="R90"/>
 <instance part="GND12" gate="1" x="-27.94" y="71.12"/>
 <instance part="LED2" gate="G$1" x="220.98" y="58.42"/>
@@ -10373,6 +10377,10 @@ from this device</text>
 <attribute name="NAME" x="-142.875" y="-17.78" size="1.778" layer="95" rot="R90"/>
 <attribute name="VALUE" x="-144.78" y="-22.86" size="1.778" layer="96" rot="R90"/>
 </instance>
+<instance part="GND7" gate="1" x="-149.86" y="12.7"/>
+<instance part="GND18" gate="1" x="-195.58" y="7.62"/>
+<instance part="GND19" gate="1" x="-162.56" y="2.54"/>
+<instance part="GND20" gate="1" x="-162.56" y="-7.62"/>
 </instances>
 <busses>
 <bus name="D[0..7]">
@@ -10544,6 +10552,27 @@ from this device</text>
 <pinref part="GND14" gate="1" pin="GND"/>
 <pinref part="U$1" gate="G$1" pin="-"/>
 <wire x1="-139.7" y1="-22.86" x2="-139.7" y2="-20.32" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="JP1" gate="A" pin="6"/>
+<pinref part="GND7" gate="1" pin="GND"/>
+<wire x1="-170.18" y1="15.24" x2="-149.86" y2="15.24" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="JP1" gate="A" pin="9"/>
+<pinref part="GND18" gate="1" pin="GND"/>
+<wire x1="-177.8" y1="10.16" x2="-195.58" y2="10.16" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="JP1" gate="A" pin="14"/>
+<pinref part="GND19" gate="1" pin="GND"/>
+<wire x1="-170.18" y1="5.08" x2="-162.56" y2="5.08" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="JP1" gate="A" pin="20"/>
+<pinref part="GND20" gate="1" pin="GND"/>
+<wire x1="-170.18" y1="-2.54" x2="-162.56" y2="-2.54" width="0.1524" layer="91"/>
+<wire x1="-162.56" y1="-2.54" x2="-162.56" y2="-5.08" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="+3V3" class="1">
@@ -11160,7 +11189,7 @@ from this device</text>
 <pinref part="REL0" gate="G$1" pin="NO"/>
 <wire x1="269.24" y1="68.58" x2="299.72" y2="68.58" width="0.1524" layer="91"/>
 <wire x1="299.72" y1="68.58" x2="299.72" y2="45.72" width="0.1524" layer="91"/>
-<pinref part="X3" gate="-2" pin="KL"/>
+<pinref part="X3" gate="-1" pin="KL"/>
 <wire x1="299.72" y1="45.72" x2="304.8" y2="45.72" width="0.1524" layer="91"/>
 </segment>
 </net>
@@ -11169,7 +11198,7 @@ from this device</text>
 <pinref part="REL0" gate="G$1" pin="C"/>
 <wire x1="269.24" y1="53.34" x2="297.18" y2="53.34" width="0.1524" layer="91"/>
 <wire x1="297.18" y1="53.34" x2="297.18" y2="40.64" width="0.1524" layer="91"/>
-<pinref part="X3" gate="-1" pin="KL"/>
+<pinref part="X3" gate="-2" pin="KL"/>
 <wire x1="297.18" y1="40.64" x2="304.8" y2="40.64" width="0.1524" layer="91"/>
 </segment>
 </net>
@@ -11178,7 +11207,7 @@ from this device</text>
 <pinref part="REL1" gate="G$1" pin="NO"/>
 <wire x1="269.24" y1="48.26" x2="294.64" y2="48.26" width="0.1524" layer="91"/>
 <wire x1="294.64" y1="48.26" x2="294.64" y2="35.56" width="0.1524" layer="91"/>
-<pinref part="X3" gate="-4" pin="KL"/>
+<pinref part="X3" gate="-3" pin="KL"/>
 <wire x1="294.64" y1="35.56" x2="304.8" y2="35.56" width="0.1524" layer="91"/>
 </segment>
 </net>
@@ -11186,7 +11215,7 @@ from this device</text>
 <segment>
 <pinref part="REL1" gate="G$1" pin="C"/>
 <wire x1="269.24" y1="33.02" x2="304.8" y2="33.02" width="0.1524" layer="91"/>
-<pinref part="X3" gate="-3" pin="KL"/>
+<pinref part="X3" gate="-4" pin="KL"/>
 <wire x1="304.8" y1="33.02" x2="304.8" y2="30.48" width="0.1524" layer="91"/>
 </segment>
 </net>
@@ -11195,7 +11224,7 @@ from this device</text>
 <pinref part="REL2" gate="G$1" pin="C"/>
 <wire x1="269.24" y1="12.7" x2="289.56" y2="12.7" width="0.1524" layer="91"/>
 <wire x1="289.56" y1="12.7" x2="289.56" y2="20.32" width="0.1524" layer="91"/>
-<pinref part="X3" gate="-5" pin="KL"/>
+<pinref part="X3" gate="-6" pin="KL"/>
 <wire x1="289.56" y1="20.32" x2="304.8" y2="20.32" width="0.1524" layer="91"/>
 </segment>
 </net>
@@ -11204,7 +11233,7 @@ from this device</text>
 <pinref part="REL3" gate="G$1" pin="NO"/>
 <wire x1="269.24" y1="7.62" x2="292.1" y2="7.62" width="0.1524" layer="91"/>
 <wire x1="292.1" y1="7.62" x2="292.1" y2="15.24" width="0.1524" layer="91"/>
-<pinref part="X3" gate="-8" pin="KL"/>
+<pinref part="X3" gate="-7" pin="KL"/>
 <wire x1="292.1" y1="15.24" x2="304.8" y2="15.24" width="0.1524" layer="91"/>
 </segment>
 </net>
@@ -11213,7 +11242,7 @@ from this device</text>
 <pinref part="REL3" gate="G$1" pin="C"/>
 <wire x1="269.24" y1="-7.62" x2="299.72" y2="-7.62" width="0.1524" layer="91"/>
 <wire x1="299.72" y1="-7.62" x2="299.72" y2="10.16" width="0.1524" layer="91"/>
-<pinref part="X3" gate="-7" pin="KL"/>
+<pinref part="X3" gate="-8" pin="KL"/>
 <wire x1="299.72" y1="10.16" x2="304.8" y2="10.16" width="0.1524" layer="91"/>
 </segment>
 </net>
@@ -11222,7 +11251,7 @@ from this device</text>
 <pinref part="REL4" gate="G$1" pin="C"/>
 <wire x1="269.24" y1="-27.94" x2="289.56" y2="-27.94" width="0.1524" layer="91"/>
 <wire x1="289.56" y1="-27.94" x2="289.56" y2="-20.32" width="0.1524" layer="91"/>
-<pinref part="X4" gate="-1" pin="KL"/>
+<pinref part="X4" gate="-2" pin="KL"/>
 <wire x1="289.56" y1="-20.32" x2="304.8" y2="-20.32" width="0.1524" layer="91"/>
 </segment>
 </net>
@@ -11231,7 +11260,7 @@ from this device</text>
 <pinref part="REL5" gate="G$1" pin="NO"/>
 <wire x1="269.24" y1="-33.02" x2="292.1" y2="-33.02" width="0.1524" layer="91"/>
 <wire x1="292.1" y1="-33.02" x2="292.1" y2="-25.4" width="0.1524" layer="91"/>
-<pinref part="X4" gate="-4" pin="KL"/>
+<pinref part="X4" gate="-3" pin="KL"/>
 <wire x1="292.1" y1="-25.4" x2="304.8" y2="-25.4" width="0.1524" layer="91"/>
 </segment>
 </net>
@@ -11240,7 +11269,7 @@ from this device</text>
 <pinref part="REL5" gate="G$1" pin="C"/>
 <wire x1="269.24" y1="-48.26" x2="294.64" y2="-48.26" width="0.1524" layer="91"/>
 <wire x1="294.64" y1="-48.26" x2="294.64" y2="-30.48" width="0.1524" layer="91"/>
-<pinref part="X4" gate="-3" pin="KL"/>
+<pinref part="X4" gate="-4" pin="KL"/>
 <wire x1="294.64" y1="-30.48" x2="304.8" y2="-30.48" width="0.1524" layer="91"/>
 </segment>
 </net>
@@ -11249,7 +11278,7 @@ from this device</text>
 <pinref part="REL6" gate="G$1" pin="NO"/>
 <wire x1="269.24" y1="-53.34" x2="297.18" y2="-53.34" width="0.1524" layer="91"/>
 <wire x1="297.18" y1="-53.34" x2="297.18" y2="-35.56" width="0.1524" layer="91"/>
-<pinref part="X4" gate="-6" pin="KL"/>
+<pinref part="X4" gate="-5" pin="KL"/>
 <wire x1="297.18" y1="-35.56" x2="304.8" y2="-35.56" width="0.1524" layer="91"/>
 </segment>
 </net>
@@ -11258,7 +11287,7 @@ from this device</text>
 <pinref part="REL6" gate="G$1" pin="C"/>
 <wire x1="269.24" y1="-68.58" x2="299.72" y2="-68.58" width="0.1524" layer="91"/>
 <wire x1="299.72" y1="-68.58" x2="299.72" y2="-40.64" width="0.1524" layer="91"/>
-<pinref part="X4" gate="-5" pin="KL"/>
+<pinref part="X4" gate="-6" pin="KL"/>
 <wire x1="299.72" y1="-40.64" x2="304.8" y2="-40.64" width="0.1524" layer="91"/>
 </segment>
 </net>
@@ -11266,7 +11295,7 @@ from this device</text>
 <segment>
 <pinref part="REL7" gate="G$1" pin="C"/>
 <wire x1="269.24" y1="-88.9" x2="304.8" y2="-88.9" width="0.1524" layer="91"/>
-<pinref part="X4" gate="-7" pin="KL"/>
+<pinref part="X4" gate="-8" pin="KL"/>
 <wire x1="304.8" y1="-88.9" x2="304.8" y2="-50.8" width="0.1524" layer="91"/>
 </segment>
 </net>
@@ -11275,7 +11304,7 @@ from this device</text>
 <pinref part="REL2" gate="G$1" pin="NO"/>
 <wire x1="269.24" y1="27.94" x2="302.26" y2="27.94" width="0.1524" layer="91"/>
 <wire x1="302.26" y1="27.94" x2="302.26" y2="25.4" width="0.1524" layer="91"/>
-<pinref part="X3" gate="-6" pin="KL"/>
+<pinref part="X3" gate="-5" pin="KL"/>
 <wire x1="302.26" y1="25.4" x2="304.8" y2="25.4" width="0.1524" layer="91"/>
 </segment>
 </net>
@@ -11284,7 +11313,7 @@ from this device</text>
 <pinref part="REL4" gate="G$1" pin="NO"/>
 <wire x1="269.24" y1="-12.7" x2="302.26" y2="-12.7" width="0.1524" layer="91"/>
 <wire x1="302.26" y1="-12.7" x2="302.26" y2="-15.24" width="0.1524" layer="91"/>
-<pinref part="X4" gate="-2" pin="KL"/>
+<pinref part="X4" gate="-1" pin="KL"/>
 <wire x1="302.26" y1="-15.24" x2="304.8" y2="-15.24" width="0.1524" layer="91"/>
 </segment>
 </net>
@@ -11478,11 +11507,11 @@ from this device</text>
 </net>
 <net name="N$23" class="2">
 <segment>
-<pinref part="X4" gate="-8" pin="KL"/>
-<wire x1="304.8" y1="-45.72" x2="302.26" y2="-45.72" width="0.1524" layer="91"/>
 <wire x1="302.26" y1="-45.72" x2="302.26" y2="-73.66" width="0.1524" layer="91"/>
 <pinref part="REL7" gate="G$1" pin="NO"/>
 <wire x1="302.26" y1="-73.66" x2="269.24" y2="-73.66" width="0.1524" layer="91"/>
+<pinref part="X4" gate="-7" pin="KL"/>
+<wire x1="302.26" y1="-45.72" x2="304.8" y2="-45.72" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$12" class="0">
