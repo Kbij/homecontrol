@@ -2571,25 +2571,34 @@ design rules under a new name.</description>
 </pass>
 </autorouter>
 <elements>
-<element name="C1" library="rcl" package="C0805" value="22p" x="90.17" y="44.704" rot="MR180"/>
-<element name="C2" library="rcl" package="C0805" value="22p" x="90.17" y="40.132" rot="MR0"/>
+<element name="C1" library="rcl" package="C0805" value="22p" x="90.17" y="44.704" smashed="yes" rot="MR180">
+<attribute name="NAME" x="89.154" y="47.244" size="1.27" layer="26" rot="MR180"/>
+<attribute name="VALUE" x="88.9" y="47.244" size="1.27" layer="28" rot="MR180"/>
+</element>
+<element name="C2" library="rcl" package="C0805" value="22p" x="90.17" y="40.132" smashed="yes" rot="MR0">
+<attribute name="NAME" x="91.186" y="41.402" size="1.27" layer="26" rot="MR0"/>
+<attribute name="VALUE" x="91.44" y="37.592" size="1.27" layer="28" rot="MR0"/>
+</element>
 <element name="C3" library="rcl" package="C0805" value="100n" x="66.294" y="48.26" smashed="yes" rot="R90">
 <attribute name="NAME" x="66.802" y="44.45" size="1.27" layer="25" rot="R90"/>
 <attribute name="VALUE" x="68.834" y="46.99" size="1.27" layer="27" rot="R90"/>
 </element>
 <element name="C4" library="rcl" package="C1206" value="" x="18.288" y="46.736" smashed="yes" rot="R270">
-<attribute name="NAME" x="17.78" y="44.069" size="1.27" layer="25" rot="R270"/>
+<attribute name="NAME" x="19.939" y="45.974" size="1.27" layer="25"/>
 <attribute name="VALUE" x="15.748" y="48.006" size="1.27" layer="27" rot="R270"/>
 </element>
 <element name="C5" library="rcl" package="C1206" value="" x="18.288" y="55.499" smashed="yes" rot="R90">
-<attribute name="NAME" x="19.05" y="58.293" size="1.27" layer="25" rot="R90"/>
+<attribute name="NAME" x="21.971" y="55.88" size="1.27" layer="25" rot="R180"/>
 <attribute name="VALUE" x="20.828" y="54.229" size="1.27" layer="27" rot="R90"/>
 </element>
 <element name="C6" library="rcl" package="C0805" value="100n" x="69.85" y="46.482" smashed="yes" rot="R90">
 <attribute name="NAME" x="70.358" y="42.418" size="1.27" layer="25" rot="R90"/>
 <attribute name="VALUE" x="72.39" y="45.212" size="1.27" layer="27" rot="R90"/>
 </element>
-<element name="C7" library="rcl" package="C0805" value="100n" x="22.86" y="62.484" rot="R90"/>
+<element name="C7" library="rcl" package="C0805" value="100n" x="22.86" y="62.484" smashed="yes" rot="R90">
+<attribute name="NAME" x="24.13" y="65.532" size="1.27" layer="25" rot="R180"/>
+<attribute name="VALUE" x="25.4" y="61.214" size="1.27" layer="27" rot="R90"/>
+</element>
 <element name="IC1" library="ULN2803ADW" package="SOIC127P1030X265-18N" value="ULN2803ADW" x="57.912" y="44.45" smashed="yes" rot="MR270">
 <attribute name="RS_PART_NUMBER" value="6466311P" x="57.912" y="44.45" size="1.778" layer="28" rot="MR270" display="off"/>
 <attribute name="HEIGHT" value="2.65mm" x="57.912" y="44.45" size="1.778" layer="28" rot="MR270" display="off"/>
@@ -2625,7 +2634,7 @@ design rules under a new name.</description>
 <attribute name="NAME" x="11.938" y="41.275" size="0.254" layer="33" ratio="10" rot="R90"/>
 </element>
 <element name="JP1" library="pinhead" package="2X20" value="" x="68.58" y="76.454" smashed="yes" rot="R180">
-<attribute name="NAME" x="44.704" y="73.533" size="1.27" layer="25" ratio="10" rot="R180"/>
+<attribute name="NAME" x="41.91" y="78.613" size="1.27" layer="25" ratio="10" rot="R180"/>
 <attribute name="VALUE" x="93.98" y="80.899" size="1.27" layer="27" rot="R180"/>
 </element>
 <element name="L1" library="744777910" package="WE-PD_7332/7345_PLASTIC_BASE54" value="744777910" x="10.16" y="51.054" smashed="yes" rot="R180">
@@ -2638,14 +2647,17 @@ design rules under a new name.</description>
 <attribute name="MANUFACTURER_PART_NUMBER" value="744777910" x="10.16" y="51.054" size="1.778" layer="27" rot="R180" display="off"/>
 <attribute name="MANUFACTURER_NAME" value="W&amp;uuml;rth Elektronik" x="10.16" y="51.054" size="1.778" layer="27" rot="R180" display="off"/>
 <attribute name="ALLIED_NUMBER" value="" x="10.16" y="51.054" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="NAME" x="16.236" y="55.007" size="1.27" layer="25" rot="R180" align="center"/>
+<attribute name="NAME" x="16.49" y="51.197" size="1.27" layer="25" rot="R180" align="center"/>
 <attribute name="VALUE" x="3.71" y="55.294" size="1.27" layer="27" rot="R180" align="center"/>
 </element>
 <element name="LED1" library="led" package="LED3MM" value="2mA" x="55.118" y="57.912" smashed="yes">
 <attribute name="NAME" x="61.341" y="58.547" size="1.27" layer="25" ratio="10" rot="R180"/>
 <attribute name="VALUE" x="57.023" y="56.261" size="1.27" layer="27" ratio="10"/>
 </element>
-<element name="R2" library="rcl" package="R0603" value="580" x="58.801" y="57.785" rot="MR0"/>
+<element name="R2" library="rcl" package="R0603" value="580" x="58.801" y="57.785" smashed="yes" rot="MR0">
+<attribute name="NAME" x="59.69" y="58.928" size="1.27" layer="26" rot="MR0"/>
+<attribute name="VALUE" x="59.436" y="55.88" size="1.27" layer="28" rot="MR0"/>
+</element>
 <element name="R3" library="rcl" package="R0805" value="10k" x="63.246" y="48.26" smashed="yes" rot="R90">
 <attribute name="NAME" x="62.484" y="46.355" size="1.27" layer="25" rot="R270"/>
 <attribute name="VALUE" x="65.786" y="47.625" size="1.27" layer="27" rot="R90"/>
@@ -2678,7 +2690,7 @@ design rules under a new name.</description>
 <attribute name="MFD" value="IQD Frequency Products" x="86.868" y="42.446" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_FARNELL" value="9713700" x="86.868" y="42.446" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MF" value="IQD FREQUENCY PRODUCTS" x="86.868" y="42.446" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="90.805" y="41.43" size="1.27" layer="25" ratio="10" rot="R90"/>
+<attribute name="NAME" x="91.059" y="41.684" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="VALUE" x="91.059" y="37.366" size="1.27" layer="27" ratio="10" rot="R90"/>
 </element>
 <element name="XB1" library="xbee" package="XBEE" value="XBEE" x="37.592" y="54.61">
@@ -2806,7 +2818,10 @@ design rules under a new name.</description>
 <element name="Q1" library="MainboardComponents" package="CRYSAL_RADIA_6.2MM" value="32.768kHz" x="66.167" y="70.993"/>
 <element name="J4" library="SparkFun-Connectors" package="FTDI_DEVICE_SIDE" value="XBEE CONN" x="20.955" y="76.581"/>
 <element name="JP3" library="jumper" package="JP2" value="" x="21.336" y="72.009" rot="R180"/>
-<element name="R11" library="rcl" package="R0603" value="580" x="58.674" y="62.738" rot="MR0"/>
+<element name="R11" library="rcl" package="R0603" value="580" x="58.674" y="62.738" smashed="yes" rot="MR0">
+<attribute name="NAME" x="59.817" y="63.881" size="1.27" layer="26" rot="MR0"/>
+<attribute name="VALUE" x="59.309" y="60.833" size="1.27" layer="28" rot="MR0"/>
+</element>
 <element name="LED10" library="led" package="LED3MM" value="2mA" x="55.118" y="62.738" smashed="yes">
 <attribute name="NAME" x="62.103" y="63.373" size="1.27" layer="25" ratio="10" rot="R180"/>
 <attribute name="VALUE" x="57.023" y="61.087" size="1.27" layer="27" ratio="10"/>
