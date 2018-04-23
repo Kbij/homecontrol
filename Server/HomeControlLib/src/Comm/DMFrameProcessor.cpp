@@ -115,7 +115,7 @@ void DMFrameProcessor::processFrameBuffer()
 		}
 
 		VLOG(20) << "Full frame received. buffer size: " << mFrameBuffer.size() << ", packet length: " << dataLength;
-		printFrame("Received Raw Frame: ", std::vector<uint8_t>(itStartPosition, itStartPosition + HEADER_LENGTH + dataLength + 1)); // +1: CRC
+		if (VLOG_IS_ON(21)) printFrame("Received Raw Frame: ", std::vector<uint8_t>(itStartPosition, itStartPosition + HEADER_LENGTH + dataLength + 1)); // +1: CRC
 		std::vector<uint8_t> frame(itStartPosition +  HEADER_LENGTH, itStartPosition + HEADER_LENGTH + dataLength);
 
 		uint8_t calculatedCrc = std::accumulate(frame.begin(), frame.end(), 0);
@@ -131,8 +131,10 @@ void DMFrameProcessor::processFrameBuffer()
 		}
 		else
 		{
-			LOG(ERROR) << "Invalid Crc";
+			LOG(ERROR) << "Invalid Crc, calculated: " << "0x" << std::hex << std::uppercase <<  std::setfill('0') << std::setw(2) << (int) calculatedCrc;
+			printFrame("Raw Fame: ", mFrameBuffer);
 			mFrameBuffer.clear();
+			LOG(ERROR) << "Frame buffer cleared";
 		}
 
 		VLOG(20) << "Buffer size: " << mFrameBuffer.size();
@@ -152,6 +154,6 @@ void DMFrameProcessor::printFrame(const std::string& name, const std::vector<uin
 		ss << "0x" << std::hex << std::uppercase <<  std::setfill('0') << std::setw(2) <<  (int) val;
 		first = false;
 	}
-	VLOG(21) << name << ss.str();
+	LOG(INFO) << name << ss.str();
 }
 } /* namespace CommNs */

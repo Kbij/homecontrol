@@ -93,6 +93,7 @@ public:
 		mLastCalibration = calibration;
 		mLastRoomName = roomName;
 	};
+	void writeTime(const std::string& name) {};
 	double mLastCalibration;
 	std::string mLastRoomName;
 	std::string mLastSensorId;

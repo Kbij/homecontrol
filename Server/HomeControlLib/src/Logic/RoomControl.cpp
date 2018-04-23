@@ -102,6 +102,7 @@ void RoomControl::workerThread()
 	LOG(INFO) << "Workerthread started for room: " << mRoomId;
 	while(mWorkerThreadRunning)
 	{
+		bool workDone = false;
 		auto until = std::chrono::system_clock::now() +std::chrono::seconds(WAIT_FOR_WORK_TIMEOUT_SEC);
 		std::unique_lock<std::mutex> lock(mConditionVarMutex);
 		mWaitForWorkCondVar.wait_until(lock, until,[&]{return (bool)(mWorkReceived > 0);});
@@ -111,6 +112,8 @@ void RoomControl::workerThread()
 			while (mUpRequested)
 			{
 				VLOG(1) << "Processing Temperature Up";
+				workDone = true;
+
 				--mUpRequested;
 				mSetTemperature += SET_TEMP_DELTA;
 				if (mSetTemperature > MAX_SET_TEMPERATURE) mSetTemperature = MAX_SET_TEMPERATURE;
@@ -118,22 +121,13 @@ void RoomControl::workerThread()
 				if (mRoomListener)
 				{
 					mRoomListener->setPointChanged(mRoomId, mSetTemperature);
-
-					// Thermostat function; need a seperate object
-					if (mSetTemperature >  mRoomTemperature)
-					{
-						mRoomListener->heaterOn(mRoomId);
-					}
-					else
-					{
-						mRoomListener->heaterOff(mRoomId);
-					}
 				}
 			}
 
 			while (mDownRequested)
 			{
 				VLOG(1) << "Processing Temperature Down";
+				workDone = true;
 
 				--mDownRequested;
 				mSetTemperature -= SET_TEMP_DELTA;
@@ -142,40 +136,33 @@ void RoomControl::workerThread()
 				if (mRoomListener)
 				{
 					mRoomListener->setPointChanged(mRoomId, mSetTemperature);
-
-					// Thermostat function; need a seperate object
-					if (mSetTemperature >  mRoomTemperature)
-					{
-						mRoomListener->heaterOn(mRoomId);
-					}
-					else
-					{
-						mRoomListener->heaterOff(mRoomId);
-					}
 				}
 			}
 			if (mTempReceived)
 			{
+				workDone = true;
+
 				if (mRoomListener)
 				{
 					mRoomListener->temperatureChanged(mRoomId, mRoomTemperature);
-
-					// Thermostat function; need a seperate object
-					if (mSetTemperature >  mRoomTemperature)
-					{
-						mRoomListener->heaterOn(mRoomId);
-					}
-					else
-					{
-						mRoomListener->heaterOff(mRoomId);
-					}
 				}
 				mTempReceived = false;
 			}
 
 			--mWorkReceived;
 		}
-
+		if (workDone)
+		{
+			// Thermostat function; need a seperate object
+			if (mSetTemperature >  mRoomTemperature)
+			{
+				mRoomListener->heaterOn(mRoomId);
+			}
+			else
+			{
+				mRoomListener->heaterOff(mRoomId);
+			}
+		}
 	}
 }
 } /* namespace LogicNs */
