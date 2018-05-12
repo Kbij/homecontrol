@@ -27,4 +27,5 @@ message(STATUS "Sysroot: " ${SYSROOT})
 link_directories(${SYSROOT}/lib/)
 add_subdirectory (./HomeControlLib)
 add_subdirectory (./HomeControlServer)
+add_subdirectory (./HomeControlTest)
 
