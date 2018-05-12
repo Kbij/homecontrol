@@ -1,4 +1,9 @@
 // HCServer Mainboard 
+/*
+Write I2C data from Raspberry to board:
+i2cset -y 1 0x8 48 255 24 i
+
+*/
 
 #include <Wire.h>
 const int I2C_SLAVE_ADR = 0x08;
@@ -67,59 +72,60 @@ void processCounters()
 	{
 		switch (pos)
 		{
-		case REL0:
-		{
-			digitalWrite(PIN_REL0, (counters[REL0] > 0));
-			break;
-		}
-		case REL1:
-		{
-			digitalWrite(PIN_REL1, (counters[REL1] > 0));
-			break;
-		}
-		case REL2:
-		{
-			digitalWrite(PIN_REL2, (counters[REL2] > 0));
-			break;
-		}
-		case REL3:
-		{
-			digitalWrite(PIN_REL3, (counters[REL3] > 0));
-			break;
-		}
-		case REL4:
-		{
-			digitalWrite(PIN_REL4, (counters[REL4] > 0));
-			break;
-		}
-		case REL5:
-		{
-			digitalWrite(PIN_REL5, (counters[REL5] > 0));
-			break;
-		}
-		case REL6:
-		{
-			digitalWrite(PIN_REL6, (counters[REL6] > 0));
-			break;
-		}
-		case REL7:
-		{
-			digitalWrite(PIN_REL7, (counters[REL7] > 0));
-			break;
-		}
-
-		case WD:
-		{
-			if ((counters[WD] == 0) && watchdogEnabled)
+			case REL0:
 			{
-				//Reset Raspberry
-				digitalWrite(PIN_WD, 1);
-				delay(100);
-				watchdogEnabled = false;
+				digitalWrite(PIN_REL0, (counters[REL0] > 0));
+				break;
 			}
-			digitalWrite(PIN_REL7, (counters[REL7] > 0));
-			break;
-		}
+			case REL1:
+			{
+				digitalWrite(PIN_REL1, (counters[REL1] > 0));
+				break;
+			}
+			case REL2:
+			{
+				digitalWrite(PIN_REL2, (counters[REL2] > 0));
+				break;
+			}
+			case REL3:
+			{
+				digitalWrite(PIN_REL3, (counters[REL3] > 0));
+				break;
+			}
+			case REL4:
+			{
+				digitalWrite(PIN_REL4, (counters[REL4] > 0));
+				break;
+			}
+			case REL5:
+			{
+				digitalWrite(PIN_REL5, (counters[REL5] > 0));
+				break;
+			}
+			case REL6:
+			{
+				digitalWrite(PIN_REL6, (counters[REL6] > 0));
+				break;
+			}
+			case REL7:
+			{
+				digitalWrite(PIN_REL7, (counters[REL7] > 0));
+				break;
+			}
+
+			case WD:
+			{
+				if ((counters[WD] == 0) && watchdogEnabled)
+				{
+					//Reset Raspberry
+					digitalWrite(PIN_WD, 1);
+					delay(100);
+					digitalWrite(PIN_WD, 0);
+
+					watchdogEnabled = false;
+				}
+				break;
+			}
 		}
 	}
 }
@@ -175,11 +181,9 @@ void processReceived(byte cmd, byte value)
 		}
 		case WD_ENABLE_CMD:
 		{
-			watchdogEnabled = value;
+			watchdogEnabled = value > 0;
 		}
-		}
-
-	printCounters();
+	}
 }
 
 void loop()
@@ -192,8 +196,8 @@ void loop()
 			counters[pos] -= 1;
 		}
 	}
-	printCounters();
-	processCounters();
+
+	//Check if new data need processing
 	byte cmd;
 	byte value;
 	bool process = false;
@@ -212,6 +216,9 @@ void loop()
 	{
 		processReceived(cmd, value);
 	}
+
+	printCounters();
+	processCounters();
 }
 
 void printCounters()
@@ -229,8 +236,10 @@ void printCounters()
 		Serial.print(counters[pos]);
 		first = false;
 	}
+
 	Serial.print(", wd: ");
 	Serial.print(watchdogEnabled);
+
 	Serial.println();
 }
 
@@ -256,22 +265,17 @@ byte CRC8(const byte *data, byte len)
 
 void receiveEvent(int bytesReceived)
 {
-	// 3 bytes = counter set (cmd, ~cmd, value )
+	// 3 bytes = counter set (cmd, value, crc )
 	if (bytesReceived == 3)
 	{
 		int pos = 0;
-		Serial.print("receive: ");
 		while (Wire.available() > 0 & pos < 3)
 		{
 			receiveBuffer[pos] = Wire.read();
-			Serial.print((int)receiveBuffer[pos]);
-			Serial.print(" ");
 			pos++;
 		}
-		Serial.println("");
 
 		byte crc = CRC8(receiveBuffer, 2);
-		Serial.print((int) crc);
 		if (receiveBuffer[2] == crc)
 		{
 			commandReceived = true;
