@@ -32,6 +32,8 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(LocationViewer));
             this.mapOverview = new GMap.NET.WindowsForms.GMapControl();
             this.tmrRefresh = new System.Windows.Forms.Timer(this.components);
+            this.lstSource = new System.Windows.Forms.ComboBox();
+            this.cmbHours = new System.Windows.Forms.ComboBox();
             this.SuspendLayout();
             // 
             // mapOverview
@@ -64,11 +66,33 @@
             // 
             this.tmrRefresh.Tick += new System.EventHandler(this.tmrRefresh_Tick);
             // 
+            // lstSource
+            // 
+            this.lstSource.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.lstSource.FormattingEnabled = true;
+            this.lstSource.Location = new System.Drawing.Point(0, 0);
+            this.lstSource.Name = "lstSource";
+            this.lstSource.Size = new System.Drawing.Size(174, 21);
+            this.lstSource.TabIndex = 1;
+            this.lstSource.SelectedValueChanged += new System.EventHandler(this.lstSource_SelectedValueChanged);
+            // 
+            // cmbHours
+            // 
+            this.cmbHours.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbHours.FormattingEnabled = true;
+            this.cmbHours.Location = new System.Drawing.Point(181, 0);
+            this.cmbHours.Name = "cmbHours";
+            this.cmbHours.Size = new System.Drawing.Size(111, 21);
+            this.cmbHours.TabIndex = 2;
+            this.cmbHours.SelectedIndexChanged += new System.EventHandler(this.cmbHours_SelectedIndexChanged);
+            // 
             // LocationViewer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(823, 503);
+            this.Controls.Add(this.cmbHours);
+            this.Controls.Add(this.lstSource);
             this.Controls.Add(this.mapOverview);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "LocationViewer";
@@ -83,5 +107,7 @@
 
         private GMap.NET.WindowsForms.GMapControl mapOverview;
         private System.Windows.Forms.Timer tmrRefresh;
+        private System.Windows.Forms.ComboBox lstSource;
+        private System.Windows.Forms.ComboBox cmbHours;
     }
 }

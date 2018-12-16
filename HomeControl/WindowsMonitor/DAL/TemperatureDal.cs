@@ -31,7 +31,7 @@ namespace WindowsMonitor.DAL
                     adapter.Fill(dt);
                 }
             }
-            catch (Exception ex)
+            catch (Exception /*ex*/)
             {
 
             }
@@ -51,7 +51,7 @@ namespace WindowsMonitor.DAL
                     adapter.Fill(dt);
                 }
             }
-            catch (Exception ex)
+            catch (Exception /*ex*/)
             {
 
             }

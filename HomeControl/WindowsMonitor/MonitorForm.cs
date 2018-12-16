@@ -15,20 +15,6 @@ namespace WindowsMonitor
         GpsLocation mHome;
         Dictionary<Tuple<string, DateTime>, List<GpsLocation>> mLocations;
         LocationDal mDal;
-        private class Item
-        {
-            public string Name;
-            public int Value;
-            public Item(string name, int value)
-            {
-                Name = name; Value = value;
-            }
-            public override string ToString()
-            {
-                // Generates the text shown in the combo box
-                return Name;
-            }
-        }
         public MonitorForm()
         {
             InitializeComponent();
@@ -123,7 +109,7 @@ namespace WindowsMonitor
             lock(mLocations)
             {
                 Item itm = (Item)cmbHours.SelectedItem;
-                mLocations = mDal.fillLastLocation(itm.Value);
+                mLocations = mDal.fillLastLocation(itm.Value, "");
                 Invoke((MethodInvoker)(() => this.updateSummary()));
             }
         }
@@ -143,7 +129,7 @@ namespace WindowsMonitor
             {
                 foreach (var client in mLocations)
                 {
-                    if (cmbClient.SelectedItem.ToString() != client.Key.Item1) return;
+                    if (cmbClient.SelectedItem.ToString() != client.Key.Item1) continue;
 
                     if (client.Value.Count > 2)
                     {
@@ -250,8 +236,30 @@ namespace WindowsMonitor
 
         private void MonitorForm_KeyDown(object sender, KeyEventArgs e)
         {
-            LocationViewer location = new LocationViewer(cmbClient.SelectedItem.ToString());
-            location.Show();
+            switch (e.KeyCode)
+            {
+                case Keys.F11:
+                {
+                    if (openFileDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        LocationViewer location = new LocationViewer(openFileDialog.FileName);
+                        location.Show();
+
+                     }
+                     break;
+                }
+                case Keys.F12:
+                {
+                    LocationViewer location = new LocationViewer();
+                    location.Show();
+                    break;
+                }
+                default:
+                {
+                    break;
+                }
+
+            }
         }
     }
 }

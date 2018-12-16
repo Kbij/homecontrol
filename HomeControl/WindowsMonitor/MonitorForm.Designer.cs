@@ -33,6 +33,7 @@
             this.listSummary = new System.Windows.Forms.ListView();
             this.colName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colDist = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colAccuracy = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.collastConnected = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colLastLocation = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.tmrUpdate = new System.Windows.Forms.Timer(this.components);
@@ -42,7 +43,7 @@
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.backgroundWorker2 = new System.ComponentModel.BackgroundWorker();
             this.cmbClient = new System.Windows.Forms.ComboBox();
-            this.colAccuracy = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.SuspendLayout();
             // 
             // listSummary
@@ -72,6 +73,10 @@
             // colDist
             // 
             this.colDist.Text = "Distance";
+            // 
+            // colAccuracy
+            // 
+            this.colAccuracy.Text = "Accuracy";
             // 
             // collastConnected
             // 
@@ -131,9 +136,9 @@
             this.cmbClient.Size = new System.Drawing.Size(97, 21);
             this.cmbClient.TabIndex = 12;
             // 
-            // colAccuracy
+            // openFileDialog
             // 
-            this.colAccuracy.Text = "Accuracy";
+            this.openFileDialog.FileName = "openFileDialog";
             // 
             // MonitorForm
             // 
@@ -169,6 +174,7 @@
         private System.ComponentModel.BackgroundWorker backgroundWorker2;
         private System.Windows.Forms.ComboBox cmbClient;
         private System.Windows.Forms.ColumnHeader colAccuracy;
+        private System.Windows.Forms.OpenFileDialog openFileDialog;
     }
 }
 
