@@ -1,14 +1,19 @@
-﻿using System;
+﻿using Android;
 using Android.App;
 using Android.Content;
-using Android.Runtime;
+using Android.Content.PM;
+using Android.Gms.Common;
+using Android.OS;
+using Android.Support.V4.App;
+using Android.Support.V4.Content;
 using Android.Views;
 using Android.Widget;
-using Android.OS;
-using HomeControl.HCService;
 using HomeControl.Comm;
-using System.IO;
+using HomeControl.HCService;
 using HomeControl.Logic;
+using System;
+using System.Collections.Generic;
+using System.IO;
 
 namespace HomeControl
 {
@@ -21,6 +26,7 @@ namespace HomeControl
         private GridView mGridView;
         private TemperatureModel mTemperatureModel;
         private HCLogger mLog;
+        private const int REQUEST_PERMISSIONS = 1;
         static void HandleExceptions(object sender, UnhandledExceptionEventArgs ex)
         {
             string fileName = "/sdcard/Android/data/HomeControl.HomeControl/files/HomeControlUnhandled.log";//Path.Combine(path, "HomeControl.log");
@@ -44,20 +50,98 @@ namespace HomeControl
             mTemperatureModel = new TemperatureModel();
             mGridView = FindViewById<GridView>(Resource.Id.gridView);
             mGridView.Adapter = new TemperatureAdapter(this, mTemperatureModel);
-
-            StartService(new Intent(this, typeof(HomeControlService)));
         }
+
         protected override void OnStart()
         {
             base.OnStart();
+            if (!IsGooglePlayServicesInstalled())
+            {
+                mLog.Send("Google play services are not installed (should not happen)");
+            }
+
+            if (CheckPermissions())
+            {   //Start immediately if all permissions are ok
+                startHomeControlService();
+            }
+
+        }
+
+        bool CheckPermissions()
+        {
+            List<string> requiredPermissions = new List<string>();
+
+            //Do we have the permissions ?
+            if (ContextCompat.CheckSelfPermission(this, Manifest.Permission.AccessFineLocation) != (int)Permission.Granted)
+            {
+                // Are we allowed to ask (did the user deny forever ?
+                if (ActivityCompat.ShouldShowRequestPermissionRationale(this, Manifest.Permission.AccessFineLocation))
+                {
+                    requiredPermissions.Add(Manifest.Permission.AccessFineLocation);
+                }
+                else
+                {
+                    requiredPermissions.Add(Manifest.Permission.AccessFineLocation);
+                }
+            }
+            if (ContextCompat.CheckSelfPermission(this, Manifest.Permission.WriteExternalStorage) != (int)Permission.Granted)
+            {
+                if (ActivityCompat.ShouldShowRequestPermissionRationale(this, Manifest.Permission.WriteExternalStorage))
+                {
+                    requiredPermissions.Add(Manifest.Permission.WriteExternalStorage);
+                }
+                else
+                {
+                    requiredPermissions.Add(Manifest.Permission.WriteExternalStorage);
+                }
+            }
+            if (requiredPermissions.Count > 0)
+            {
+                ActivityCompat.RequestPermissions(this, requiredPermissions.ToArray(), REQUEST_PERMISSIONS);
+                return false;
+            }
+            return true;
+        }
+
+        public override void OnRequestPermissionsResult(int requestCode, string[] permissions, Permission[] grantResults)
+        {
+            if (requestCode == REQUEST_PERMISSIONS)
+            {
+                // Received permission result for camera permission.
+                mLog.SendToHost("MainService", "Received response for Location permission request.");
+
+                bool allGranted = true;
+                foreach(var grant in grantResults)
+                {
+                    allGranted = allGranted && (grant == Permission.Granted);
+                }
+                if (allGranted)
+                {
+                    mLog.SendToHost("MainService", "All permissions have been grated.");
+                    startHomeControlService();
+                }
+                else
+                {
+                    mLog.SendToHost("MainService", "Not all permissions where granted");
+                }
+            }
+            else
+            {
+                base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
+            }
+        }
+        void startHomeControlService()
+        {
+            StartService(new Intent(this, typeof(HomeControlService)));
+
             mLog.SendToHost("MainService", "OnStart");
             Intent hcServiceIntent = new Intent(this, typeof(HomeControlService));
 
             mServiceConnection = new HCServiceConnection(this);
             if (BindService(hcServiceIntent, mServiceConnection, Bind.AutoCreate))
             {
-                
-               // Log.Debug(TAG, "Service binded");
+
+                // Log.Debug(TAG, "Service binded");
             }
             else
             {
@@ -65,7 +149,26 @@ namespace HomeControl
             }
             mIsBound = true;
         }
+        bool IsGooglePlayServicesInstalled()
+        {
+            var queryResult = GoogleApiAvailability.Instance.IsGooglePlayServicesAvailable(this);
+            if (queryResult == ConnectionResult.Success)
+            {
+                mLog.SendToHost("MainActivity", "Google Play Services is installed on this device.");
+                return true;
+            }
 
+            if (GoogleApiAvailability.Instance.IsUserResolvableError(queryResult))
+            {
+                // Check if there is a way the user can resolve the issue
+                var errorString = GoogleApiAvailability.Instance.GetErrorString(queryResult);
+                mLog.SendToHost("MainActivity", string.Format("There is a problem with Google Play Services on this device: {0}- {1}", queryResult, errorString));
+
+                // Alternately, display the error to the user.
+            }
+
+            return false;
+        }
         protected override void OnStop()
         {
             mLog.SendToHost("MainService", "OnStop");

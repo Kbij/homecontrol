@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
 using Android.App;
 using Android.Content;
 using Android.OS;
@@ -13,20 +12,20 @@ using Android.Util;
 using Android.Locations;
 using HomeControl.Comm;
 using System.IO;
+using Android.Gms.Common;
+using Android.Gms.Location;
 
 namespace HomeControl.HCService
 {
     [Service]
-    public class HomeControlService : Service, ILocationListener
+    public class HomeControlService : Service, ILocationListener //, LocationCallback //Android.Gms.Location.ILocationListener
     {
         HCServiceBinder mBinder;
-        LocationManager _locationManager;
         const string TAG = "HomeControlService";
-        string _locationProvider;
         CommModel mCommModel;
         HCLogger mLog;
-        Location lastLocation;
-        private int MAXIMUM_LOCATION_AGE = 1000 * 60 * 2;
+        FusedLocationProviderClient mFusedLocationProviderClient;
+        LocationCallBack mLocationCallBack;
 
         public HomeControlService()
         {
@@ -40,22 +39,26 @@ namespace HomeControl.HCService
 
         static void HandleExceptions(object sender, UnhandledExceptionEventArgs ex)
         {
-            string fileName = "/sdcard/Android/data/HomeControl.HomeControl/files/HomeControlUnhandled.log";//Path.Combine(path, "HomeControl.log");
-
-            using (var streamWriter = new StreamWriter(fileName, true))
+            try
             {
-                streamWriter.WriteLine(string.Format("{0}:{1}", DateTime.Now, ex.ToString()));
+                string path = Android.OS.Environment.ExternalStorageDirectory.AbsolutePath;
+                string fileName = Path.Combine(path, "HomeControlUnhandled.log");
+
+                using (var streamWriter = new StreamWriter(fileName, true))
+                {
+                    streamWriter.WriteLine(string.Format("{0}:{1}", DateTime.Now, ex.ToString()));
+                }
             }
+            catch (Exception)
+            { }
         }
 
         #region lifetime
         public override StartCommandResult OnStartCommand(Android.Content.Intent intent, StartCommandFlags flags, int startId)
         {
-
             mLog = new HCLogger("192.168.10.10", 8001, "Service.log");
     
             mLog.SendToHost("HomeControlService", "HomeControlService started");
-            //mLog.SendToHost("HomeControlService", "HCService constructor");
             mCommModel = new CommModel(mLog);
             mCommModel.startComm();
 
@@ -83,12 +86,6 @@ namespace HomeControl.HCService
         public override void OnTaskRemoved(Intent rootIntent)
         {
             mLog.SendToHost("HomeControlService", "HomeControlService ontaskremoved");
-            // TODO Auto-generated method stub
-            //Intent restartService = new Intent(getApplicationContext(), this.getClass());
-            //restartService.setPackage(getPackageName());
-            //PendingIntent restartServicePI = PendingIntent.getService(getApplicationContext(), 1, restartService, PendingIntent.FLAG_ONE_SHOT);
-            //AlarmManager alarmService = (AlarmManager)getApplicationContext().getSystemService(Context.ALARM_SERVICE);
-            //alarmService.set(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime() + 1000, restartServicePI);
         }
 
         public override IBinder OnBind(Intent intent)
@@ -119,73 +116,24 @@ namespace HomeControl.HCService
 
         void InitializeLocationManager()
         {
-            _locationManager = (LocationManager)GetSystemService(LocationService);
-            Criteria criteriaForLocationService = new Criteria{Accuracy = Accuracy.Medium, PowerRequirement = Power.Low};
-            IList<string> acceptableLocationProviders = _locationManager.GetProviders(criteriaForLocationService, true);
+            mFusedLocationProviderClient = LocationServices.GetFusedLocationProviderClient(this);
+            mLocationCallBack = new LocationCallBack(mLog, this);
 
-            foreach (var provider in acceptableLocationProviders)
-            {
-                mLog.SendToHost(TAG, "Provider: " + provider);
-            }
-
-            if (acceptableLocationProviders.Any())
-            {
-                _locationProvider = acceptableLocationProviders.First();
-            }
-            else
-            {
-                _locationProvider = string.Empty;
-            }
-            mLog.SendToHost("HomeControlService", string.Format("Location provider used: {0}", _locationProvider));
-            _locationManager.RequestLocationUpdates(_locationProvider, 1 * 10 * 1000, 10, this); // Min 10 second, 10 meters
-            //_locationManager.RequestLocationUpdates(_locationProvider, 0, 0, this); // Min 1 minute
-
-            MessageObject msg = new MessageObject();
-            msg.Message = string.Format("Using location provider: {0}", _locationProvider);
-            mCommModel.sendObjectQueued(msg);
+            Android.Gms.Location.LocationRequest locationRequest = new LocationRequest()
+                                  .SetPriority(LocationRequest.PriorityHighAccuracy)
+                                  .SetInterval(60 * 1000 * 3)
+                                  .SetFastestInterval(60 * 1000 * 1);
+            mFusedLocationProviderClient.RequestLocationUpdates(locationRequest, mLocationCallBack, null);
         }
 
-        public void OnLocationChanged(Location location)
+        public void NewLocation(Location location)
         {
-            mLog.SendToHost(TAG, string.Format("Location: {0}", location.ToString()));
-            //_currentLocation = location;
-            if (location == null)
+            if (location != null)
             {
-                mLog.SendToHost(TAG, "Unable to determine your location. Try again in a short while.");
+                mLog.SendToHost("HomeControlService", "Sending location ....");
+                GpsLocation loc = new GpsLocation { Latitude = location.Latitude, Longitude = location.Longitude, Accuracy = location.Accuracy };
+                mCommModel.sendObjectQueued(loc);
             }
-            else
-            {
-                if (location.Accuracy < 500)
-                {
-                    Log.Debug(TAG, string.Format("lat: {0:f6}, lon: {1:f6}, acc:{2}", location.Latitude, location.Longitude, location.Accuracy));
-                    if (isBetterLocation(location, lastLocation))
-                    {
-                        lastLocation = location;
-                        GpsLocation loc = new GpsLocation { Latitude = location.Latitude, Longitude = location.Longitude, Accuracy = location.Accuracy };
-                        mCommModel.sendObjectQueued(loc);
-                    }
-                    else
-                    {
-                        mLog.SendToHost(TAG, "Received location is worse than previous");
-                    }
-                }
-            }
-        }
-
-        public void OnProviderDisabled(string provider)
-        {
-            mLog.SendToHost(TAG, "Provider disabled");
-            MessageObject msg = new MessageObject();
-            msg.Message = "Provider disabled";
-            mCommModel.sendObjectQueued(msg);
-        }
-
-        public void OnProviderEnabled(string provider)
-        {
-            mLog.SendToHost(TAG, "Provider enabled");
-            MessageObject msg = new MessageObject();
-            msg.Message = "Provider enabled";
-            mCommModel.sendObjectQueued(msg);
         }
 
         public void OnStatusChanged(string provider, Availability status, Bundle extras)
@@ -194,108 +142,6 @@ namespace HomeControl.HCService
             msg.Message = string.Format("Provider status changed, provider: {0}, status: {1}", provider, status.ToString());
             mCommModel.sendObjectQueued(msg);
         }
-
-        /** Determines whether one Location reading is better than the current Location fix
-          * @param location  The new Location that you want to evaluate
-          * @param currentBestLocation  The current Location fix, to which you want to compare the new one
-          */
-        protected bool isBetterLocation(Location location, Location currentBestLocation)
-        {
-            if (currentBestLocation == null)
-            {
-                // A new location is always better than no location
-                return true;
-            }
-
-            // Check whether the new location fix is newer or older
-            long timeDelta = location.Time - currentBestLocation.Time;
-            bool isSignificantlyNewer = timeDelta > MAXIMUM_LOCATION_AGE;
-            bool isSignificantlyOlder = timeDelta < -MAXIMUM_LOCATION_AGE;
-            bool isNewer = timeDelta > 0;
-            double distanceBetween = distance(location, currentBestLocation);
-            double accuracySum = location.Accuracy + currentBestLocation.Accuracy;
-            
-            // If the distance between both is larger than the sum of the accuracy
-            if (distanceBetween > accuracySum)
-            {
-                return true;
-            }
-            // If it's been more than two minutes since the current location, use the new location
-            // because the user has likely moved
-            if (isSignificantlyNewer)
-            {
-                return true;
-                // If the new location is more than two minutes older, it must be worse
-            }
-            else if (isSignificantlyOlder)
-            {
-                return false;
-            }
-
-            // Check whether the new location fix is more or less accurate
-            int accuracyDelta = (int)(location.Accuracy - currentBestLocation.Accuracy);
-            bool isLessAccurate = accuracyDelta > 0;
-            bool isMoreAccurate = accuracyDelta < 0;
-            bool isSignificantlyLessAccurate = accuracyDelta > 200;
-
-            // Check if the old and new location are from the same provider
-            bool isFromSameProvider = isSameProvider(location.Provider,
-                    currentBestLocation.Provider);
-
-            // Determine location quality using a combination of timeliness and accuracy
-            if (isMoreAccurate)
-            {
-                return true;
-            }
-            else if (isNewer && !isLessAccurate)
-            {
-                return true;
-            }
-            else if (isNewer && !isSignificantlyLessAccurate && isFromSameProvider)
-            {
-                return true;
-            }
-            return false;
-        }
-
-        /** Checks whether two providers are the same */
-        private bool isSameProvider(String provider1, String provider2)
-        {
-            if (provider1 == null)
-            {
-                return provider2 == null;
-            }
-            return provider1.Equals(provider2);
-        }
-
-        public double distance(Location first, Location second)
-        {
-            double theta = first.Longitude - second.Longitude;
-            double dist = Math.Sin(deg2rad(first.Latitude)) * Math.Sin(deg2rad(second.Latitude)) + Math.Cos(deg2rad(first.Latitude)) * Math.Cos(deg2rad(second.Latitude)) * Math.Cos(deg2rad(theta));
-            dist = Math.Acos(dist);
-            dist = rad2deg(dist);
-            dist = dist * 60 * 1.1515;
-            dist = dist * 1609.344;
-
-            return (dist);
-        }
-
-        //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        //::  This function converts decimal degrees to radians             :::
-        //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        private double deg2rad(double deg)
-        {
-            return (deg * Math.PI / 180.0);
-        }
-
-        //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        //::  This function converts radians to decimal degrees             :::
-        //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        private double rad2deg(double rad)
-        {
-            return (rad / Math.PI * 180.0);
-        }
-
         #endregion hcservice
     }
 

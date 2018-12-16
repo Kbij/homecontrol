@@ -21,7 +21,7 @@ namespace HomeControl.Comm
         const string HEADER = "HCM";
         const string SERVER_HOST = "paradijs.mooo.com";
         const int SERVER_PORT = 5678;
-        HCLogger mLog;
+        HCLogger mLog = null;
         Socket mSocket;
         Object mLock;
 
@@ -30,8 +30,8 @@ namespace HomeControl.Comm
 
         public CloudSocket(HCLogger logger)
         {
-            mLog = logger;
-            mLog.SendToHost("CloudSocket", "CloudSocket created");
+           // mLog = logger;
+            if (mLog != null) mLog.SendToHost("CloudSocket", "CloudSocket created");
             mSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             mBuffer = new List<byte>();
             mSocketState = SocketState.Connecting;
@@ -41,7 +41,7 @@ namespace HomeControl.Comm
 
         public void Dispose()
         {
-            mLog.SendToHost("CloudSocket", "CloudSocket disposed");
+            if (mLog != null) mLog.SendToHost("CloudSocket", "CloudSocket disposed");
             stopThread();
         }
 
@@ -77,7 +77,7 @@ namespace HomeControl.Comm
 
         public bool sendFrame(byte objectId, List<byte> frame)
         {
-            mLog.SendToHost("CloudSocket", "SendFrame 1");
+            if (mLog != null) mLog.SendToHost("CloudSocket", "SendFrame 1");
 
             if (mSocket.Connected)
             {
@@ -85,7 +85,7 @@ namespace HomeControl.Comm
                 {
                     List<Byte> sendFrame = new List<byte>();
                     sendFrame.AddRange(System.Text.Encoding.ASCII.GetBytes("HCM"));
-                    mLog.SendToHost("CloudSocket", string.Format("Sendframe, objectId: {0}, length: {1}", objectId, frame.Count));
+                    if (mLog != null) mLog.SendToHost("CloudSocket", string.Format("Sendframe, objectId: {0}, length: {1}", objectId, frame.Count));
                     int length = frame.Count;
                     int msb = (int)(length / 256);
                     int lsb = length - (msb * 256);
@@ -102,7 +102,7 @@ namespace HomeControl.Comm
                 }
                 catch (Exception ex)
                 {
-                    mLog.SendToHost("CloudSocket", string.Format("Exception in sendFrame: {0}", ex.Message));
+                    if (mLog != null) mLog.SendToHost("CloudSocket", string.Format("Exception in sendFrame: {0}", ex.Message));
                     lock (mLock)
                     {
                         mSocketState = SocketState.Disconnected;
@@ -131,14 +131,14 @@ namespace HomeControl.Comm
             }
             catch (Exception ex)
             {
-                mLog.SendToHost("CloudSocket", string.Format("Exception in stopthread: {0}", ex.Message));
+                if (mLog != null) mLog.SendToHost("CloudSocket", string.Format("Exception in stopthread: {0}", ex.Message));
             }
             mThread.Join();
         }
 
         private void processReceiveBuffer()
         {
-            mLog.SendToHost("CloudSocket", "ProcessReceived 1");
+            if (mLog != null) mLog.SendToHost("CloudSocket", "ProcessReceived 1");
             bool frameFound = true;
             while (frameFound)
             {
@@ -157,7 +157,7 @@ namespace HomeControl.Comm
                     }
                 }
             }
-            mLog.SendToHost("CloudSocket", "ProcessReceived 2");
+            if (mLog != null) mLog.SendToHost("CloudSocket", "ProcessReceived 2");
 
         }
 
@@ -172,25 +172,25 @@ namespace HomeControl.Comm
                     mSocketState = SocketState.Connected;
                 }
 
-                mLog.SendToHost("CloudSocket", "Connected with server");
+                if (mLog != null) mLog.SendToHost("CloudSocket", "Connected with server");
                 SocketConnectedEvent();
 
                 int bytesReceived = 0;
                 Byte[] bytes = new Byte[256];
                 while ((bytesReceived = mSocket.Receive(bytes)) != 0)
                 {
-                    mLog.SendToHost("CloudSocket", string.Format("Bytes received: {0}", bytesReceived));
+                    if (mLog != null) mLog.SendToHost("CloudSocket", string.Format("Bytes received: {0}", bytesReceived));
                     mBuffer.AddRange(bytes.Take(bytesReceived).ToArray());
                     processReceiveBuffer();
                 }
             }
             catch (Exception ex)
             {
-                mLog.SendToHost("CloudSocket", string.Format("Exception in comm thread: {0}", ex.Message));
+                if (mLog != null) mLog.SendToHost("CloudSocket", string.Format("Exception in comm thread: {0}", ex.Message));
             }
             mSocketState = SocketState.Disconnected;
 
-            mLog.SendToHost("CloudSocket", "Done");
+            if (mLog != null) mLog.SendToHost("CloudSocket", "Done");
  
             //Cleaning up
             try
@@ -199,7 +199,7 @@ namespace HomeControl.Comm
             }
             catch (Exception ex)
             {
-                mLog.SendToHost("CloudSocket", string.Format("Exception in cleanup CloudSocket: {0}", ex.Message));
+                if (mLog != null) mLog.SendToHost("CloudSocket", string.Format("Exception in cleanup CloudSocket: {0}", ex.Message));
             }
         }
     }
