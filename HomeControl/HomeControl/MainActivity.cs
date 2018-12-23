@@ -132,7 +132,7 @@ namespace HomeControl
         }
         void startHomeControlService()
         {
-            StartService(new Intent(this, typeof(HomeControlService)));
+            StartForegroundService(new Intent(this, typeof(HomeControlService)));
 
             mLog.SendToHost("MainService", "OnStart");
             Intent hcServiceIntent = new Intent(this, typeof(HomeControlService));

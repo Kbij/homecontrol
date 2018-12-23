@@ -21,7 +21,7 @@ namespace HomeControl.HCService
         {
             if (intent.Action == Intent.ActionBootCompleted || intent.Action == "RestartHCService")
             {
-                context.ApplicationContext.StartService(new Intent(context, typeof(HomeControlService)));
+                context.ApplicationContext.StartForegroundService(new Intent(context, typeof(HomeControlService)));
             }
         }
     }
