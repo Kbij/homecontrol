@@ -164,7 +164,7 @@ void TemperatureSensors::receiveMessage(const DMMessageIf* message)
 				break;
 			}
 			default:
-				LOG(ERROR) << "Unhandled message type:" << message->toString();
+				VLOG(1) << "Unhandled message type:" << message->toString();
 				break;
 		}
 	}

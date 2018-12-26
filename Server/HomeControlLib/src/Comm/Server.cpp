@@ -177,10 +177,10 @@ void Server::maintenanceThread()
 				}
 				else
 				{
-					if (mDal)
+					if (mDal && (*clientIt)->name() != "Unknown")
 					{
 						int interval = mDal->locationInterval((*clientIt)->name());
-						if (interval != (*clientIt)->locationInterval() && (*clientIt)->name() != "Unknown")
+						if (interval != (*clientIt)->locationInterval())
 						{
 							LOG(INFO) << "Location interval change for client: " << (*clientIt)->name() << ", interval: " << interval;
 							(*clientIt)->locationInterval(interval);
