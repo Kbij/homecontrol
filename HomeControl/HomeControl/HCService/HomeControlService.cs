@@ -22,7 +22,7 @@ namespace HomeControl.HCService
 {
     //https://stackoverflow.com/questions/41294930/android-app-add-geofences-and-receive-intents-in-same-service/41354293
     [Service]
-    public class HomeControlService : Service, ICommReceiver, ILocationListener, GoogleApiClient.IConnectionCallbacks, GoogleApiClient.IOnConnectionFailedListener, Android.Gms.Common.Apis.IResultCallback
+    public class HomeControlService : Service, ICommReceiver, ILocationListener //, GoogleApiClient.IConnectionCallbacks, GoogleApiClient.IOnConnectionFailedListener, Android.Gms.Common.Apis.IResultCallback
     {
         HCServiceBinder mBinder;
         const string TAG = "HomeControlService";
@@ -311,62 +311,62 @@ namespace HomeControl.HCService
 //            }
 //        }
 
-        string GetGeofenceTransitionDetails(Context context, int geofenceTransition, IList<IGeofence> triggeringGeofences)
-        {
-            string geofenceTransitionString = GetTransitionString(geofenceTransition);
+        //string GetGeofenceTransitionDetails(Context context, int geofenceTransition, IList<IGeofence> triggeringGeofences)
+        //{
+        //    string geofenceTransitionString = GetTransitionString(geofenceTransition);
 
-            var triggeringGeofencesIdsList = new List<string>();
-            foreach (IGeofence geofence in triggeringGeofences)
-            {
-                triggeringGeofencesIdsList.Add(geofence.RequestId);
-            }
-            var triggeringGeofencesIdsString = string.Join(", ", triggeringGeofencesIdsList);
+        //    var triggeringGeofencesIdsList = new List<string>();
+        //    foreach (IGeofence geofence in triggeringGeofences)
+        //    {
+        //        triggeringGeofencesIdsList.Add(geofence.RequestId);
+        //    }
+        //    var triggeringGeofencesIdsString = string.Join(", ", triggeringGeofencesIdsList);
 
-            return geofenceTransitionString + ": " + triggeringGeofencesIdsString;
-        }
+        //    return geofenceTransitionString + ": " + triggeringGeofencesIdsString;
+        //}
 
-        string GetTransitionString(int transitionType)
-        {
-            switch (transitionType)
-            {
-                case Geofence.GeofenceTransitionEnter:
-                    return "Entered";
-                case Geofence.GeofenceTransitionExit:
-                    return "Exited";
-                default:
-                    return "Unknown transition";
-            }
-        }
+        //string GetTransitionString(int transitionType)
+        //{
+        //    switch (transitionType)
+        //    {
+        //        case Geofence.GeofenceTransitionEnter:
+        //            return "Entered";
+        //        case Geofence.GeofenceTransitionExit:
+        //            return "Exited";
+        //        default:
+        //            return "Unknown transition";
+        //    }
+        //}
+      
+
+        //public void OnStatusChanged(string provider, Availability status, Bundle extras)
+        //{
+        //    MessageObject msg = new MessageObject();
+        //    msg.Message = string.Format("Provider status changed, provider: {0}, status: {1}", provider, status.ToString());
+        //    mCommModel.sendObjectQueued(msg);
+        //}
+
+        //public void OnConnected(Bundle connectionHint)
+        //{
+        //    mLog.SendToHost("HomeControlService", "OnConnected");
+        //}
+
+        //public void OnConnectionSuspended(int cause)
+        //{
+        //    mLog.SendToHost("HomeControlService", "OnConnectionSuspended");
+        //}
+
+        //public void OnConnectionFailed(ConnectionResult result)
+        //{
+        //    mLog.SendToHost("HomeControlService", "OnConnectionFailed");
+        //}
+
+        //public void OnResult(Java.Lang.Object result)
+        //{
+        //    mLog.SendToHost("HomeControlService", "OnResult");
+        //}
+
         #endregion
-
-        public void OnStatusChanged(string provider, Availability status, Bundle extras)
-        {
-            MessageObject msg = new MessageObject();
-            msg.Message = string.Format("Provider status changed, provider: {0}, status: {1}", provider, status.ToString());
-            mCommModel.sendObjectQueued(msg);
-        }
-
-        public void OnConnected(Bundle connectionHint)
-        {
-            mLog.SendToHost("HomeControlService", "OnConnected");
-        }
-
-        public void OnConnectionSuspended(int cause)
-        {
-            mLog.SendToHost("HomeControlService", "OnConnectionSuspended");
-        }
-
-        public void OnConnectionFailed(ConnectionResult result)
-        {
-            mLog.SendToHost("HomeControlService", "OnConnectionFailed");
-        }
-
-        public void OnResult(Java.Lang.Object result)
-        {
-            mLog.SendToHost("HomeControlService", "OnResult");
-        }
-
-
         #endregion hcservice
         #region ICommReceiver
         public void receiveObject(object obj)
@@ -403,12 +403,10 @@ namespace HomeControl.HCService
 
         public void connected()
         {
-            
         }
 
         public void disconnected()
         {
-            
         }
         #endregion
     }

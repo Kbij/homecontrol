@@ -56,20 +56,23 @@ namespace HomeControl.HCService
 
                 if (location.Accuracy < 500)
                 {
-                    if (isBetterLocation(location, mLastLocation))
+                    if (mLastLocation == null || (mLastLocation != null && location.Time != mLastLocation.Time))
                     {
-                      //  mLog.SendToHost("HomeControlService", "is a better location");
-                        double distanceTraveled = 0;
-                        if (mLastLocation != null)
+                        if (isBetterLocation(location, mLastLocation))
                         {
-                            distance(mLastLocation, location);
+                            //  mLog.SendToHost("HomeControlService", "is a better location");
+                            double distanceTraveled = 0;
+                            if (mLastLocation != null)
+                            {
+                                distance(mLastLocation, location);
+                            }
+                            mLastLocation = location;
+                            if (mListener != null) mListener.NewLocation(location, distanceTraveled);
                         }
-                        mLastLocation = location;
-                        if (mListener != null) mListener.NewLocation(location, distanceTraveled);
-                    }
-                    else
-                    {
-                        mLog.SendToHost("LocationCallBack", "Received location is worse than previous");
+                        else
+                        {
+                            mLog.SendToHost("LocationCallBack", "Received location is worse than previous");
+                        }
                     }
                 }
             }
@@ -98,13 +101,6 @@ namespace HomeControl.HCService
             bool isNewer = timeDelta > 0;
             double distanceBetween = distance(location, currentBestLocation);
             double accuracySum = location.Accuracy + currentBestLocation.Accuracy;
-            //mLog.SendToHost("HomeControlService", string.Format("timeDelta: {0}", timeDelta));
-            //mLog.SendToHost("HomeControlService", string.Format("isSignificantlyNewer: {0}", isSignificantlyNewer));
-            //mLog.SendToHost("HomeControlService", string.Format("isSignificantlyOlder: {0}", isSignificantlyOlder));
-            //mLog.SendToHost("HomeControlService", string.Format("isNewer: {0}", isNewer));
-            //mLog.SendToHost("HomeControlService", string.Format("distanceBetween: {0}", distanceBetween));
-            //mLog.SendToHost("HomeControlService", string.Format("accuracySum: {0}", accuracySum));
-
 
             // If the distance between both is larger than the sum of the accuracy
             if (distanceBetween > accuracySum)
