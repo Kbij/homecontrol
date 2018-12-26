@@ -140,8 +140,12 @@ void ObjectWriter::receiveObject(const std::string name, const CommNs::CommObjec
 			delete stmt;
 		}
 		std::stringstream update;
-		update << "UPDATE Client SET lastMessage = NOW(), batteryLevel = " << batteryLevel << " WHERE clientName = '" << name << "';";
-
+		update << "UPDATE Client SET lastMessage = NOW()";
+		if (batteryLevel != -1)
+		{
+			update << ", batteryLevel = " << batteryLevel;
+		}
+		update << " WHERE clientName = '" << name << "';";
 		stmt = con->createStatement();
 		stmt->execute(update.str());
 		delete stmt;
