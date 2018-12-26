@@ -15,6 +15,6 @@ namespace HomeControl.HCService
 {
     public interface ILocationListener
     {
-        void NewLocation(Location location);
+        void NewLocation(Location location, double distanceTraveled);
     }
 }

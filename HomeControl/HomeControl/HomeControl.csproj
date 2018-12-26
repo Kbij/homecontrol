@@ -39,6 +39,7 @@
     <AndroidEnableMultiDex>False</AndroidEnableMultiDex>
     <EnableProguard>False</EnableProguard>
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <AndroidSupportedAbis>armeabi-v7a;x86;x86_64</AndroidSupportedAbis>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -106,12 +107,14 @@
     <Compile Include="Comm\ICommReceiver.cs" />
     <Compile Include="Comm\ICloudSocketListener.cs" />
     <Compile Include="Comm\JsonSerialiser.cs" />
+    <Compile Include="Comm\LocationInterval.cs" />
     <Compile Include="Comm\MessageObject.cs" />
     <Compile Include="Comm\HCLogger.cs" />
     <Compile Include="Comm\RoomList.cs" />
     <Compile Include="Comm\SetTemperature.cs" />
     <Compile Include="Comm\RoomTemperature.cs" />
     <Compile Include="Comm\TemperatureMonitoring.cs" />
+    <Compile Include="HCService\GeofenceErrorMessages.cs" />
     <Compile Include="HCService\ILocationListener.cs" />
     <Compile Include="HCService\LocationCallBack.cs" />
     <Compile Include="Logic\ITemperatureListener.cs" />

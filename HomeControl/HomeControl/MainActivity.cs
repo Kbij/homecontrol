@@ -67,6 +67,7 @@ namespace HomeControl
 
         }
 
+        #region permissions
         bool CheckPermissions()
         {
             List<string> requiredPermissions = new List<string>();
@@ -130,6 +131,8 @@ namespace HomeControl
                 base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
             }
         }
+        #endregion
+
         void startHomeControlService()
         {
             StartForegroundService(new Intent(this, typeof(HomeControlService)));
@@ -140,15 +143,10 @@ namespace HomeControl
             mServiceConnection = new HCServiceConnection(this);
             if (BindService(hcServiceIntent, mServiceConnection, Bind.AutoCreate))
             {
-
-                // Log.Debug(TAG, "Service binded");
-            }
-            else
-            {
-                //Log.Debug(TAG, "Service NOT binded");
             }
             mIsBound = true;
         }
+
         bool IsGooglePlayServicesInstalled()
         {
             var queryResult = GoogleApiAvailability.Instance.IsGooglePlayServicesAvailable(this);
@@ -169,6 +167,7 @@ namespace HomeControl
 
             return false;
         }
+
         protected override void OnStop()
         {
             mLog.SendToHost("MainService", "OnStop");
@@ -224,7 +223,6 @@ namespace HomeControl
 
         public void receiveObject(object obj)
         {
-
         }
 
         public void connected()
