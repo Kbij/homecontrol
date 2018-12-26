@@ -231,7 +231,7 @@ int HomeControlDal::locationInterval(const std::string& clientId)
 		}
 		else
 		{
-			LOG(ERROR) << "Interval not found";
+			LOG(ERROR) << "Interval not found for client: " << clientId;
 		}
 		delete res;
 		delete stmt;
