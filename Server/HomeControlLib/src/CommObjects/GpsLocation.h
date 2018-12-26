@@ -26,11 +26,13 @@ public:
 	double latitude() const {return mLatitude;};
 	double longitude() const {return mLongitude;};
 	double accuracy() const {return mAccuracy;};
+	int batteryLevel() const {return mBatteryLevel;};
 	time_t timeStamp() const {return mTimeStamp;};
 private:
 	double mLatitude;
 	double mLongitude;
 	double mAccuracy;
+	int mBatteryLevel;
 	std::time_t mTimeStamp;
 };
 

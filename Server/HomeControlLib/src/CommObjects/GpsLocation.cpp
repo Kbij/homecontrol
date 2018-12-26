@@ -34,6 +34,10 @@ GpsLocation::GpsLocation(const std::string& json):
     	{
     		mLongitude = jsonRoot["Longitude"].asDouble();
     	}
+    	if (jsonRoot.isMember("BatteryLevel"))
+    	{
+    		mBatteryLevel = jsonRoot["BatteryLevel"].asDouble();
+    	}
     	if (jsonRoot.isMember("TimeStamp"))
     	{
     		// (1459800687043+
@@ -64,7 +68,7 @@ uint8_t GpsLocation::objectId() const
 std::string GpsLocation::toString() const
 {
 	std::stringstream ss;
-	ss << "Lat: " << mLatitude << ", Lon: " << mLongitude << ", Accuracy: " << mAccuracy << ", Time: " <<  std::asctime(std::localtime(&mTimeStamp));
+	ss << "Lat: " << mLatitude << ", Lon: " << mLongitude << ", Accuracy: " << mAccuracy << ", Battery: " << mBatteryLevel << ", Time: " <<  std::asctime(std::localtime(&mTimeStamp));
 	return ss.str();
 }
 

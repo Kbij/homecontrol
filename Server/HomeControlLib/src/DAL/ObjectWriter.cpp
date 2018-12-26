@@ -82,7 +82,7 @@ void ObjectWriter::receiveObject(const std::string name, const CommNs::CommObjec
 	try
 	{
 		std::string insertCmd;
-
+		int batteryLevel = -1;
 		if (object->objectId() == 0)
 		{
 			if(const CommNs::KeepAlive* keepAlive = dynamic_cast<const CommNs::KeepAlive*> (object))
@@ -96,6 +96,7 @@ void ObjectWriter::receiveObject(const std::string name, const CommNs::CommObjec
 		{
 			if(const CommNs::GpsLocation* location = dynamic_cast<const CommNs::GpsLocation*> (object))
 			{
+				batteryLevel = location->batteryLevel();
 				VLOG(1) << name << ", location received: " << location->toString();
 				std::stringstream ss;
 				time_t time = location->timeStamp();
@@ -139,7 +140,7 @@ void ObjectWriter::receiveObject(const std::string name, const CommNs::CommObjec
 			delete stmt;
 		}
 		std::stringstream update;
-		update << "UPDATE Client SET lastMessage = NOW() WHERE clientName = '" << name << "';";
+		update << "UPDATE Client SET lastMessage = NOW(), batteryLevel = " << batteryLevel << " WHERE clientName = '" << name << "';";
 
 		stmt = con->createStatement();
 		stmt->execute(update.str());
