@@ -195,8 +195,10 @@ int main (int argc, char* argv[])
 		LOG(INFO) << "======================";
 		LOG(INFO) << "Build on: " << __DATE__ << ", " << __TIME__;
 		DalNs::ObjectWriter* writer = new DalNs::ObjectWriter;
+		DalNs::HomeControlDal* dal = new DalNs::HomeControlDal;
+
 		CommNs::SocketFactory* factory = new CommNs::SocketFactory;
-		CommNs::Server* server = new CommNs::Server(factory, 5678);
+		CommNs::Server* server = new CommNs::Server(factory, 5678, dal);
 
 		server->registerCommListener(writer);
 
@@ -222,7 +224,6 @@ int main (int argc, char* argv[])
 		}
 
 		LogicNs::Timer* timer = new LogicNs::Timer(clock, sensors);
-		DalNs::HomeControlDal* dal = new DalNs::HomeControlDal;
 		LogicNs::TemperatureFilter* filter = new LogicNs::TemperatureFilter(sensors, 0.2);
 		DalNs::TemperatureWriter* tempWriter = new DalNs::TemperatureWriter(filter);
 		LogicNs::CommRouter* commRouter = new LogicNs::CommRouter(dal, server, filter, nullptr);
@@ -234,7 +235,6 @@ int main (int argc, char* argv[])
         delete commRouter;
         delete tempWriter;
         delete filter;
-        delete dal;
         delete timer;
         if (serial != nullptr)
         {
@@ -242,14 +242,12 @@ int main (int argc, char* argv[])
         	delete dmComm;
         	delete frameProcessor;
         	delete serial;
-
-
-
         }
         server->unRegisterCommListener(writer);
 
         delete writer;
         delete server;
+        delete dal;
         delete factory;
     }
 	catch (std::exception& ex)

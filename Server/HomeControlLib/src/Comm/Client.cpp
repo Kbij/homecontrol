@@ -33,7 +33,8 @@ Client::Client(ClientSocketIf* clientSocket, ClientListenerIf* clientListener):
 	mName("Unknown"),
 	mConnectionState(ConnectionState::Idle),
 	mConnectingTime(0),
-	mLastFrameTime(0)
+	mLastFrameTime(0),
+	mLocationInterval(0)
 
 {
 	VLOG(1) << "[" << this << "] Client created";
@@ -92,7 +93,7 @@ bool Client::isInactive(int milliSecondsPassed)
 			return true;
 		}
 	}
-	
+
 	VLOG(2) << "[" << this << "][" << mName << "] Client inactive: should not happen";
 	return true;
 }
@@ -104,6 +105,16 @@ void Client::sendFrame(uint8_t objectId, const std::vector<uint8_t>& frame)
 	{
 		mClientSocket->sendFrame(objectId, frame);
 	}
+}
+
+int Client::locationInterval()
+{
+	return mLocationInterval;
+}
+
+void Client::locationInterval(int interval)
+{
+	mLocationInterval = interval;
 }
 
 void Client::receiveFrame(uint8_t objectId, const std::vector<uint8_t>& frame)

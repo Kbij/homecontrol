@@ -13,8 +13,12 @@
 #include <mutex>
 #include <list>
 #include <thread>
-
-namespace CommNs {
+namespace DalNs
+{
+class HomeControlDalIf;
+}
+namespace CommNs
+{
 class ServerSocketIf;
 class SocketFactoryIf;
 class CommListenerIf;
@@ -23,7 +27,7 @@ class Client;
 class Server: public ClientListenerIf, public CommServerIf
 {
 public:
-	Server(SocketFactoryIf* factory, int port);
+	Server(SocketFactoryIf* factory, int port, DalNs::HomeControlDalIf* dal);
 	virtual ~Server();
 
 	//CommServerIf
@@ -40,6 +44,7 @@ public:
 private:
 	mutable std::mutex mDataMutex;
 	SocketFactoryIf* mSocketFactory;
+	DalNs::HomeControlDalIf* mDal;
 	ServerSocketIf* mServerSocket;
 	std::set<CommListenerIf*> mCommListeners;
 	std::list<Client*> mClients;

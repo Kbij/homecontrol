@@ -50,7 +50,7 @@ public:
 		return result;
 	}
 	double getSensorCalibration(const std::string& sensorId) {return mSensorCalibration;};
-
+	int locationInterval(const std::string& clientId) {return 0;};
 	DalNs::RoomConfig* mRoomConfig;
 	double mSensorCalibration;
 };

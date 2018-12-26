@@ -197,4 +197,57 @@ double HomeControlDal::getSensorCalibration(const std::string& sensorId)
 	return result;
 }
 
+int HomeControlDal::locationInterval(const std::string& clientId)
+{
+	VLOG(1) << "Find location interval for client: " << clientId;
+	int result = 0;
+	try
+	{
+		std::stringstream select;
+		select << "SELECT locationInterval  FROM HC_DB.Client ";
+		select << " WHERE clientName = '" << clientId << "'";
+
+		sql::Driver *driver;
+
+		sql::Connection *con;
+		sql::Statement *stmt;
+
+		/* Create a connection */
+		driver = get_driver_instance();
+		driver->threadInit();
+		con = driver->connect("tcp://127.0.0.1:3306", "hc", "bugs bunny");
+		/* Connect to the MySQL test database */
+		con->setSchema("HC_DB");
+
+		stmt = con->createStatement();
+		sql::ResultSet *res =  stmt->executeQuery(select.str());
+
+		if (res->rowsCount() > 0)
+		{
+			while (res->next())
+			{
+				result = res->getInt("locationInterval");
+			}
+		}
+		else
+		{
+			LOG(ERROR) << "Interval not found";
+		}
+		delete res;
+		delete stmt;
+
+		con->close();
+		delete con;
+		driver->threadEnd();
+
+	}
+	catch (sql::SQLException &ex)
+	{
+		LOG(ERROR) << "clientConnected, SQLExceptin: " << ex.what() << ", MySQL error code: " << ex.getErrorCode() << ", SQLState: " << ex.getSQLState();
+	}
+
+	VLOG(1) << "Location interval for client: " << clientId << ": " << result;
+	return result;
+}
+
 } /* namespace DalNs */

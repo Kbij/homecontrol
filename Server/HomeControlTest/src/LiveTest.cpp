@@ -87,7 +87,7 @@ TEST(LiveTest, ServerListening)
 {
 	CommListenerStub* commListener = new CommListenerStub;
 	CommNs::SocketFactory* factory = new CommNs::SocketFactory;
-	CommNs::Server* server = new CommNs::Server(factory, 5678);
+	CommNs::Server* server = new CommNs::Server(factory, 5678, nullptr);
 	server->registerCommListener(commListener);
 	std::this_thread::sleep_for(std::chrono::seconds(600));
 

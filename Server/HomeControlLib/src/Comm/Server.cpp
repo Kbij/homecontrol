@@ -13,6 +13,8 @@
 #include "ClientListenerIf.h"
 #include "CommListenerIf.h"
 #include "CommObjects/CommObjectIf.h"
+#include "CommObjects/LocationInterval.h"
+#include "DAL/HomeControlDalIf.h"
 #include <glog/logging.h>
 
 
@@ -23,9 +25,10 @@ const int MAINTENANCE_INTERVAL_MS = 2000;
 
 namespace CommNs {
 
-Server::Server(SocketFactoryIf* factory, int port):
+Server::Server(SocketFactoryIf* factory, int port, DalNs::HomeControlDalIf* dal):
 	mDataMutex(),
 	mSocketFactory(factory),
+	mDal(dal),
 	mServerSocket(nullptr),
 	mCommListeners(),
 	mClients(),
@@ -174,6 +177,22 @@ void Server::maintenanceThread()
 				}
 				else
 				{
+					if (mDal)
+					{
+						int interval = mDal->locationInterval((*clientIt)->name());
+						if (interval != (*clientIt)->locationInterval())
+						{
+							LOG(INFO) << "Location interval change for client: " << (*clientIt)->name() << ", interval: " << interval;
+							(*clientIt)->locationInterval(interval);
+
+							//Sendint the new location to the client
+							LocationInterval locationInterval(interval);
+							std::string json = locationInterval.json();
+							std::vector<uint8_t> jsonFrame(json.begin(),json.end());
+							(*clientIt)->sendFrame(locationInterval.objectId(), jsonFrame);
+						}
+					}
+
 					clientIt++;
 				}
 			}

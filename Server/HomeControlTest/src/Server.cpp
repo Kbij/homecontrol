@@ -55,7 +55,7 @@ public:
 TEST(Server, Constructor)
 {
 	CommNs::SocketFactory* factory = new CommNs::SocketFactory;
-	CommNs::Server* server = new CommNs::Server(factory, 1234);
+	CommNs::Server* server = new CommNs::Server(factory, 1234, nullptr);
 	CommListenerStub* commListener = new CommListenerStub;
 
 	server->registerCommListener(commListener);
@@ -71,7 +71,7 @@ TEST(Server, Constructor)
 TEST(Server, ReceiveFrame)
 {
 	CommNs::SocketFactory* factory = new CommNs::SocketFactory;
-	CommNs::Server* server = new CommNs::Server(factory, 1234);
+	CommNs::Server* server = new CommNs::Server(factory, 1234, nullptr);
 	CommListenerStub* commListener = new CommListenerStub;
 	CommNs::GpsLocation* location = new CommNs::GpsLocation(R"({"Accuracy":22,"Latitude":51.0535982,"Longitude":3.6440348,"TimeStamp":"\/Date(1459800687043+0200)\/"})");
 	server->registerCommListener(commListener);
@@ -91,7 +91,7 @@ TEST(Server, ReceiveFrame)
 TEST(Server, ClientConnect)
 {
 	CommNs::SocketFactory* factory = new CommNs::SocketFactory;
-	CommNs::Server* server = new CommNs::Server(factory, 1234);
+	CommNs::Server* server = new CommNs::Server(factory, 1234, nullptr);
 	CommListenerStub* commListener = new CommListenerStub;
 	server->registerCommListener(commListener);
 	CommNs::Client* client = server->newClient();
@@ -109,7 +109,7 @@ TEST(Server, ClientConnect)
 TEST(Server, ClientDisconnected)
 {
 	CommNs::SocketFactory* factory = new CommNs::SocketFactory;
-	CommNs::Server* server = new CommNs::Server(factory, 1234);
+	CommNs::Server* server = new CommNs::Server(factory, 1234, nullptr);
 	CommListenerStub* commListener = new CommListenerStub;
 	server->registerCommListener(commListener);
 	CommNs::Client* client = server->newClient();
@@ -134,4 +134,20 @@ TEST(Server, ClientDisconnected)
 	delete server;
 	delete factory;
 }
+TEST(Server, ClientLocationInterval)
+{
+	CommNs::SocketFactory* factory = new CommNs::SocketFactory;
+	CommNs::Server* server = new CommNs::Server(factory, 1234, nullptr);
+	CommListenerStub* commListener = new CommListenerStub;
+	server->registerCommListener(commListener);
+	CommNs::Client* client = server->newClient();
 
+	server->clientAuthenticated(client, "MyClient");
+	EXPECT_EQ(commListener->mLastConnected, "MyClient");
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+	server->unRegisterCommListener(commListener);
+
+	delete commListener;
+	delete server;
+	delete factory;
+}

@@ -28,6 +28,8 @@ public:
 	void start();
 	bool isInactive(int milliSecondsPassed);
 	void sendFrame(uint8_t objectId, const std::vector<uint8_t>& frame);
+	int locationInterval();
+	void locationInterval(int interval);
 
 	//SocketListenerIf
 	std::string name() const {return mName;};
@@ -41,6 +43,7 @@ private:
 	ConnectionState mConnectionState;
 	int mConnectingTime;
 	int mLastFrameTime;
+	int mLocationInterval;
 };
 
 } /* namespace CommNs */

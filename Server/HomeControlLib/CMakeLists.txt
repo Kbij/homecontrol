@@ -18,6 +18,8 @@ file(GLOB lib_SRC
     "./src/CommObjects/*.cpp"
     "./src/DAL/*.h"
     "./src/DAL/*.cpp"
+    "./src/Hw/*.h"
+    "./src/Hw/*.cpp"
     "./src/Logic/*.h"
     "./src/Logic/*.cpp"
 
