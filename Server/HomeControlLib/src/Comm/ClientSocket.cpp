@@ -28,6 +28,7 @@ ClientSocket::ClientSocket(boost::asio::io_service& ioService):
 	mSocket(ioService),
 	mSocketBuffer(),
 	mReceiveBuffer(),
+	mSendBuffer(),
 	mSocketListener(nullptr),
 	mName(),
 	mLocalPort()
@@ -72,17 +73,18 @@ void ClientSocket::sendFrame(uint8_t objectId, const std::vector<uint8_t>& frame
 	if (mSocket.is_open())
 	{
 		VLOG(2) << "[" << mName << ", " << mLocalPort << "] Send frame, length: " << frame.size() << ",objectId: " << (int) objectId;
-		std::vector<uint8_t> dataFrame(HC_HEADER.begin(), HC_HEADER.end());
-
+		mSendBuffer.clear();
+		mSendBuffer.insert(mSendBuffer.end(), HC_HEADER.begin(), HC_HEADER.end());
         int length = frame.size();
         uint8_t msb = (uint8_t)(length / 256);
 		uint8_t lsb = length - (msb * 256);
-		dataFrame.push_back(msb);
-		dataFrame.push_back(lsb);
-		dataFrame.push_back(objectId);
-		dataFrame.insert(dataFrame.end(), frame.begin(), frame.end());
+
+		mSendBuffer.push_back(msb);
+		mSendBuffer.push_back(lsb);
+		mSendBuffer.push_back(objectId);
+		mSendBuffer.insert(mSendBuffer.end(), frame.begin(), frame.end());
 		boost::system::error_code error;
-		boost::asio::write(mSocket, boost::asio::buffer(dataFrame), boost::asio::transfer_all(), error);
+		boost::asio::write(mSocket, boost::asio::buffer(mSendBuffer), boost::asio::transfer_all(), error);
 	}
 }
 

@@ -37,6 +37,7 @@ private:
 	boost::asio::ip::tcp::tcp::socket mSocket;
 	boost::array<char, 1024> mSocketBuffer;
 	std::vector<uint8_t> mReceiveBuffer;
+	std::vector<uint8_t> mSendBuffer;
 	SocketListenerIf* mSocketListener;
 	std::string mName;
 	unsigned short mLocalPort;
