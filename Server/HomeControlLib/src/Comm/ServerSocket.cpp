@@ -23,7 +23,6 @@ ServerSocket::ServerSocket(boost::asio::io_service& ioService, Server* server, i
 	mServerThread(nullptr),
 	mDataMutex()
 {
-	VLOG(1) << "Server socket created";
 	Client* client = mServer->newClient();
 	mAcceptor.async_accept(client->socket(), boost::bind(&ServerSocket::handleAccept, this, client, boost::asio::placeholders::error));
 	startServerThread();
@@ -57,10 +56,6 @@ void ServerSocket::startServerThread()
 void ServerSocket::stopServerThread()
 {
 	mIoService.stop();
-//	for(ClientSocketIf* client: mClients)
-//	{
-//		client->close();
-//	}
 
 	mServerThreadRunning = false;
 

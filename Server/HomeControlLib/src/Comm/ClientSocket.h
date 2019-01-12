@@ -12,6 +12,7 @@
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
 #include <boost/system/system_error.hpp>
+#include <boost/enable_shared_from_this.hpp>
 #include <cstddef>
 #include <string>
 #include <vector>
@@ -19,7 +20,9 @@
 
 namespace CommNs {
 
-class ClientSocket: public ClientSocketIf
+//Need shared_from_this: closing the socket does not imediately cancel all outstanding async calls.
+//This causes problems while destructing the object: you close the socket, and some async calls remain open
+class ClientSocket: public ClientSocketIf, public boost::enable_shared_from_this<ClientSocket>
 {
 public:
 	ClientSocket(boost::asio::io_service& ioService);
@@ -42,6 +45,7 @@ private:
 	std::string mName;
 	unsigned short mLocalPort;
 	void handleRead(const boost::system::error_code& error, size_t bytesTransferred);
+	void handleWrite(const boost::system::error_code& error, std::size_t bytesTransferred);
 	void processBuffer();
 };
 

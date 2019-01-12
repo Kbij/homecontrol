@@ -27,7 +27,7 @@ const int RECEIVE_TIMEOUT_MS = 5 * 60 * 1000; // 2 Minutes
 
 namespace CommNs {
 
-Client::Client(ClientSocketIf* clientSocket, ClientListenerIf* clientListener):
+Client::Client(boost::shared_ptr<ClientSocketIf> clientSocket, ClientListenerIf* clientListener):
 	mClientSocket(clientSocket),
 	mClientListener(clientListener),
 	mName("Unknown"),
@@ -37,14 +37,12 @@ Client::Client(ClientSocketIf* clientSocket, ClientListenerIf* clientListener):
 	mLocationInterval(0)
 
 {
-	VLOG(1) << "[" << this << "] Client created";
 	mClientSocket->registerSocketListener(this);
 }
 
 Client::~Client()
 {
 	mClientSocket->unRegisterSocketListener();
-	delete mClientSocket;
 }
 
 boost::asio::ip::tcp::tcp::socket& Client::socket()
@@ -94,7 +92,6 @@ bool Client::isInactive(int milliSecondsPassed)
 		}
 	}
 
-	VLOG(2) << "[" << this << "][" << mName << "] Client inactive: should not happen";
 	return true;
 }
 

@@ -25,9 +25,9 @@ ServerSocketIf* SocketFactory::createServerSocket(Server* server, int port)
 	return new ServerSocket(mIoService, server, port);
 }
 
-ClientSocketIf* SocketFactory::createClientSocket()
+boost::shared_ptr<ClientSocketIf> SocketFactory::createClientSocket()
 {
-	return new ClientSocket(mIoService);
+	return boost::shared_ptr<ClientSocketIf>(new ClientSocket(mIoService));
 }
 
 } /* namespace CommNs */

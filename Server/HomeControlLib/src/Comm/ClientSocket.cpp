@@ -40,7 +40,7 @@ ClientSocket::~ClientSocket()
 	if (mSocket.is_open())
 	{
 		VLOG(1) << "[" << mName << ", " << mLocalPort << "] Closing client socket";
-		//mSocket.close();
+		mSocket.close();
 		VLOG(1) << "[" << mName << ", " << mLocalPort << "] Socket destroyed";
 	}
 }
@@ -52,7 +52,7 @@ boost::asio::ip::tcp::tcp::socket& ClientSocket::socket()
 
 void ClientSocket::start()
 {
-	mSocket.async_read_some(boost::asio::buffer(mSocketBuffer), boost::bind(&ClientSocket::handleRead, this,
+	mSocket.async_read_some(boost::asio::buffer(mSocketBuffer), boost::bind(&ClientSocket::handleRead, shared_from_this(),
 							boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
 	mLocalPort = mSocket.remote_endpoint().port();
 }
@@ -84,7 +84,8 @@ void ClientSocket::sendFrame(uint8_t objectId, const std::vector<uint8_t>& frame
 		mSendBuffer.push_back(objectId);
 		mSendBuffer.insert(mSendBuffer.end(), frame.begin(), frame.end());
 		boost::system::error_code error;
-		boost::asio::write(mSocket, boost::asio::buffer(mSendBuffer), boost::asio::transfer_all(), error);
+		mSocket.async_send(boost::asio::buffer(mSendBuffer.data(), mSendBuffer.size()), boost::bind(&ClientSocket::handleWrite, shared_from_this(),
+				 	 	 	 	 	 	 	 	 	 	 	 boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
 	}
 }
 
@@ -96,18 +97,22 @@ void ClientSocket::handleRead(const boost::system::error_code& error, size_t byt
 		mReceiveBuffer.insert(mReceiveBuffer.end(), mSocketBuffer.begin(), mSocketBuffer.begin() + bytesTransferred);
 		processBuffer();
 
-		mSocket.async_read_some(boost::asio::buffer(mSocketBuffer), boost::bind(&ClientSocket::handleRead, this,
+		mSocket.async_read_some(boost::asio::buffer(mSocketBuffer), boost::bind(&ClientSocket::handleRead, shared_from_this(),
 								boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
 	}
 	else
 	{
-		//Hier geen ogging aan toevoegen !!
-		//LOG(ERROR) << "[" << mName << ", " << mLocalPort << "] Socket read error, error code: " << error;
+		LOG(ERROR) << "[" << mName << ", " << mLocalPort << "] Socket read error, error code: " << error;
 		if (mSocketListener)
 		{
 			mSocketListener->socketClosed();
 		}
 	}
+}
+
+void ClientSocket::handleWrite(const boost::system::error_code& error, std::size_t bytesTransferred)
+{
+	VLOG(3) << "Packet written";
 }
 
 void ClientSocket::processBuffer()
