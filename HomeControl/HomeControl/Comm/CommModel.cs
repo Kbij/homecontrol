@@ -40,7 +40,7 @@ namespace HomeControl.Comm
             mLock = new Object();
             mSendQueue = new Queue<ICommObject>();
             mReceivers = new HashSet<ICommReceiver>();
-           // mLog = logger;
+            mLog = logger;
             if (mLog != null) mLog.SendToHost("CommModel", "CommModel created");
             mCommStarted = false;
         }
@@ -62,7 +62,11 @@ namespace HomeControl.Comm
             stopMaintenanceThread();
             if (mCloudSocket != null)
             {
+                if (mLog != null) mLog.SendToHost("CommModel", string.Format("dispose commmodel, disposing socket: {0}", mCloudSocket.Id()));
+                mCloudSocket.OnFrameReceived -= OnCloudFrameReceived;
+                mCloudSocket.OnSocketConnected -= OnCloudSocketConnected;
                 mCloudSocket.Dispose();
+                mCloudSocket = null;
             }
         }
 
@@ -230,7 +234,11 @@ namespace HomeControl.Comm
                                     }
                                     if (mCloudSocket != null)
                                     {
+                                        if (mLog != null) mLog.SendToHost("CommModel", string.Format("disconnected, disposing socket: {0}", mCloudSocket.Id()));
+                                        mCloudSocket.OnFrameReceived -= OnCloudFrameReceived;
+                                        mCloudSocket.OnSocketConnected -= OnCloudSocketConnected;
                                         mCloudSocket.Dispose();
+                                        mCloudSocket = null;
                                     }
                                     break;
                                 }
@@ -255,7 +263,11 @@ namespace HomeControl.Comm
             changeState(CommState.Connecting);
             if (mCloudSocket != null)
             {
+                if (mLog != null) mLog.SendToHost("CommModel", string.Format("startConnect, disposing socket: {0}", mCloudSocket.Id()));
+                mCloudSocket.OnFrameReceived -= OnCloudFrameReceived;
+                mCloudSocket.OnSocketConnected -= OnCloudSocketConnected;
                 mCloudSocket.Dispose();
+                mCloudSocket = null;
             }
             mCloudSocket = new CloudSocket(mLog);
             mCloudSocket.OnFrameReceived += OnCloudFrameReceived;
@@ -383,7 +395,6 @@ namespace HomeControl.Comm
 
                         if (mCommState == CommState.Disconnected)
                         {
-                            if (mLog != null) mLog.SendToHost("CommModel", "Maintenance Thread 2");
                             --mConnectTimeoutSeconds;
                             if (mConnectTimeoutSeconds <= 0)
                             {

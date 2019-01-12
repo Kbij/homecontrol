@@ -30,23 +30,16 @@ namespace HomeControl.HCService
         HCLogger mLog;
         FusedLocationProviderClient mFusedLocationProviderClient;
         LocationCallBack mLocationCallBack;
-       // GeofencingClient mGeofencingClient;
-        private IList<IGeofence> mGeofenceList;
-        PendingIntent mPendingIntent;
-        GoogleApiClient mGoogleApiClient;
         public const int SERVICE_RUNNING_NOTIFICATION_ID = 10000;
         private const int LOW_UPDATE_FREQ_SECONDS = 4 * 60;
         private const int HIGH_UPDATE_FREQ_SECONDS = 30;
         private const int NOT_MOVING_METERS = 50;
         private const int NOT_MOVING_SECONDS = 5 * 60; // 5 min
-        private const string GEOFENCEID = "HomecontrolGeofence";
         private int mCurrentUpdateFreqSeconds;
         private int mRequestedInterval;
         DateTime? mNotMovingStartTime;
         public HomeControlService()
         {
-            mPendingIntent = null;
-            mGeofenceList = new List<IGeofence>();
         }
 
         static void HandleExceptions(object sender, UnhandledExceptionEventArgs ex)
@@ -74,11 +67,6 @@ namespace HomeControl.HCService
             {
                 Description = channelDescription
             };
-            //mGoogleApiClient = new GoogleApiClient.Builder(Application.Context, this, this)
-            //                     .AddApi(Android.Gms.Location.LocationServices.API)
-            //                     .Build();
-            //mGoogleApiClient.Connect();
-
 
             var notificationManager = (NotificationManager)GetSystemService(NotificationService);
             notificationManager.CreateNotificationChannel(channel);
@@ -90,7 +78,7 @@ namespace HomeControl.HCService
 
             StartForeground(SERVICE_RUNNING_NOTIFICATION_ID, notification);
             mRequestedInterval = 0;
-            mLog = new HCLogger("192.168.10.10", 8002, "Service.log");
+            mLog = new HCLogger("192.168.10.10", 8001, "Service.log");
             mLog.SendToHost("HomeControlService", "HomeControlService started");
             mCommModel = new CommModel(mLog);
             mCommModel.startComm();
@@ -102,7 +90,6 @@ namespace HomeControl.HCService
 
         public override void OnCreate()
         {
-           // mLog.SendToHost("HomeControlService", "HomeControlService OnCreate");
         }
 
         public override void OnDestroy()
@@ -190,7 +177,6 @@ namespace HomeControl.HCService
                                   .SetInterval(mCurrentUpdateFreqSeconds * 1000)
                                   .SetFastestInterval(10 * 1000); //Fasted inteval
                                 mFusedLocationProviderClient.RequestLocationUpdates(locationRequest, mLocationCallBack, null);
-                                CreateGeofence(location, 100);
                             }
 
                         }
@@ -208,7 +194,6 @@ namespace HomeControl.HCService
                           .SetInterval(mCurrentUpdateFreqSeconds * 1000)
                           .SetFastestInterval(10 * 1000); //Fasted inteval
                         mFusedLocationProviderClient.RequestLocationUpdates(locationRequest, mLocationCallBack, null);
-                        DeleteGeofence();
                     }
                 }
 
@@ -225,156 +210,6 @@ namespace HomeControl.HCService
         }
         #endregion
 
-        #region geofence
-
-        private PendingIntent getGeofencePendingIntent()
-        {
-            if (mPendingIntent != null)
-            {
-                return mPendingIntent;
-            }
-            PendingIntent.GetBroadcast(this, 0, new Intent(this, typeof(HomeControlService)), PendingIntentFlags.UpdateCurrent);
-            return mPendingIntent;
-        }
-
-        private void CreateGeofence(Location location, int radiusMeters)
-        {
-            //mLog.SendToHost("HomeControlService", "Create geofence");
-            //mGeofenceList.Clear();
-            //mGeofenceList.Add(new GeofenceBuilder()
-            //           .SetRequestId(GEOFENCEID)
-            //           .SetCircularRegion(
-            //               location.Latitude,
-            //               location.Longitude,
-            //               radiusMeters
-            //           )
-            //           .SetExpirationDuration(60*60*1000)
-            //           .SetTransitionTypes(Geofence.GeofenceTransitionEnter | Geofence.GeofenceTransitionExit)
-            //           .Build());
-            //GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
-            //builder.SetInitialTrigger(GeofencingRequest.InitialTriggerEnter);
-            //builder.AddGeofences(mGeofenceList);
-
-            //GeofencingRequest request = builder.Build();
-            //LocationServices.GeofencingApi.AddGeofences(mGoogleApiClient, request, getGeofencePendingIntent()).SetResultCallback(this);
-                        
-            ////GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
-            ////builder.SetInitialTrigger(GeofencingRequest.InitialTriggerEnter);
-            ////builder.AddGeofences(mGeofenceList);
-
-            ////GeofencingRequest request = builder.Build();
-            ////if (mPendingIntent == null)
-            ////{
-            ////    var normalIntent = new Intent(this, typeof(HomeControlService));
-            ////    mPendingIntent = PendingIntent.GetService(this, 0, normalIntent, PendingIntentFlags.UpdateCurrent);
-            ////}
-
-            ////mGeofencingClient.AddGeofences(request, mPendingIntent);
-        }
-        private void DeleteGeofence()
-        {
-            //mLog.SendToHost("HomeControlService", "Delete geofence");
-
-            //if (mPendingIntent != null)
-            //{
-            //    LocationServices.GeofencingApi.RemoveGeofences(mGoogleApiClient, mPendingIntent);
-            //    //mGeofencingClient.RemoveGeofences(mPendingIntent);
-            //}
-        }
-//        protected override void OnHandleIntent(Intent intent)
-//        {
-//            var geofencingEvent = GeofencingEvent.FromIntent(intent);
-//            //mLog.SendToHost("HomeControlService", "Geofence event");
-//            Log.Debug("HomeControlService", "Geofence event");
-//            if (geofencingEvent.HasError)
-//            {
-//                var errorMessage = GeofenceErrorMessages.GetErrorString(this, geofencingEvent.ErrorCode);
-//                mLog.SendToHost("HomeControlService", errorMessage);
-//                return;
-//            }
-
-//            int geofenceTransition = geofencingEvent.GeofenceTransition;
-
-//            if (geofenceTransition == Geofence.GeofenceTransitionExit)
-//            {
-//                mLog.SendToHost("HomeControlService", "Exit geofence: Switch to high update frequency");
-//                mCurrentUpdateFreqSeconds = HIGH_UPDATE_FREQ_SECONDS;
-//                Android.Gms.Location.LocationRequest locationRequest = new LocationRequest()
-//                  .SetPriority(LocationRequest.PriorityHighAccuracy)
-//                  .SetInterval(mCurrentUpdateFreqSeconds * 1000)
-//                  .SetFastestInterval(10 * 1000); //Fasted inteval
-//                mFusedLocationProviderClient.RequestLocationUpdates(locationRequest, mLocationCallBack, null);
-
-//                //IList<IGeofence> triggeringGeofences = geofencingEvent.TriggeringGeofences;
-
-//                //string geofenceTransitionDetails = GetGeofenceTransitionDetails(this, geofenceTransition, triggeringGeofences);
-
-//               // SendNotification(geofenceTransitionDetails);
-//             //   Log.Info(TAG, geofenceTransitionDetails);
-//            }
-//            else
-//            {
-//                // Log the error.
-////                Log.Error(TAG, GetString(Resource.String.geofence_transition_invalid_type, new[] { new Java.Lang.Integer(geofenceTransition) }));
-//            }
-//        }
-
-        //string GetGeofenceTransitionDetails(Context context, int geofenceTransition, IList<IGeofence> triggeringGeofences)
-        //{
-        //    string geofenceTransitionString = GetTransitionString(geofenceTransition);
-
-        //    var triggeringGeofencesIdsList = new List<string>();
-        //    foreach (IGeofence geofence in triggeringGeofences)
-        //    {
-        //        triggeringGeofencesIdsList.Add(geofence.RequestId);
-        //    }
-        //    var triggeringGeofencesIdsString = string.Join(", ", triggeringGeofencesIdsList);
-
-        //    return geofenceTransitionString + ": " + triggeringGeofencesIdsString;
-        //}
-
-        //string GetTransitionString(int transitionType)
-        //{
-        //    switch (transitionType)
-        //    {
-        //        case Geofence.GeofenceTransitionEnter:
-        //            return "Entered";
-        //        case Geofence.GeofenceTransitionExit:
-        //            return "Exited";
-        //        default:
-        //            return "Unknown transition";
-        //    }
-        //}
-      
-
-        //public void OnStatusChanged(string provider, Availability status, Bundle extras)
-        //{
-        //    MessageObject msg = new MessageObject();
-        //    msg.Message = string.Format("Provider status changed, provider: {0}, status: {1}", provider, status.ToString());
-        //    mCommModel.sendObjectQueued(msg);
-        //}
-
-        //public void OnConnected(Bundle connectionHint)
-        //{
-        //    mLog.SendToHost("HomeControlService", "OnConnected");
-        //}
-
-        //public void OnConnectionSuspended(int cause)
-        //{
-        //    mLog.SendToHost("HomeControlService", "OnConnectionSuspended");
-        //}
-
-        //public void OnConnectionFailed(ConnectionResult result)
-        //{
-        //    mLog.SendToHost("HomeControlService", "OnConnectionFailed");
-        //}
-
-        //public void OnResult(Java.Lang.Object result)
-        //{
-        //    mLog.SendToHost("HomeControlService", "OnResult");
-        //}
-
-        #endregion
         #endregion hcservice
         #region ICommReceiver
         public void receiveObject(object obj)
