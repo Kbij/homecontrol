@@ -70,7 +70,7 @@ bool Client::isInactive(int milliSecondsPassed)
 			mConnectingTime += milliSecondsPassed;
 			if (mConnectingTime >= CONNECTING_TIMEOUT_MS)
 			{
-				VLOG(2) << "[" << this << "][" << mName << "] Client inactive: mConnectingTime=" << mConnectingTime;
+				VLOG(4) << "[" << this << "][" << mName << "] Client inactive: mConnectingTime=" << mConnectingTime;
 			}
 			return mConnectingTime >= CONNECTING_TIMEOUT_MS;
 			break;
@@ -80,14 +80,14 @@ bool Client::isInactive(int milliSecondsPassed)
 			mLastFrameTime += milliSecondsPassed;
 			if (mLastFrameTime >= RECEIVE_TIMEOUT_MS)
 			{
-				VLOG(2) << "[" << this << "][" << mName << "] mLastFrameTime: " << mLastFrameTime;
+				VLOG(4) << "[" << this << "][" << mName << "] mLastFrameTime: " << mLastFrameTime;
 			}
 			return mLastFrameTime >= RECEIVE_TIMEOUT_MS;
 			break;
 		}
 		default:
 		{
-			VLOG(2) << "[" << this << "][" << mName << "] Client inactive: default, mConnectionState:" << (int) mConnectionState;
+			VLOG(4) << "[" << this << "][" << mName << "] Client inactive: default, mConnectionState:" << (int) mConnectionState;
 			return true;
 		}
 	}
@@ -97,7 +97,7 @@ bool Client::isInactive(int milliSecondsPassed)
 
 void Client::sendFrame(uint8_t objectId, const std::vector<uint8_t>& frame)
 {
-	VLOG(2) << "[" << this << "][" << mName << "] Send objectId: " << (int) objectId;
+	VLOG(4) << "[" << this << "][" << mName << "] Send objectId: " << (int) objectId;
 	if (mConnectionState == ConnectionState::Connected)
 	{
 		mClientSocket->sendFrame(objectId, frame);
@@ -116,7 +116,7 @@ void Client::locationInterval(int interval)
 
 void Client::receiveFrame(uint8_t objectId, const std::vector<uint8_t>& frame)
 {
-	VLOG(2) << "[" << this << "][" << mName << "] Frame received, size: " << frame.size() << ", objectId: " << (int) objectId;
+	VLOG(4) << "[" << this << "][" << mName << "] Frame received, size: " << frame.size() << ", objectId: " << (int) objectId;
 	if (mClientListener)
 	{
 		switch(mConnectionState)
@@ -142,7 +142,7 @@ void Client::receiveFrame(uint8_t objectId, const std::vector<uint8_t>& frame)
 				CommObjectIf* object = ObjectFactory::createObject(objectId, json);
 				if (object)
 				{
-					VLOG(2) << "[" << this << "][" << mName << "] Object received, objectId: " << (int) objectId;
+					VLOG(4) << "[" << this << "][" << mName << "] Object received, objectId: " << (int) objectId;
 					mClientListener->receiveObject(mName, object);
 
 					if (objectId == 0)
@@ -168,7 +168,7 @@ void Client::receiveFrame(uint8_t objectId, const std::vector<uint8_t>& frame)
 
 void Client::socketClosed()
 {
-	VLOG(2) << "[" << this << "][" << mName << "] socketCloded";
+	VLOG(4) << "[" << this << "][" << mName << "] socketClosed";
 	mConnectionState = ConnectionState::Disconnected;
 }
 
