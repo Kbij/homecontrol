@@ -72,6 +72,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DAL\ExponentialWeightedAverage.cs" />
+    <Compile Include="DAL\GpsClient.cs" />
     <Compile Include="DAL\GpsLocation.cs" />
     <Compile Include="DAL\HomeControlData.cs">
       <DependentUpon>HomeControlData.xsd</DependentUpon>

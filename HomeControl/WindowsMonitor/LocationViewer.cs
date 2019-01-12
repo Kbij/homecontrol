@@ -17,7 +17,7 @@ namespace WindowsMonitor
 {
     public partial class LocationViewer : Form
     {
-        Dictionary<Tuple<string, DateTime>, List<GpsLocation>> mLocations;
+        Dictionary<string, GpsClient> mLocations;
         LocationDal mDal;
         GMap.NET.WindowsForms.GMapOverlay mMarkers;
         GMapOverlay mRoutes;
@@ -38,7 +38,7 @@ namespace WindowsMonitor
         {
             if (string.IsNullOrEmpty(mLocationFile))
             {
-                mLocations = new Dictionary<Tuple<string, DateTime>, List<GpsLocation>>();
+                mLocations = new Dictionary<string, GpsClient>();
                 mDal = new LocationDal();
 
                 mapOverview.MapProvider = GMap.NET.MapProviders.GoogleMapProvider.Instance;
@@ -102,12 +102,12 @@ namespace WindowsMonitor
             {
                 foreach (var client in mLocations)
                 {
-                    if (client.Key.Item1 == lstSource.Text)
+                    if (client.Key == lstSource.Text)
                     {
-                        if (client.Value.Count > 0)
+                        if (client.Value.Locations.Count > 0)
                         {
-                            var location = client.Value.Last();
-                            string label = string.Format("{0} {1}", client.Key.Item1, location.TimeStamp.ToShortTimeString());
+                            var location = client.Value.Locations.Last();
+                            string label = string.Format("{0} {1}", client.Key, location.TimeStamp.ToShortTimeString());
                             GMap.NET.WindowsForms.GMapMarker marker = new GMap.NET.WindowsForms.Markers.GMarkerGoogle(
                                                             new GMap.NET.PointLatLng(location.Latitude, location.Longitude),
                                                             GMap.NET.WindowsForms.Markers.GMarkerGoogleType.blue_pushpin);
@@ -117,7 +117,7 @@ namespace WindowsMonitor
                         }
                         List<PointLatLng> points = new List<PointLatLng>();
 
-                        foreach (var pos in client.Value)
+                        foreach (var pos in client.Value.Locations)
                         {
                             points.Add(new PointLatLng(pos.Latitude, pos.Longitude));
                             var point = new GMapPoint(new PointLatLng(pos.Latitude, pos.Longitude), 6);
@@ -126,7 +126,7 @@ namespace WindowsMonitor
                             ////                                GMap.NET.WindowsForms.Markers.GMark);
                             mMarkers.Markers.Add(point);
                         }
-                        GMapRoute route = new GMapRoute(points, client.Key.Item1);
+                        GMapRoute route = new GMapRoute(points, client.Key);
                         route.Stroke = new Pen(Color.Red, 3);
                         mRoutes.Routes.Add(route);
                     }

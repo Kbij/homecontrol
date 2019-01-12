@@ -36,6 +36,11 @@
             this.colAccuracy = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.collastConnected = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colLastLocation = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colLocationInterval = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.mnInterval = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.mnInterval0 = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnInterval5 = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnInterval30 = new System.Windows.Forms.ToolStripMenuItem();
             this.tmrUpdate = new System.Windows.Forms.Timer(this.components);
             this.cmbHours = new System.Windows.Forms.ComboBox();
             this.btnKML = new System.Windows.Forms.Button();
@@ -44,6 +49,8 @@
             this.backgroundWorker2 = new System.ComponentModel.BackgroundWorker();
             this.cmbClient = new System.Windows.Forms.ComboBox();
             this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
+            this.colBattery = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.mnInterval.SuspendLayout();
             this.SuspendLayout();
             // 
             // listSummary
@@ -56,7 +63,10 @@
             this.colDist,
             this.colAccuracy,
             this.collastConnected,
-            this.colLastLocation});
+            this.colLastLocation,
+            this.colLocationInterval,
+            this.colBattery});
+            this.listSummary.ContextMenuStrip = this.mnInterval;
             this.listSummary.FullRowSelect = true;
             this.listSummary.Location = new System.Drawing.Point(9, 12);
             this.listSummary.Name = "listSummary";
@@ -87,6 +97,41 @@
             // 
             this.colLastLocation.Text = "LastLocation";
             this.colLastLocation.Width = 120;
+            // 
+            // colLocationInterval
+            // 
+            this.colLocationInterval.Text = "Interval";
+            // 
+            // mnInterval
+            // 
+            this.mnInterval.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.mnInterval0,
+            this.mnInterval5,
+            this.mnInterval30});
+            this.mnInterval.Name = "mnInterval";
+            this.mnInterval.Size = new System.Drawing.Size(87, 70);
+            this.mnInterval.Text = "0";
+            // 
+            // mnInterval0
+            // 
+            this.mnInterval0.Name = "mnInterval0";
+            this.mnInterval0.Size = new System.Drawing.Size(86, 22);
+            this.mnInterval0.Text = "0";
+            this.mnInterval0.Click += new System.EventHandler(this.mnInterval0_Click);
+            // 
+            // mnInterval5
+            // 
+            this.mnInterval5.Name = "mnInterval5";
+            this.mnInterval5.Size = new System.Drawing.Size(86, 22);
+            this.mnInterval5.Text = "5";
+            this.mnInterval5.Click += new System.EventHandler(this.mnInterval5_Click);
+            // 
+            // mnInterval30
+            // 
+            this.mnInterval30.Name = "mnInterval30";
+            this.mnInterval30.Size = new System.Drawing.Size(86, 22);
+            this.mnInterval30.Text = "30";
+            this.mnInterval30.Click += new System.EventHandler(this.mnInterval30_Click);
             // 
             // tmrUpdate
             // 
@@ -140,6 +185,10 @@
             // 
             this.openFileDialog.FileName = "openFileDialog";
             // 
+            // colBattery
+            // 
+            this.colBattery.Text = "Battery";
+            // 
             // MonitorForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -156,6 +205,7 @@
             this.Text = "HC Monitor";
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.MonitorForm_KeyDown);
             this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.MonitorForm_KeyPress);
+            this.mnInterval.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -175,6 +225,12 @@
         private System.Windows.Forms.ComboBox cmbClient;
         private System.Windows.Forms.ColumnHeader colAccuracy;
         private System.Windows.Forms.OpenFileDialog openFileDialog;
+        private System.Windows.Forms.ContextMenuStrip mnInterval;
+        private System.Windows.Forms.ToolStripMenuItem mnInterval0;
+        private System.Windows.Forms.ToolStripMenuItem mnInterval5;
+        private System.Windows.Forms.ToolStripMenuItem mnInterval30;
+        private System.Windows.Forms.ColumnHeader colLocationInterval;
+        private System.Windows.Forms.ColumnHeader colBattery;
     }
 }
 

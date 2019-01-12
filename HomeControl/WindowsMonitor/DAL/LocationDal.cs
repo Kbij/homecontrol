@@ -12,9 +12,9 @@ namespace WindowsMonitor.DAL
     public class LocationDal
     {
         const string DB_CONN_STR = "Server=192.168.10.7;Uid=hc;Pwd=bugs bunny;Database=HC_DB;";
-        public Dictionary<Tuple<string, DateTime>, List<GpsLocation>> fillLastLocation(int timeFrameHours, string clientName)
+        public Dictionary<string, GpsClient> fillLastLocation(int timeFrameHours, string clientName)
         {
-            Dictionary<Tuple<string, DateTime>, List<GpsLocation>> result = new Dictionary<Tuple<string, DateTime>, List<GpsLocation>>();
+            Dictionary<string, GpsClient> result = new Dictionary<string, GpsClient>();
             try
             {
                 using (MySqlConnection conn = new MySqlConnection(DB_CONN_STR))
@@ -23,13 +23,13 @@ namespace WindowsMonitor.DAL
                     string sqlCmd;
                     if (string.IsNullOrEmpty(clientName))
                     {
-                        sqlCmd = string.Format("SELECT clientName, lastMessage, latitude, longitude, accuracy, timestamp FROM Client " +
+                        sqlCmd = string.Format("SELECT clientName, lastMessage, locationInterval, batteryLevel, latitude, longitude, accuracy, timestamp FROM Client " +
                                                " INNER JOIN Location ON Client.idClient = Location.idClient " +
                                                " WHERE TIMESTAMPDIFF(HOUR, timestamp, NOW()) < {0} ORDER BY timestamp", timeFrameHours);
                     }
                     else
                     {
-                        sqlCmd = string.Format("SELECT clientName, lastMessage, latitude, longitude, accuracy, timestamp FROM Client " +
+                        sqlCmd = string.Format("SELECT clientName, lastMessage, locationInterval, batteryLevel, latitude, longitude, accuracy, timestamp FROM Client " +
                                                " INNER JOIN Location ON Client.idClient = Location.idClient " +
                                                " WHERE TIMESTAMPDIFF(HOUR, timestamp, NOW()) < {0} and clientName = '{1}'  ORDER BY timestamp", timeFrameHours, clientName);
                     }
@@ -43,17 +43,16 @@ namespace WindowsMonitor.DAL
                         double latitude = (double)dr.Field<decimal>("latitude");
                         double longitude = (double)dr.Field<decimal>("longitude");
                         double accuracy = dr.Field<int>("accuracy");
-                        string client = dr.Field<string>("clientName");
                         DateTime time = dr.Field<DateTime>("timestamp");
+                        string name = dr.Field<string>("clientName");
                         GpsLocation location = new GpsLocation(latitude, longitude, accuracy, time);
 
-                        Tuple<string, DateTime> clientTuple = new Tuple<string, DateTime>(dr.Field<string>("clientName"), dr.Field<DateTime>("lastMessage"));
-                        if (!result.ContainsKey(clientTuple))
+                        if (!result.ContainsKey(name))
                         {
-                            result[clientTuple] = new List<GpsLocation>();
+                            result[name] = new GpsClient(name, dr.Field<DateTime>("lastMessage"), dr.Field<int>("locationInterval"), dr.Field<int>("batteryLevel"));
                         }
 
-                        result[clientTuple].Add(location);
+                        result[name].Locations.Add(location);
 
                     }
                 }
@@ -91,6 +90,24 @@ namespace WindowsMonitor.DAL
 
             }
             return result;
+        }
+        public void updateInterval(string client, int interval)
+        {
+            try
+            {
+                using (MySqlConnection conn = new MySqlConnection(DB_CONN_STR))
+                {
+                    conn.Open();
+                    string sqlCmd = string.Format("UPDATE Client SET locationInterval = {0} WHERE clientName = '{1}'", interval, client);
+
+                    MySqlCommand cmd = new MySqlCommand(sqlCmd, conn);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
         }
     }
 }

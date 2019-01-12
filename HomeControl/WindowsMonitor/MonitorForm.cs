@@ -13,12 +13,12 @@ namespace WindowsMonitor
     public partial class MonitorForm : Form
     {
         GpsLocation mHome;
-        Dictionary<Tuple<string, DateTime>, List<GpsLocation>> mLocations;
+        Dictionary<string, GpsClient> mLocations;
         LocationDal mDal;
         public MonitorForm()
         {
             InitializeComponent();
-            mLocations = new Dictionary<Tuple<string, DateTime>, List<GpsLocation>>();
+            mLocations = new Dictionary<string, GpsClient>();
             mHome = new GpsLocation(51.0536, 3.64393, 0, DateTime.Now);
             mDal = new LocationDal();
             cmbHours.Items.Add(new Item("6", 6));
@@ -44,10 +44,10 @@ namespace WindowsMonitor
                 cmbClient.Items.Clear();
                 foreach (var cell in mLocations)
                 {
-                    ListViewItem item = listSummary.Items.Add(cell.Key.Item1);
-                    if (cell.Value.Count > 0)
+                    ListViewItem item = listSummary.Items.Add(cell.Key);
+                    if (cell.Value.Locations.Count > 0)
                     {
-                        double distance = cell.Value.Last().distance(mHome);
+                        double distance = cell.Value.Locations.Last().distance(mHome);
                         string distanceString;
                         if (distance > 1000)
                         {
@@ -60,17 +60,19 @@ namespace WindowsMonitor
                             distanceString = string.Format("{0}m", distance);
                         }
                         item.SubItems.Add(distanceString);
-                        item.SubItems.Add(string.Format("{0}m", cell.Value.Last().Accuracy));
-                        item.SubItems.Add(string.Format("{0}", cell.Key.Item2));
-                        item.SubItems.Add(string.Format("{0}", cell.Value.Last().TimeStamp));
+                        item.SubItems.Add(string.Format("{0}m", cell.Value.Locations.Last().Accuracy));
+                        item.SubItems.Add(string.Format("{0}", cell.Value.LastMessage));
+                        item.SubItems.Add(string.Format("{0}", cell.Value.Locations.Last().TimeStamp));
+                        item.SubItems.Add(string.Format("{0}", cell.Value.LocationInterval));
+                        item.SubItems.Add(string.Format("{0}%", cell.Value.BatteryLevel));
 
-                        if (cell.Key.Item1 == "Moto G (5)")
+                        if (cell.Key == "Moto G (5)")
                         {
-                            this.Text = string.Format("{0}: {1}", distanceString, cell.Value.Last().TimeStamp.ToShortTimeString());
+                            this.Text = string.Format("{0}: {1}", distanceString, cell.Value.Locations.Last().TimeStamp.ToShortTimeString());
                         }
                     }
 
-                    cmbClient.Items.Add(cell.Key.Item1);
+                    cmbClient.Items.Add(cell.Key);
                 }
             }
             if (cmbClient.Items.Count > 0) cmbClient.SelectedIndex = 0;
@@ -89,11 +91,11 @@ namespace WindowsMonitor
                 {
                     foreach(var client in mLocations)
                     {
-                        if (client.Key.Item1 == item.Text)
+                        if (client.Key == item.Text)
                         {
-                            if (client.Value.Count > 0)
+                            if (client.Value.Locations.Count > 0)
                             {
-                                string url = string.Format("http://maps.google.com/maps?z=12&t=m&q=loc:{0}+{1}", client.Value.Last().Latitude.ToString(CultureInfo.InvariantCulture), client.Value.Last().Longitude.ToString(CultureInfo.InvariantCulture));
+                                string url = string.Format("http://maps.google.com/maps?z=12&t=m&q=loc:{0}+{1}", client.Value.Locations.Last().Latitude.ToString(CultureInfo.InvariantCulture), client.Value.Locations.Last().Longitude.ToString(CultureInfo.InvariantCulture));
                                 ProcessStartInfo sInfo = new ProcessStartInfo(url);
                                 Process.Start(sInfo);
                             }
@@ -129,19 +131,19 @@ namespace WindowsMonitor
             {
                 foreach (var client in mLocations)
                 {
-                    if (cmbClient.SelectedItem.ToString() != client.Key.Item1) continue;
+                    if (cmbClient.SelectedItem.ToString() != client.Key) continue;
 
-                    if (client.Value.Count > 2)
+                    if (client.Value.Locations.Count > 2)
                     {
-                        string kmlFileName = string.Format("{0}\\{1}.kml", Path.GetTempPath(), client.Key.Item1);
+                        string kmlFileName = string.Format("{0}\\{1}.kml", Path.GetTempPath(), client.Key);
                         using (System.IO.StreamWriter file = new System.IO.StreamWriter(kmlFileName))
                         {
                             file.WriteLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?> <kml xmlns=\"http://earth.google.com/kml/2.0\"><Document>");
-                            placeMark(client.Value.First(), string.Format("Start {0}", client.Value.First().TimeStamp.ToString("HH:mm")), file);
-                            line(client.Value, file);
-                            GpsLocation previousLocation = client.Value.First();
+                            placeMark(client.Value.Locations.First(), string.Format("Start {0}", client.Value.Locations.First().TimeStamp.ToString("HH:mm")), file);
+                            line(client.Value.Locations, file);
+                            GpsLocation previousLocation = client.Value.Locations.First();
                             List<GpsLocation> sameLocation = new List<GpsLocation>();
-                            foreach (var gpsloc in client.Value)
+                            foreach (var gpsloc in client.Value.Locations)
                             {
                                 if (previousLocation.distance(gpsloc) > 500)
                                 {
@@ -261,5 +263,37 @@ namespace WindowsMonitor
 
             }
         }
+
+        private void mnInterval0_Click(object sender, EventArgs e)
+        {
+            updateInterval(sender);
+        }
+        private void mnInterval5_Click(object sender, EventArgs e)
+        {
+            updateInterval(sender);
+        }
+
+        private void mnInterval30_Click(object sender, EventArgs e)
+        {
+            updateInterval(sender);
+        }
+        private void updateInterval(object sender)
+        {
+            if (listSummary.SelectedItems.Count > 0)
+            {
+                string clientName = listSummary.SelectedItems[0].Text;
+                ToolStripMenuItem menuItem = sender as ToolStripMenuItem;
+                if (menuItem != null)
+                {
+                    int interval = 0;
+                    if (int.TryParse(menuItem.Text, out interval))
+                    {
+                        mDal.updateInterval(clientName, interval);
+                    }
+                }
+            }
+        }
+
+
     }
 }
