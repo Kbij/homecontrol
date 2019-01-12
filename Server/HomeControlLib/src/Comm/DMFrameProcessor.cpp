@@ -67,7 +67,7 @@ void DMFrameProcessor::sendData(const std::vector<uint8_t>& data)
 		uint8_t calculatedCrc = std::accumulate(data.begin(), data.end(), 0);
 		calculatedCrc = 0xFF - calculatedCrc;
 		sendFrame.push_back(calculatedCrc);
-		printFrame("Send Raw Frame: ", sendFrame);
+		if (VLOG_IS_ON(21)) printFrame("Send Raw Frame: ", sendFrame);
 		mSerial->writeData(sendFrame);
 	}
 }
