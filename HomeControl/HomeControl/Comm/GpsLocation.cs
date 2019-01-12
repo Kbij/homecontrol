@@ -10,6 +10,7 @@ namespace HomeControl.Comm
         public double Longitude { get; set; }
         public DateTime TimeStamp { get; set; }
         public double Accuracy { get; set; }
+        public int BatteryLevel { get; set; }
 
         public GpsLocation()
         {
@@ -32,6 +33,7 @@ namespace HomeControl.Comm
             Latitude = value.Latitude;
             Longitude = value.Longitude;
             TimeStamp = value.TimeStamp;
+            BatteryLevel = value.BatteryLevel;
         }
 
         public double distance(GpsLocation other)

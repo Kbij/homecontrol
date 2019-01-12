@@ -211,7 +211,15 @@ namespace HomeControl.HCService
                         DeleteGeofence();
                     }
                 }
-                GpsLocation loc = new GpsLocation { Latitude = location.Latitude, Longitude = location.Longitude, Accuracy = location.Accuracy };
+
+                var filter = new IntentFilter(Intent.ActionBatteryChanged);
+                var battery = RegisterReceiver(null, filter);
+                int level = battery.GetIntExtra(BatteryManager.ExtraLevel, -1);
+                int scale = battery.GetIntExtra(BatteryManager.ExtraScale, -1);
+
+                int level_0_to_100 = (int) System.Math.Floor(level * 100D / scale);
+
+                GpsLocation loc = new GpsLocation { Latitude = location.Latitude, Longitude = location.Longitude, Accuracy = location.Accuracy, BatteryLevel = level_0_to_100 };
                 mCommModel.sendObjectQueued(loc);
             }
         }
