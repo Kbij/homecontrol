@@ -40,12 +40,12 @@ void TwoPointThermostat::temperatureChanged(time_t timePoint, double temperature
 	double hysteresisBotom = mSetPoint - (mHysteresis/2.0);
 	if (temperature > hysteresisTop)
 	{
-		LOG(INFO) << "Heather on";
+		LOG(INFO) << "Heather off";
 		mHeaterOn = false;
 	}
 	if (temperature < hysteresisBotom)
 	{
-		LOG(INFO) << "Heather off";
+		LOG(INFO) << "Heather on";
 		mHeaterOn = true;
 	}
 	if (mHeaterOn)

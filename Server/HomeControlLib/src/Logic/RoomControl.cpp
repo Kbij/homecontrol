@@ -62,7 +62,7 @@ RoomControl::~RoomControl()
 
 void RoomControl::heaterOn()
 {
-	VLOG(1) << "Room: " << mRoomId << ", heater on";
+	LOG(INFO) << "Room: " << mRoomId << ", heater on";
 	if (mRoomListener)
 	{
 		mRoomListener->heaterOn(mRoomId);
@@ -75,7 +75,7 @@ void RoomControl::heaterOn()
 
 void RoomControl::heaterOff()
 {
-	VLOG(1) << "Room: " << mRoomId << ", heater off";
+	LOG(INFO) << "Room: " << mRoomId << ", heater off";
 	if (mRoomListener)
 	{
 		mRoomListener->heaterOff(mRoomId);
@@ -201,6 +201,7 @@ void RoomControl::workerThread()
 			}
 			if (tempChanged)
 			{
+				LOG(INFO) << "Temp for room: " << mRoomId << ", temperature: " << mRoomTemperature;
 				mThermostat->temperatureChanged(std::time(0), mRoomTemperature);
 			}
 		}
