@@ -7,6 +7,7 @@
 
 #include "Logic/TwoPointThermostat.h"
 #include "Logic/ThermostatListenerIf.h"
+#include <glog/logging.h>
 
 namespace LogicNs {
 
