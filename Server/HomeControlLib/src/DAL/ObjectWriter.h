@@ -19,13 +19,17 @@ namespace DalNs {
 class ObjectWriter: public CommNs::CommListenerIf
 {
 public:
-	ObjectWriter();
+	ObjectWriter(const std::string& server, const std::string& user, const std::string& pwd);
 	virtual ~ObjectWriter();
 
 	//CommListenerIf
 	void clientConnected(const std::string& name);
 	void clientDisConnected(const std::string& name);
 	void receiveObject(const std::string name, const CommNs::CommObjectIf* object);
+private:
+	const std::string mServer;
+	const std::string mUser;
+	const std::string mPwd;
 };
 
 } /* namespace DalNs */

@@ -7,21 +7,28 @@
 
 #ifndef LOGIC_ROOMCONTROL_H_
 #define LOGIC_ROOMCONTROL_H_
-
+#include "ThermostatListenerIf.h"
 #include <string>
 #include <thread>
 #include <mutex>
 #include <atomic>
 #include <condition_variable>
+#include <memory>
 
 namespace LogicNs {
 class RoomListenerIf;
+class ThermostatIf;
+class HeaterListenerIf;
 
-class RoomControl
+class RoomControl: public ThermostatListenerIf
 {
 public:
-	RoomControl(const std::string& roomId, const std::string& roomName, RoomListenerIf* roomListener);
+	RoomControl(const std::string& roomId, uint8_t heaterOutput, const std::string& roomName, RoomListenerIf* roomListener, std::shared_ptr<ThermostatIf> thermostat, HeaterListenerIf* heaterListener);
 	virtual ~RoomControl();
+
+	//ThermostatListenerIf
+	void heaterOn();
+	void heaterOff();
 
 	std::string roomId() const {return mRoomId; };
 	std::string roomName() const {return mRoomName; };
@@ -36,8 +43,11 @@ private:
 	void workerThread();
 
 	const std::string mRoomId;
+	const uint8_t mHeaterOutput;
 	const std::string mRoomName;
 	RoomListenerIf* mRoomListener;
+	std::shared_ptr<ThermostatIf> mThermostat;
+	HeaterListenerIf* mHeaterListener;
 	double mRoomTemperature;
 	double mSetTemperature;
 	std::thread* mWorkerThread;

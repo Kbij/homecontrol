@@ -11,6 +11,7 @@
 
 namespace LogicNs {
 
+//Interface class for CommRouter
 class RoomListenerIf
 {
 public:

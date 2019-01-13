@@ -13,10 +13,12 @@
 #include "CommObjects/RoomList.h"
 #include "CommObjects/TemperatureMonitoring.h"
 #include "Logic/RoomControl.h"
+#include "Logic/TwoPointThermostat.h"
 #include "DAL/HomeControlDalIf.h"
 #include <glog/logging.h>
 #include <algorithm>
-#include <iostream>
+#include <memory>
+
 
 namespace LogicNs {
 
@@ -24,7 +26,7 @@ CommRouter::CommRouter(DalNs::HomeControlDalIf* dal, CommNs::CommServerIf* serve
 	mDal(dal),
 	mCommServer(server),
 	mSensors(sensors),
-	mHeaterListener(heaterListener),
+	mHeatherListener(heaterListener),
 	mConnnectedClients(),
 	mDataMutex(),
 	mRooms()
@@ -82,20 +84,14 @@ void CommRouter::setPointChanged(const std::string& roomId, double setTemperatur
 
 void CommRouter::heaterOn(const std::string& roomId)
 {
-	//Need to send to ConnectedClients, sensors and Relais outputs
-	if (mHeaterListener)
-	{
-		mHeaterListener->heaterOn(roomId);
-	}
+//	//Need to send to ConnectedClients, sensors
+
 }
 
 void CommRouter::heaterOff(const std::string& roomId)
 {
-	//Need to send to ConnectedClients, sensors and Relais outputs
-	if (mHeaterListener)
-	{
-		mHeaterListener->heaterOff(roomId);
-	}
+//	//Need to send to ConnectedClients, sensors
+
 }
 
 void CommRouter::clientConnected(const std::string& name)
@@ -202,7 +198,8 @@ RoomControl* CommRouter::findRoomByRoomId(const std::string& roomId, bool useDat
 		DalNs::RoomConfig* roomConfig = mDal->findRoomByRoomId(roomId);
 		if (roomConfig)
 		{
-			RoomControl* roomControl = new RoomControl(roomConfig->RoomId, roomConfig->RoomName, this);
+			std::shared_ptr<ThermostatIf> thermostat = std::make_shared<TwoPointThermostat>(0.5);
+			RoomControl* roomControl = new RoomControl(roomConfig->RoomId, roomConfig->HeaterOutput, roomConfig->RoomName, this, thermostat, mHeatherListener);
 			mRooms.push_back(std::make_pair(std::set<std::string>(), roomControl));
 
 			sendRooms();
@@ -237,7 +234,8 @@ RoomControl* CommRouter::findRoomBySensorId(const std::string& sensorId)
 		RoomControl* roomControl = findRoomByRoomId(roomConfig->RoomId, false);
 		if (roomControl == nullptr)
 		{   // Room does not exist; construct the room
-			roomControl = new RoomControl(roomConfig->RoomId, roomConfig->RoomName, this);
+			std::shared_ptr<ThermostatIf> thermostat = std::make_shared<TwoPointThermostat>(0.5);
+			roomControl = new RoomControl(roomConfig->RoomId, roomConfig->HeaterOutput, roomConfig->RoomName, this, thermostat, mHeatherListener);
 			mRooms.push_back(std::make_pair(std::set<std::string>(), roomControl));
 		}
 		addSensorToRoom(roomConfig->RoomId, sensorId);

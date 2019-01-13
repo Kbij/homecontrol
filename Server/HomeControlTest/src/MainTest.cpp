@@ -22,7 +22,7 @@ GTEST_API_ int main(int argc, char **argv)
 	testing::GTEST_FLAG(filter) = "-LiveTest.*";
 
 //	testing::GTEST_FLAG(filter) = "CommRouter.SendTemperatureToCommServer";
-	testing::GTEST_FLAG(filter) = "WatchDogTest.*";
+	testing::GTEST_FLAG(filter) = "HomeControlDal*";
 
 
 	if (FLAGS_server)

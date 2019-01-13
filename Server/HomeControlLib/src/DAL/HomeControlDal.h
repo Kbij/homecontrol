@@ -15,7 +15,7 @@ namespace DalNs {
 class HomeControlDal: public HomeControlDalIf
 {
 public:
-	HomeControlDal();
+	HomeControlDal(const std::string& server, const std::string& user, const std::string& pwd);
 	virtual ~HomeControlDal();
 
 	RoomConfig* findRoomByRoomId(const std::string& roomId);
@@ -23,6 +23,10 @@ public:
 
 	double getSensorCalibration(const std::string& sensorId);
 	int locationInterval(const std::string& clientId);
+private:
+	const std::string mServer;
+	const std::string mUser;
+	const std::string mPwd;
 };
 
 } /* namespace DalNs */

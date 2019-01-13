@@ -22,6 +22,9 @@
 #include "Logic/CommRouter.h"
 #include "Logic/SystemClock.h"
 #include "Logic/Timer.h"
+#include "Logic/HeaterControl.h"
+#include "Hw/I2C.h"
+#include "Hw/RelaisDriver.h"
 #include "DAL/ObjectWriter.h"
 #include <string>
 #include <glog/logging.h>
@@ -39,7 +42,8 @@
 DEFINE_bool(daemon, false, "Run Server as Daemon");
 DEFINE_string(pidfile,"","Pid file when running as Daemon");
 DEFINE_int32(simulate, 0, "The number of simulation sensors");
-DEFINE_string(serial, "/dev/ttyUSB0", "Serial port to use");
+DEFINE_string(serial, "", "Serial port to use"); ///dev/ttyUSB0
+DEFINE_string(i2c, "/dev/i2c-1", "I2C port to use");
 
 void signal_handler(int sig);
 void daemonize();
@@ -48,8 +52,9 @@ std::condition_variable exitCv;
 std::mutex exitMutex;
 bool exitMain = false;
 int pidFilehandle;
-uint8_t XBEE_CHANNEL = 0x17;
-
+const uint8_t XBEE_CHANNEL = 0x17;
+const uint8_t RELAIS_ADDRESS = 0x08;
+const int RELAIS_TIMEOUT_SECONDS = 120; //Thermostats must send there temperature within this time
 
 void signal_handler(int sig)
 {
@@ -194,55 +199,72 @@ int main (int argc, char* argv[])
 		LOG(INFO) << "Home Control ServerApp";
 		LOG(INFO) << "======================";
 		LOG(INFO) << "Build on: " << __DATE__ << ", " << __TIME__;
-		DalNs::ObjectWriter* writer = new DalNs::ObjectWriter;
-		DalNs::HomeControlDal* dal = new DalNs::HomeControlDal;
+		DalNs::ObjectWriter* writer = new DalNs::ObjectWriter("tcp://192.168.10.7:3306", "hc", "bugs bunny");
+		DalNs::HomeControlDal* dal = new DalNs::HomeControlDal("tcp://192.168.10.7:3306", "hc", "bugs bunny");
 
 		CommNs::SocketFactory* factory = new CommNs::SocketFactory;
 		CommNs::Server* server = new CommNs::Server(factory, 5678, dal);
 
 		server->registerCommListener(writer);
-
+		HwNs::I2C* i2c = nullptr;
+		HwNs::RelaisDriver* relais = nullptr;
+		LogicNs::HeaterControl* heaterControl = nullptr;
 		CommNs::Serial* serial = nullptr;
 		CommNs::DMFrameProcessor* frameProcessor = nullptr;
 		CommNs::DMComm* dmComm = nullptr;
 		CommNs::TemperatureSourceIf* sensors = nullptr;
 		LogicNs::SystemClock clock;
 
-		if (FLAGS_simulate == 0)
-		{
-			LOG(INFO) << "Using serial port: " << FLAGS_serial;
-			serial = new CommNs::Serial(FLAGS_serial, 38400);
-			serial->openSerial();
-			frameProcessor = new CommNs::DMFrameProcessor(serial);
-			dmComm = new CommNs::DMComm(frameProcessor, XBEE_CHANNEL, {0x12, 0x13});
-			sensors = new CommNs::TemperatureSensors(dmComm);
-		}
-		else
-		{
-			LOG(INFO) << "Simulating with number of sensors: " << FLAGS_simulate;
-			sensors = new CommNs::TemperatureSensorsSimulator(FLAGS_simulate);
-		}
+		LogicNs::Timer* timer = nullptr;
+		LogicNs::TemperatureFilter* filter = nullptr;
+		DalNs::TemperatureWriter* tempWriter = nullptr;
+		LogicNs::CommRouter* commRouter = nullptr;
 
-		LogicNs::Timer* timer = new LogicNs::Timer(clock, sensors);
-		LogicNs::TemperatureFilter* filter = new LogicNs::TemperatureFilter(sensors, 0.2);
-		DalNs::TemperatureWriter* tempWriter = new DalNs::TemperatureWriter(filter);
-		LogicNs::CommRouter* commRouter = new LogicNs::CommRouter(dal, server, filter, nullptr);
+		if (FLAGS_serial != "")
+		{
+			if (FLAGS_simulate == 0)
+			{
+				LOG(INFO) << "Using I2C Bus for relais: " << FLAGS_i2c;
+				i2c = new HwNs::I2C(FLAGS_i2c);
+				relais = new HwNs::RelaisDriver(i2c, RELAIS_ADDRESS, RELAIS_TIMEOUT_SECONDS);
+				heaterControl = new LogicNs::HeaterControl(relais);
+				LOG(INFO) << "Using serial port: " << FLAGS_serial;
+				serial = new CommNs::Serial(FLAGS_serial, 38400);
+				serial->openSerial();
+				frameProcessor = new CommNs::DMFrameProcessor(serial);
+				dmComm = new CommNs::DMComm(frameProcessor, XBEE_CHANNEL, {0x12, 0x13});
+				sensors = new CommNs::TemperatureSensors(dmComm);
+			}
+			else
+			{
+				LOG(INFO) << "Simulating with number of sensors: " << FLAGS_simulate;
+				sensors = new CommNs::TemperatureSensorsSimulator(FLAGS_simulate);
+			}
 
+			timer = new LogicNs::Timer(clock, sensors);
+			filter = new LogicNs::TemperatureFilter(sensors, 0.2);
+			tempWriter = new DalNs::TemperatureWriter(filter);
+			commRouter = new LogicNs::CommRouter(dal, server, filter, heaterControl);
+		}
     	// Wait until application stopped by a signal handler
         std::unique_lock<std::mutex> lk(exitMutex);
         exitCv.wait(lk, []{return exitMain;});
 
-        delete commRouter;
-        delete tempWriter;
-        delete filter;
-        delete timer;
+        if (commRouter) delete commRouter;
+        if (tempWriter) delete tempWriter;
+        if (filter) delete filter;
+        if (timer) delete timer;
         if (serial != nullptr)
         {
         	delete sensors;
         	delete dmComm;
         	delete frameProcessor;
         	delete serial;
+        	delete heaterControl;
+        	delete relais;
+        	delete i2c;
         }
+
         server->unRegisterCommListener(writer);
 
         delete writer;

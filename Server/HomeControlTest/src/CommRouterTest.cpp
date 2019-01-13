@@ -163,7 +163,7 @@ TEST(CommRouter, SendTemperatureToCommServer)
 	dalStub.mRoomConfig = new DalNs::RoomConfig;
 	dalStub.mRoomConfig->RoomId = "RoomId";
 	dalStub.mRoomConfig->RoomName = "RoomName";
-	dalStub.mRoomConfig->mSensorIds.push_back("SensorId1");
+	dalStub.mRoomConfig->SensorIds.push_back("SensorId1");
 	LogicNs::CommRouter* router = new LogicNs::CommRouter(&dalStub, &commServerStub, nullptr, nullptr);
 	std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
@@ -199,7 +199,7 @@ TEST(CommRouter, SendSensorConfig)
 	dalStub.mRoomConfig = new DalNs::RoomConfig;
 	dalStub.mRoomConfig->RoomId = "RoomId";
 	dalStub.mRoomConfig->RoomName = "RoomName";
-	dalStub.mRoomConfig->mSensorIds.push_back("SensorId1");
+	dalStub.mRoomConfig->SensorIds.push_back("SensorId1");
 	LogicNs::CommRouter* router = new LogicNs::CommRouter(&dalStub, &commServerStub, &tempSourceStub, nullptr);
 	std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	dalStub.mSensorCalibration = 1.5;
@@ -223,7 +223,7 @@ TEST(CommRouter, SetTempChanged)
 	dalStub.mRoomConfig = new DalNs::RoomConfig;
 	dalStub.mRoomConfig->RoomId = "RoomId";
 	dalStub.mRoomConfig->RoomName = "RoomName";
-	dalStub.mRoomConfig->mSensorIds.push_back("SensorId1");
+	dalStub.mRoomConfig->SensorIds.push_back("SensorId1");
 	LogicNs::CommRouter* router = new LogicNs::CommRouter(&dalStub, &commServerStub, &tempSourceStub, nullptr);
 	std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	dalStub.mSensorCalibration = 1.5;

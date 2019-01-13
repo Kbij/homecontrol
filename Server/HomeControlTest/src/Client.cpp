@@ -8,6 +8,7 @@
 #include "Comm/ClientListenerIf.h"
 #include "Comm/ClientSocketIf.h"
 #include "CommObjects/CommObjectIf.h"
+#include <boost/shared_ptr.hpp>
 #include "gtest/gtest.h"
 #include "glog/stl_logging.h"
 #include "glog/logging.h"
@@ -82,7 +83,7 @@ public:
 
 TEST(Client, Constructor)
 {
-	ClientSocketStub* socketStub = new ClientSocketStub;
+	boost::shared_ptr<ClientSocketStub> socketStub = boost::shared_ptr<ClientSocketStub>(new ClientSocketStub);
 	ClientListenerStub* clientListenerStub = new ClientListenerStub;
 
 	// Client becomes owner of socketStub !!
@@ -93,7 +94,7 @@ TEST(Client, Constructor)
 
 TEST(Client, StartConnection)
 {
-	ClientSocketStub* socketStub = new ClientSocketStub;
+	boost::shared_ptr<ClientSocketStub> socketStub = boost::shared_ptr<ClientSocketStub>(new ClientSocketStub);
 	ClientListenerStub* clientListenerStub = new ClientListenerStub;
 	CommNs::Client* client = new CommNs::Client(socketStub, clientListenerStub);
 	client->start();
@@ -120,7 +121,7 @@ TEST(Client, StartConnection)
 
 TEST(Client, ReceiveObject)
 {
-	ClientSocketStub* socketStub = new ClientSocketStub;
+	boost::shared_ptr<ClientSocketStub> socketStub = boost::shared_ptr<ClientSocketStub>(new ClientSocketStub);
 	ClientListenerStub* clientListenerStub = new ClientListenerStub;
 	CommNs::Client* client = new CommNs::Client(socketStub, clientListenerStub);
 	client->start();
@@ -155,7 +156,7 @@ TEST(Client, ReceiveObject)
 
 TEST(Client, TimeOuts)
 {
-	ClientSocketStub* socketStub = new ClientSocketStub;
+	boost::shared_ptr<ClientSocketStub> socketStub = boost::shared_ptr<ClientSocketStub>(new ClientSocketStub);
 	ClientListenerStub* clientListenerStub = new ClientListenerStub;
 	CommNs::Client* client = new CommNs::Client(socketStub, clientListenerStub);
 	client->start();

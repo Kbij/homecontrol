@@ -45,7 +45,7 @@ public:
 
 TEST(RoomControl, Constructor)
 {
-	LogicNs::RoomControl* room = new LogicNs::RoomControl("id", "name", nullptr);
+	LogicNs::RoomControl* room = new LogicNs::RoomControl("id", 0, "name", nullptr, nullptr, nullptr);
 	EXPECT_EQ("id", room->roomId());
 	EXPECT_EQ("name", room->roomName());
 	delete room;
@@ -54,7 +54,7 @@ TEST(RoomControl, Constructor)
 TEST(RoomControl, TemperatureChange)
 {
 	RoomListenerStub roomListener;
-	LogicNs::RoomControl* room = new LogicNs::RoomControl("id", "name", &roomListener);
+	LogicNs::RoomControl* room = new LogicNs::RoomControl("id", 0, "name", &roomListener, nullptr, nullptr);
 
 	room->roomTemperature(23.5);
 	std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -70,7 +70,7 @@ TEST(RoomControl, TemperatureChange)
 TEST(RoomControl, SetUp)
 {
 	RoomListenerStub roomListener;
-	LogicNs::RoomControl* room = new LogicNs::RoomControl("id", "name", &roomListener);
+	LogicNs::RoomControl* room = new LogicNs::RoomControl("id", 0,"name", &roomListener, nullptr, nullptr);
 
 	room->setPointUp();
 	std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -86,7 +86,7 @@ TEST(RoomControl, SetUp)
 TEST(RoomControl, SetDown)
 {
 	RoomListenerStub roomListener;
-	LogicNs::RoomControl* room = new LogicNs::RoomControl("id", "name", &roomListener);
+	LogicNs::RoomControl* room = new LogicNs::RoomControl("id", 0, "name", &roomListener, nullptr, nullptr);
 
 	room->setPointDown();
 	std::this_thread::sleep_for(std::chrono::milliseconds(100));

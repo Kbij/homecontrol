@@ -22,7 +22,10 @@
 
 namespace DalNs {
 
-ObjectWriter::ObjectWriter()
+ObjectWriter::ObjectWriter(const std::string& server, const std::string& user, const std::string& pwd):
+	mServer(server),
+	mUser(user),
+	mPwd(pwd)
 {
 }
 
@@ -46,7 +49,7 @@ void ObjectWriter::clientConnected(const std::string& name)
 		driver = get_driver_instance();
 		driver->threadInit();
 
-		con = driver->connect("tcp://127.0.0.1:3306", "hc", "bugs bunny");
+		con = driver->connect(mServer, mUser, mPwd);
 		/* Connect to the MySQL test database */
 		con->setSchema("HC_DB");
 
@@ -119,8 +122,6 @@ void ObjectWriter::receiveObject(const std::string name, const CommNs::CommObjec
 			}
 		}
 
-
-
 		sql::Driver *driver;
 		sql::Connection *con;
 		sql::Statement *stmt;
@@ -129,7 +130,7 @@ void ObjectWriter::receiveObject(const std::string name, const CommNs::CommObjec
 		driver = get_driver_instance();
 		driver->threadInit();
 
-		con = driver->connect("tcp://127.0.0.1:3306", "hc", "bugs bunny");
+		con = driver->connect(mServer, mUser, mPwd);
 		/* Connect to the MySQL test database */
 		con->setSchema("HC_DB");
 

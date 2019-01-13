@@ -144,7 +144,7 @@ TEST(FullTest, FullSetup)
 	dalStub.mRoomConfig = new DalNs::RoomConfig;
 	dalStub.mRoomConfig->RoomId = "RoomId";
 	dalStub.mRoomConfig->RoomName = "RoomName";
-	dalStub.mRoomConfig->mSensorIds.push_back("AB");
+	dalStub.mRoomConfig->SensorIds.push_back("AB");
 
 	//DalNs::HomeControlDalIf* dal, CommNs::CommServerIf* server, CommNs::TemperatureSourceIf* sensors, HeaterListenerIf* heaterListener
 	LogicNs::CommRouter* router = new LogicNs::CommRouter(&dalStub, commServerStub, filter, nullptr);
@@ -187,7 +187,7 @@ TEST(FullTest, SingleTempDown)
 	dalStub.mRoomConfig = new DalNs::RoomConfig;
 	dalStub.mRoomConfig->RoomId = "RoomId";
 	dalStub.mRoomConfig->RoomName = "RoomName";
-	dalStub.mRoomConfig->mSensorIds.push_back("AB");
+	dalStub.mRoomConfig->SensorIds.push_back("AB");
 
 	//DalNs::HomeControlDalIf* dal, CommNs::CommServerIf* server, CommNs::TemperatureSourceIf* sensors, HeaterListenerIf* heaterListener
 	LogicNs::CommRouter* router = new LogicNs::CommRouter(&dalStub, commServerStub, filter, nullptr);
@@ -259,7 +259,7 @@ TEST(FullTest, TempDownToLimit)
 	dalStub.mRoomConfig = new DalNs::RoomConfig;
 	dalStub.mRoomConfig->RoomId = "RoomId";
 	dalStub.mRoomConfig->RoomName = "RoomName";
-	dalStub.mRoomConfig->mSensorIds.push_back("AB");
+	dalStub.mRoomConfig->SensorIds.push_back("AB");
 
 	//DalNs::HomeControlDalIf* dal, CommNs::CommServerIf* server, CommNs::TemperatureSourceIf* sensors, HeaterListenerIf* heaterListener
 	LogicNs::CommRouter* router = new LogicNs::CommRouter(&dalStub, commServerStub, filter, nullptr);

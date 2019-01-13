@@ -57,7 +57,7 @@ private:
 	DalNs::HomeControlDalIf* mDal;
 	CommNs::CommServerIf* mCommServer;
 	CommNs::TemperatureSourceIf* mSensors;
-	HeaterListenerIf* mHeaterListener;
+	HeaterListenerIf* mHeatherListener;
 	std::set<std::string> mConnnectedClients;
 	std::recursive_mutex mDataMutex;
 	std::list<std::pair<std::set<std::string>, RoomControl*>> mRooms;

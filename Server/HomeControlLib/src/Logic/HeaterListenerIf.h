@@ -7,18 +7,19 @@
 
 #ifndef LOGIC_HEATERLISTENERIF_H_
 #define LOGIC_HEATERLISTENERIF_H_
-
 #include <string>
+#include <stdint.h>
 
 namespace LogicNs {
+
 
 class HeaterListenerIf
 {
 public:
 	virtual ~HeaterListenerIf() {};
 
-	virtual void heaterOn(const std::string& roomId) = 0;
-	virtual void heaterOff(const std::string& roomId) = 0;
+	virtual void heaterOn(uint8_t heaterOutput) = 0;
+	virtual void heaterOff(uint8_t heaterOutput) = 0;
 };
 
 } /* namespace LogicNs */

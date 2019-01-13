@@ -14,10 +14,15 @@
 #include <iomanip>
 #include <glog/logging.h>
 
+
 namespace DalNs {
 
-HomeControlDal::HomeControlDal()
+HomeControlDal::HomeControlDal(const std::string& server, const std::string& user, const std::string& pwd):
+	mServer(server),
+	mUser(user),
+	mPwd(pwd)
 {
+	LOG(INFO) << "SQL Server: " << server;
 	//sql::Driver::threadInit();
 }
 
@@ -32,7 +37,7 @@ RoomConfig* HomeControlDal::findRoomByRoomId(const std::string& roomId)
 	try
 	{
 		std::stringstream select;
-		select << "SELECT TemperatureSensor.sensorAddress, Room.Name, Room.RoomId FROM Room ";
+		select << "SELECT TemperatureSensor.sensorAddress, Room.Name, Room.RoomId, Room.HeaterOutput FROM Room ";
 		select << "	INNER JOIN TemperatureSensor on Room.idRoom = TemperatureSensor.idRoom ";
 		select << " WHERE Room.RoomId = '" << roomId << "'";
 
@@ -43,7 +48,7 @@ RoomConfig* HomeControlDal::findRoomByRoomId(const std::string& roomId)
 		/* Create a connection */
 		driver = get_driver_instance();
 		driver->threadInit();
-		con = driver->connect("tcp://127.0.0.1:3306", "hc", "bugs bunny");
+		con = driver->connect(mServer, mUser, mPwd);
 		/* Connect to the MySQL test database */
 		con->setSchema("HC_DB");
 
@@ -57,7 +62,8 @@ RoomConfig* HomeControlDal::findRoomByRoomId(const std::string& roomId)
 			{
 				result->RoomName = res->getString("Name");
 				result->RoomId = res->getString("RoomId");
-				result->mSensorIds.push_back(res->getString("sensorAddress"));
+				result->HeaterOutput = res->getInt("HeaterOutput");
+				result->SensorIds.push_back(res->getString("sensorAddress"));
 			}
 		}
 		delete res;
@@ -91,7 +97,7 @@ RoomConfig* HomeControlDal::findRoomBySensorId(const std::string& sensorId)
 	try
 	{
 		std::stringstream select;
-		select << "SELECT slaveSensor.sensorAddress, Room.Name, Room.RoomId FROM HC_DB.TemperatureSensor as masterSensor ";
+		select << "SELECT slaveSensor.sensorAddress, Room.Name, Room.RoomId, Room.HeaterOutput FROM HC_DB.TemperatureSensor as masterSensor ";
 		select << "	INNER JOIN Room on masterSensor.idRoom = Room.idRoom ";
 		select << " INNER JOIN TemperatureSensor as slaveSensor on masterSensor.idRoom = slaveSensor.idRoom ";
 		select << " WHERE masterSensor.sensorAddress = '" << sensorId << "'";
@@ -104,7 +110,7 @@ RoomConfig* HomeControlDal::findRoomBySensorId(const std::string& sensorId)
 		/* Create a connection */
 		driver = get_driver_instance();
 		driver->threadInit();
-		con = driver->connect("tcp://127.0.0.1:3306", "hc", "bugs bunny");
+		con = driver->connect(mServer, mUser, mPwd);
 		/* Connect to the MySQL test database */
 		con->setSchema("HC_DB");
 
@@ -118,7 +124,8 @@ RoomConfig* HomeControlDal::findRoomBySensorId(const std::string& sensorId)
 			{
 				result->RoomName = res->getString("Name");
 				result->RoomId = res->getString("RoomId");
-				result->mSensorIds.push_back(res->getString("sensorAddress"));
+				result->HeaterOutput = res->getInt("HeaterOutput");
+				result->SensorIds.push_back(res->getString("sensorAddress"));
 			}
 		}
 		delete res;
@@ -162,7 +169,7 @@ double HomeControlDal::getSensorCalibration(const std::string& sensorId)
 		/* Create a connection */
 		driver = get_driver_instance();
 		driver->threadInit();
-		con = driver->connect("tcp://127.0.0.1:3306", "hc", "bugs bunny");
+		con = driver->connect(mServer, mUser, mPwd);
 		/* Connect to the MySQL test database */
 		con->setSchema("HC_DB");
 
@@ -215,7 +222,7 @@ int HomeControlDal::locationInterval(const std::string& clientId)
 		/* Create a connection */
 		driver = get_driver_instance();
 		driver->threadInit();
-		con = driver->connect("tcp://127.0.0.1:3306", "hc", "bugs bunny");
+		con = driver->connect(mServer, mUser, mPwd);
 		/* Connect to the MySQL test database */
 		con->setSchema("HC_DB");
 

@@ -7,8 +7,10 @@
 
 #include <Logic/RoomControl.h>
 #include "RoomListenerIf.h"
+#include "HeaterListenerIf.h"
+#include "ThermostatIf.h"
 #include <glog/logging.h>
-#include <iostream>
+#include <ctime>
 
 namespace
 {
@@ -22,10 +24,13 @@ const double MAX_SET_TEMPERATURE = 26.0;
 namespace LogicNs
 {
 
-RoomControl::RoomControl(const std::string& roomId, const std::string& roomName, RoomListenerIf* roomListener):
+RoomControl::RoomControl(const std::string& roomId, uint8_t heaterOutput, const std::string& roomName, RoomListenerIf* roomListener, std::shared_ptr<ThermostatIf> thermostat, HeaterListenerIf* heaterListener):
 	mRoomId(roomId),
+	mHeaterOutput(heaterOutput),
 	mRoomName(roomName),
 	mRoomListener(roomListener),
+	mThermostat(thermostat),
+	mHeaterListener(heaterListener),
 	mRoomTemperature(21.0),
 	mSetTemperature(16),
 	mWorkerThread(nullptr),
@@ -38,12 +43,45 @@ RoomControl::RoomControl(const std::string& roomId, const std::string& roomName,
 	mConditionVarMutex(),
 	mDataMutex()
 {
+	if (mThermostat)
+	{
+		mThermostat->registerListener(this);
+		mThermostat->setPointChanged(std::time(0), mSetTemperature);
+	}
 	startWorkerThread();
 }
 
 RoomControl::~RoomControl()
 {
+	if (mThermostat)
+	{
+		mThermostat->unRegisterListener();
+	}
 	stopWorkerThread();
+}
+
+void RoomControl::heaterOn()
+{
+	if (mRoomListener)
+	{
+		mRoomListener->heaterOn(mRoomId);
+	}
+	if (mHeaterListener)
+	{
+		mHeaterListener->heaterOn(mHeaterOutput);
+	}
+}
+
+void RoomControl::heaterOff()
+{
+	if (mRoomListener)
+	{
+		mRoomListener->heaterOff(mRoomId);
+	}
+	if (mHeaterListener)
+	{
+		mHeaterListener->heaterOff(mHeaterOutput);
+	}
 }
 
 void RoomControl::roomTemperature(double temperature)
@@ -102,7 +140,8 @@ void RoomControl::workerThread()
 	LOG(INFO) << "Workerthread started for room: " << mRoomId;
 	while(mWorkerThreadRunning)
 	{
-		bool workDone = false;
+		bool setChanged = false;
+		bool tempChanged = false;
 		auto until = std::chrono::system_clock::now() +std::chrono::seconds(WAIT_FOR_WORK_TIMEOUT_SEC);
 		std::unique_lock<std::mutex> lock(mConditionVarMutex);
 		mWaitForWorkCondVar.wait_until(lock, until,[&]{return (bool)(mWorkReceived > 0);});
@@ -112,7 +151,7 @@ void RoomControl::workerThread()
 			while (mUpRequested)
 			{
 				VLOG(1) << "Processing Temperature Up";
-				workDone = true;
+				setChanged = true;
 
 				--mUpRequested;
 				mSetTemperature += SET_TEMP_DELTA;
@@ -127,7 +166,7 @@ void RoomControl::workerThread()
 			while (mDownRequested)
 			{
 				VLOG(1) << "Processing Temperature Down";
-				workDone = true;
+				setChanged = true;
 
 				--mDownRequested;
 				mSetTemperature -= SET_TEMP_DELTA;
@@ -140,7 +179,7 @@ void RoomControl::workerThread()
 			}
 			if (mTempReceived)
 			{
-				workDone = true;
+				tempChanged = true;
 
 				if (mRoomListener)
 				{
@@ -151,16 +190,16 @@ void RoomControl::workerThread()
 
 			--mWorkReceived;
 		}
-		if (workDone)
+
+		if (mThermostat)
 		{
-			// Thermostat function; need a seperate object
-			if (mSetTemperature >  mRoomTemperature)
+			if (setChanged)
 			{
-				mRoomListener->heaterOn(mRoomId);
+				mThermostat->setPointChanged(std::time(0), mSetTemperature);
 			}
-			else
+			if (tempChanged)
 			{
-				mRoomListener->heaterOff(mRoomId);
+				mThermostat->temperatureChanged(std::time(0), mRoomTemperature);
 			}
 		}
 	}

@@ -9,13 +9,15 @@
 #define DAL_HOMECONTROLDALIF_H_
 #include <string>
 #include <vector>
+#include <stdint.h>
 
 namespace DalNs {
 struct RoomConfig
 {
 	std::string RoomId;
 	std::string RoomName;
-	std::vector<std::string> mSensorIds;
+	std::vector<std::string> SensorIds;
+	uint8_t HeaterOutput;
 };
 
 class HomeControlDalIf

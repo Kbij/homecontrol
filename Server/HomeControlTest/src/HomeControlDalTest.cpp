@@ -13,24 +13,31 @@
 #include <thread>
 #include <stdint.h>
 
+namespace
+{
+const std::string SERVER = "tcp://localhost:3306";
+const std::string USER = "hc";
+const std::string PWD = "bugs bunny";
+}
 
 TEST(HomeControlDal, Constructor)
 {
-	DalNs::HomeControlDal* dal = new DalNs::HomeControlDal;
+	DalNs::HomeControlDal* dal = new DalNs::HomeControlDal(SERVER, USER, PWD);
 
 	delete dal;
 }
 
 TEST(HomeControlDal, FindSensor)
 {
-	DalNs::HomeControlDal* dal = new DalNs::HomeControlDal;
+	DalNs::HomeControlDal* dal = new DalNs::HomeControlDal(SERVER, USER, PWD);
 	DalNs::RoomConfig* roomConfig = dal->findRoomBySensorId("sensor1");
 
 	EXPECT_NE(nullptr, roomConfig);
 	EXPECT_EQ("Kamer1", roomConfig->RoomName);
 	EXPECT_EQ("K1", roomConfig->RoomId);
+	EXPECT_EQ(2, roomConfig->HeaterOutput);
 	std::vector<std::string> sensorIds({"sensor1", "sensor1.1"});
-	EXPECT_EQ(sensorIds, roomConfig->mSensorIds);
+	EXPECT_EQ(sensorIds, roomConfig->SensorIds);
 	delete roomConfig;
 
 	delete dal;
@@ -38,7 +45,7 @@ TEST(HomeControlDal, FindSensor)
 
 TEST(HomeControlDal, FindSensorNoResult)
 {
-	DalNs::HomeControlDal* dal = new DalNs::HomeControlDal;
+	DalNs::HomeControlDal* dal = new DalNs::HomeControlDal(SERVER, USER, PWD);
 	DalNs::RoomConfig* roomConfig = dal->findRoomBySensorId("nonexistentsensor");
 
 	EXPECT_EQ(nullptr, roomConfig);
@@ -48,14 +55,15 @@ TEST(HomeControlDal, FindSensorNoResult)
 
 TEST(HomeControlDal, FindRoom)
 {
-	DalNs::HomeControlDal* dal = new DalNs::HomeControlDal;
+	DalNs::HomeControlDal* dal = new DalNs::HomeControlDal(SERVER, USER, PWD);;
 	DalNs::RoomConfig* roomConfig = dal->findRoomByRoomId("K1");
 
 	EXPECT_NE(nullptr, roomConfig);
 	EXPECT_EQ("Kamer1", roomConfig->RoomName);
 	EXPECT_EQ("K1", roomConfig->RoomId);
+	EXPECT_EQ(2, roomConfig->HeaterOutput);
 	std::vector<std::string> sensorIds({"sensor1", "sensor1.1"});
-	EXPECT_EQ(sensorIds, roomConfig->mSensorIds);
+	EXPECT_EQ(sensorIds, roomConfig->SensorIds);
 	delete roomConfig;
 
 	delete dal;
@@ -63,7 +71,7 @@ TEST(HomeControlDal, FindRoom)
 
 TEST(HomeControlDal, NonExistentRoom)
 {
-	DalNs::HomeControlDal* dal = new DalNs::HomeControlDal;
+	DalNs::HomeControlDal* dal = new DalNs::HomeControlDal(SERVER, USER, PWD);;
 	DalNs::RoomConfig* roomConfig = dal->findRoomByRoomId("nonexistentroom");
 
 	EXPECT_EQ(nullptr, roomConfig);
@@ -72,7 +80,7 @@ TEST(HomeControlDal, NonExistentRoom)
 }
 TEST(HomeControlDal, FindCalibration)
 {
-	DalNs::HomeControlDal* dal = new DalNs::HomeControlDal;
+	DalNs::HomeControlDal* dal = new DalNs::HomeControlDal(SERVER, USER, PWD);;
 
 	EXPECT_EQ(1, dal->getSensorCalibration("sensor1"));
 	EXPECT_EQ(1.1, dal->getSensorCalibration("sensor1.1"));
