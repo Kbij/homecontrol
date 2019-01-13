@@ -34,18 +34,18 @@ void TwoPointThermostat::unRegisterListener()
 
 void TwoPointThermostat::temperatureChanged(time_t timePoint, double temperature)
 {
+	LOG(INFO) << "Temperature: " << temperature;
 	double hysteresisTop = mSetPoint + (mHysteresis/2.0);
 	double hysteresisBotom = mSetPoint - (mHysteresis/2.0);
-	//bool inHysteresis = true;
 	if (temperature > hysteresisTop)
 	{
+		LOG(INFO) << "Heather on";
 		mHeaterOn = false;
-		//if (mListener) mListener->heaterOff();
 	}
 	if (temperature < hysteresisBotom)
 	{
+		LOG(INFO) << "Heather off";
 		mHeaterOn = true;
-		//if (mListener) mListener->heaterOn();
 	}
 	if (mHeaterOn)
 	{

@@ -62,6 +62,7 @@ RoomControl::~RoomControl()
 
 void RoomControl::heaterOn()
 {
+	VLOG(1) << "Room: " << mRoomId << ", heater on";
 	if (mRoomListener)
 	{
 		mRoomListener->heaterOn(mRoomId);
@@ -74,6 +75,7 @@ void RoomControl::heaterOn()
 
 void RoomControl::heaterOff()
 {
+	VLOG(1) << "Room: " << mRoomId << ", heater off";
 	if (mRoomListener)
 	{
 		mRoomListener->heaterOff(mRoomId);
