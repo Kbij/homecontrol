@@ -85,7 +85,7 @@ RoomConfig* HomeControlDal::findRoomByRoomId(const std::string& roomId)
 	}
 	else
 	{
-		LOG(INFO) << "Room found: " << result->RoomName;
+		LOG(INFO) << "Room found: " << result->RoomName << ", config: " <<  result->toString();
 	}
 	return result;
 }
@@ -146,7 +146,7 @@ RoomConfig* HomeControlDal::findRoomBySensorId(const std::string& sensorId)
 	}
 	else
 	{
-		LOG(INFO) << "Room found: " << result->RoomName;
+		LOG(INFO) << "Room found: " << result->RoomName << ", config: " <<  result->toString();
 	}
 	return result;
 }

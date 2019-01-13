@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 #include <stdint.h>
+#include <sstream>
 
 namespace DalNs {
 struct RoomConfig
@@ -18,6 +19,12 @@ struct RoomConfig
 	std::string RoomName;
 	std::vector<std::string> SensorIds;
 	uint8_t HeaterOutput;
+	std::string toString()
+	{
+		std::stringstream ss;
+		ss << "RoomId: " << RoomId << ", RoomName: " << RoomName <<", HeaterOutput: " << (int) HeaterOutput;
+		return ss.str();
+	}
 };
 
 class HomeControlDalIf
