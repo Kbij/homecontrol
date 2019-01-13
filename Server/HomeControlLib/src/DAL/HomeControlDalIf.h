@@ -22,7 +22,7 @@ struct RoomConfig
 	std::string toString()
 	{
 		std::stringstream ss;
-		ss << "RoomId: " << RoomId << ", RoomName: " << RoomName <<", HeaterOutput: " << (int) HeaterOutput;
+		ss << "RoomId: " << RoomId << ", RoomName: " << RoomName << ", HeaterOutput: " << (int) HeaterOutput;
 		return ss.str();
 	}
 };

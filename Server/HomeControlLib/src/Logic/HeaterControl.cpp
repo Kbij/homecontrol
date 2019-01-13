@@ -7,6 +7,7 @@
 
 #include "Logic/HeaterControl.h"
 #include "Hw/RelaisDriver.h"
+#include <glog/logging.h>
 
 namespace LogicNs {
 
@@ -32,15 +33,18 @@ char heaterIdToRelaisId(uint8_t heaterOutput)
 		case 6: return '6';
 		case 7: return '7';
 		case 8: return '8';
-		default: return '0';
+		default: return 'E';
 	}
+
+	LOG(ERROR) << "Unknown relais output";
 }
 
 void HeaterControl::heaterOn(uint8_t heaterOutput)
 {
 	if (mRelaisDriver)
 	{
-		mRelaisDriver->relaisOn(heaterIdToRelaisId(heaterOutput));
+		char output = heaterIdToRelaisId(heaterOutput);
+		if (output != 'E') mRelaisDriver->relaisOn();
 	}
 }
 
@@ -48,7 +52,8 @@ void HeaterControl::heaterOff(uint8_t heaterOutput)
 {
 	if (mRelaisDriver)
 	{
-		mRelaisDriver->relaisOff(heaterIdToRelaisId(heaterOutput));
+		char output = heaterIdToRelaisId(heaterOutput);
+		if (output != 'E') mRelaisDriver->relaisOff(heaterIdToRelaisId(heaterOutput));
 	}
 }
 } /* namespace LogicNs */
