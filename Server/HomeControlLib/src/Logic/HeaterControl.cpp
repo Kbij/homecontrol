@@ -44,7 +44,7 @@ void HeaterControl::heaterOn(uint8_t heaterOutput)
 	if (mRelaisDriver)
 	{
 		char output = heaterIdToRelaisId(heaterOutput);
-		if (output != 'E') mRelaisDriver->relaisOn();
+		if (output != 'E') mRelaisDriver->relaisOn(output);
 	}
 }
 
@@ -53,7 +53,7 @@ void HeaterControl::heaterOff(uint8_t heaterOutput)
 	if (mRelaisDriver)
 	{
 		char output = heaterIdToRelaisId(heaterOutput);
-		if (output != 'E') mRelaisDriver->relaisOff(heaterIdToRelaisId(heaterOutput));
+		if (output != 'E') mRelaisDriver->relaisOff(output);
 	}
 }
 } /* namespace LogicNs */
