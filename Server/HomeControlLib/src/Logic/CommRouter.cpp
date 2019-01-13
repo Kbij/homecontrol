@@ -199,7 +199,7 @@ RoomControl* CommRouter::findRoomByRoomId(const std::string& roomId, bool useDat
 		if (roomConfig)
 		{
 			std::shared_ptr<ThermostatIf> thermostat;
-			if (roomConfig->HeaterOutput > -1)
+			if (roomConfig->HeaterOutput != 255)
 			{
 				thermostat = std::make_shared<TwoPointThermostat>(0.5);
 			}
@@ -238,7 +238,11 @@ RoomControl* CommRouter::findRoomBySensorId(const std::string& sensorId)
 		RoomControl* roomControl = findRoomByRoomId(roomConfig->RoomId, false);
 		if (roomControl == nullptr)
 		{   // Room does not exist; construct the room
-			std::shared_ptr<ThermostatIf> thermostat = std::make_shared<TwoPointThermostat>(0.5);
+			std::shared_ptr<ThermostatIf> thermostat;
+			if (roomConfig->HeaterOutput != 255)
+			{
+				thermostat = std::make_shared<TwoPointThermostat>(0.5);
+			}
 			roomControl = new RoomControl(roomConfig->RoomId, roomConfig->HeaterOutput, roomConfig->RoomName, this, thermostat, mHeatherListener);
 			mRooms.push_back(std::make_pair(std::set<std::string>(), roomControl));
 		}
