@@ -29,6 +29,8 @@ const std::string MSG_SET_TEMPERATURE_UP = "6";
 const std::string MSG_SET_TEMPERATURE_DOWN = "7";
 const std::string MSG_SET_CALIBRATION = "8";
 const std::string MSG_WRITE_TIME = "9";
+const std::string MSG_HEATER_ON = "A";
+const std::string MSG_HEATER_OFF = "B";
 }
 
 namespace CommNs {
@@ -71,8 +73,6 @@ void TemperatureSensors::writeSetTemperature(const std::string& sensorId, double
 	{
 		std::stringstream ss;
 		ss << "[" << MSG_SET_TEMPERATURE << ":"  << std::fixed << std::setprecision(1) << temperature << "]";
-		std::string outputLine = ss.str();
-		std::replace(outputLine.begin(), outputLine.end(), '.', ',');
 		std::string dataString(ss.str());
 		VLOG(1) << "Writing set temperature (" << temperature << ") to sensor: " << sensorId;
 		std::lock_guard<std::recursive_mutex> lg(mDataMutex);
@@ -117,6 +117,60 @@ void TemperatureSensors::writeSensorConfig(const std::string& sensorId, double c
 		else
 		{
 			LOG(ERROR) << "Unable to write calibration, sensor unknown: " << sensorId;
+		}
+	}
+}
+
+void TemperatureSensors::heaterOn(const std::string& sensorId)
+{
+	if (mDMComm)
+	{
+		std::stringstream ss;
+		ss << "[" << MSG_HEATER_ON << "]";
+		std::string dataString(ss.str());
+		VLOG(1) << "Writing heater on to sensor: " << sensorId;
+		std::lock_guard<std::recursive_mutex> lg(mDataMutex);
+
+		if (mSensorAddress.find(sensorId) != mSensorAddress.end())
+		{
+			TxMessage* txMessage = new TxMessage(std::vector<uint8_t>(dataString.begin(), dataString.end()), mSensorAddress[sensorId]);
+			//Send synchronously (avoid sending to fast)
+			DMMessageIf* result = mDMComm->sendMessage(txMessage, 10000);
+			if (result != nullptr)
+			{
+				delete result;
+			}
+		}
+		else
+		{
+			LOG(ERROR) << "Unable to write heater on, sensor unknown: " << sensorId;
+		}
+	}
+}
+
+void TemperatureSensors::heaterOff(const std::string& sensorId)
+{
+	if (mDMComm)
+	{
+		std::stringstream ss;
+		ss << "[" << MSG_HEATER_OFF << "]";
+		std::string dataString(ss.str());
+		VLOG(1) << "Writing heater off to sensor: " << sensorId;
+		std::lock_guard<std::recursive_mutex> lg(mDataMutex);
+
+		if (mSensorAddress.find(sensorId) != mSensorAddress.end())
+		{
+			TxMessage* txMessage = new TxMessage(std::vector<uint8_t>(dataString.begin(), dataString.end()), mSensorAddress[sensorId]);
+			//Send synchronously (avoid sending to fast)
+			DMMessageIf* result = mDMComm->sendMessage(txMessage, 10000);
+			if (result != nullptr)
+			{
+				delete result;
+			}
+		}
+		else
+		{
+			LOG(ERROR) << "Unable to write heater off, sensor unknown: " << sensorId;
 		}
 	}
 }

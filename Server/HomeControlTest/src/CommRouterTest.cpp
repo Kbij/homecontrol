@@ -87,7 +87,8 @@ public:
 		mLastSensorId = sensorId;
 		mLastTemperature = temperature;
 	};
-
+	void heaterOn(const std::string& sensorId) {};
+	void heaterOff(const std::string& sensorId) {};
 	void writeSensorConfig(const std::string& sensorId, double calibration, const std::string& roomName)
 	{
 		mLastCalibration = calibration;

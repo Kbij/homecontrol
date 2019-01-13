@@ -9,6 +9,7 @@
 #define DAL_HOMECONTROLDAL_H_
 #include "HomeControlDalIf.h"
 #include <string>
+#include <map>
 
 namespace DalNs {
 
@@ -23,10 +24,16 @@ public:
 
 	double getSensorCalibration(const std::string& sensorId);
 	int locationInterval(const std::string& clientId);
+	void writeHeaterOn(const std::string& roomId);
+	void writeHeaterOff(const std::string& roomId);
+
 private:
+	void writeHeaterState(const std::string& roomId, bool state);
 	const std::string mServer;
 	const std::string mUser;
 	const std::string mPwd;
+	std::map<std::string, bool> mHeaterState;
+
 };
 
 } /* namespace DalNs */

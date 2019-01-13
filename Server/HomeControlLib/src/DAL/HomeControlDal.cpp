@@ -20,7 +20,8 @@ namespace DalNs {
 HomeControlDal::HomeControlDal(const std::string& server, const std::string& user, const std::string& pwd):
 	mServer(server),
 	mUser(user),
-	mPwd(pwd)
+	mPwd(pwd),
+	mHeaterState()
 {
 	LOG(INFO) << "SQL Server: " << server;
 	//sql::Driver::threadInit();
@@ -257,4 +258,83 @@ int HomeControlDal::locationInterval(const std::string& clientId)
 	return result;
 }
 
+void HomeControlDal::writeHeaterOn(const std::string& roomId)
+{
+	bool writeState = false;
+	//Force the first write
+	if (mHeaterState.find(roomId) == mHeaterState.end())
+	{
+		writeState = true;
+	}
+	else
+	{
+		//State has changed
+		if (!mHeaterState[roomId]) writeState = true;
+	}
+
+	mHeaterState[roomId] = true;
+
+	if (writeState)
+	{
+		writeHeaterState(roomId, true);
+	}
+}
+
+void HomeControlDal::writeHeaterOff(const std::string& roomId)
+{
+	bool writeState = false;
+	//Force the first write
+	if (mHeaterState.find(roomId) == mHeaterState.end())
+	{
+		writeState = true;
+	}
+	else
+	{
+		//State has changed
+		if (mHeaterState[roomId]) writeState = true;
+	}
+
+	mHeaterState[roomId] = false;
+
+	if (writeState)
+	{
+		writeHeaterState(roomId, false);
+	}
+}
+
+void HomeControlDal::writeHeaterState(const std::string& roomId, bool state)
+{
+	try
+	{
+		VLOG(1) << "Writing heaterstate: " << state  << ", from room: " << roomId;
+
+		std::stringstream insert;
+		insert << "INSERT INTO RoomHeaterState(idRoom, heater, date) ";
+		insert << " SELECT idRoom, " << state << ", NOW() FROM Room WHERE RoomId = '" << roomId << "'";
+
+		sql::Driver *driver;
+		sql::Connection *con;
+		sql::Statement *stmt;
+
+		/* Create a connection */
+		driver = get_driver_instance();
+		driver->threadInit();
+		con = driver->connect(mServer, mUser, mPwd);
+
+		con->setSchema("HC_DB");
+
+		stmt = con->createStatement();
+		stmt->execute(insert.str());
+		delete stmt;
+
+		con->close();
+		delete con;
+		driver->threadEnd();
+	}
+	catch (sql::SQLException &ex)
+	{
+		LOG(ERROR) << "Write heater state, SQLExceptin: " << ex.what() << ", MySQL error code: " << ex.getErrorCode() << ", SQLState: " << ex.getSQLState();
+	}
+
+}
 } /* namespace DalNs */

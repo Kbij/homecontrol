@@ -38,6 +38,9 @@ public:
 	virtual double getSensorCalibration(const std::string& sensorId) = 0;
 
 	virtual int locationInterval(const std::string& clientId) = 0;
+	virtual void writeHeaterOn(const std::string& roomId) = 0;
+	virtual void writeHeaterOff(const std::string& roomId) = 0;
+
 };
 
 } /* namespace DalNs */

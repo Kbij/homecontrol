@@ -84,13 +84,42 @@ void CommRouter::setPointChanged(const std::string& roomId, double setTemperatur
 
 void CommRouter::heaterOn(const std::string& roomId)
 {
-//	//Need to send to ConnectedClients, sensors
-
+	if (mSensors)
+	{
+		VLOG(1) << "Heater on for room: " << roomId;
+		std::lock_guard<std::recursive_mutex> lg(mDataMutex);
+		for (const auto& room: mRooms)
+		{
+			if (room.second->roomId() == roomId)
+			{
+				for(auto sensorId: room.first)
+				{
+					mSensors->heaterOn(sensorId);
+				}
+			}
+		}
+	}
+	if (mDal) mDal->writeHeaterOn(roomId);
 }
 
 void CommRouter::heaterOff(const std::string& roomId)
 {
-//	//Need to send to ConnectedClients, sensors
+	if (mSensors)
+	{
+		VLOG(1) << "Heater off for room: " << roomId;
+		std::lock_guard<std::recursive_mutex> lg(mDataMutex);
+		for (const auto& room: mRooms)
+		{
+			if (room.second->roomId() == roomId)
+			{
+				for(auto sensorId: room.first)
+				{
+					mSensors->heaterOff(sensorId);
+				}
+			}
+		}
+	}
+	if (mDal) mDal->writeHeaterOff(roomId);
 
 }
 

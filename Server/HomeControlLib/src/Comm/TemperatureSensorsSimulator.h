@@ -30,6 +30,9 @@ public:
 
 	void writeSensorConfig(const std::string& sensorId, double calibration, const std::string& roomName) {};
 	void writeTime(const std::string& time) {};
+	void heaterOn(const std::string& sensorId) {};
+	void heaterOff(const std::string& sensorId) {};
+
 private:
 	void startSimulationThread();
 	void stopSimulationThread();

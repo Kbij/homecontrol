@@ -41,6 +41,8 @@ public:
 
 	void writeSetTemperature(const std::string& sensorId, double temperature);
 	void writeSensorConfig(const std::string& sensorId, double calibration, const std::string& roomName);
+	void heaterOn(const std::string& sensorId) {};
+	void heaterOff(const std::string& sensorId) {};
 	void writeTime(const std::string& time) {};
 private:
 	CommNs::TemperatureSourceIf* mSource;
