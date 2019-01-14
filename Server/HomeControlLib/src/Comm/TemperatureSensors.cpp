@@ -121,7 +121,7 @@ void TemperatureSensors::writeSensorConfig(const std::string& sensorId, double c
 	}
 }
 
-void TemperatureSensors::heaterOn(const std::string& sensorId)
+void TemperatureSensors::writeHeaterOn(const std::string& sensorId)
 {
 	if (mDMComm)
 	{
@@ -148,7 +148,7 @@ void TemperatureSensors::heaterOn(const std::string& sensorId)
 	}
 }
 
-void TemperatureSensors::heaterOff(const std::string& sensorId)
+void TemperatureSensors::writeHeaterOff(const std::string& sensorId)
 {
 	if (mDMComm)
 	{

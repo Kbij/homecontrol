@@ -51,6 +51,8 @@ public:
 	}
 	double getSensorCalibration(const std::string& sensorId) {return mSensorCalibration;};
 	int locationInterval(const std::string& clientId) {return 0;};
+	void writeHeaterOn(const std::string& roomId) {};
+	void writeHeaterOff(const std::string& roomId) {};
 	DalNs::RoomConfig* mRoomConfig;
 	double mSensorCalibration;
 };

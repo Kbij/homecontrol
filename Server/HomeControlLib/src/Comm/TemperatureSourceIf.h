@@ -27,8 +27,8 @@ public:
 
 	virtual void writeSetTemperature(const std::string& sensorId, double temperature) = 0;
 	virtual void writeSensorConfig(const std::string& sensorId, double calibration, const std::string& roomName) = 0;
-	virtual void heaterOn(const std::string& sensorId) = 0;
-	virtual void heaterOff(const std::string& sensorId) = 0;
+	virtual void writeHeaterOn(const std::string& sensorId) = 0;
+	virtual void writeHeaterOff(const std::string& sensorId) = 0;
 };
 
 } /* namespace CommNs */

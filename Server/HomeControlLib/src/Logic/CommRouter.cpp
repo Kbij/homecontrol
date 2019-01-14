@@ -96,7 +96,7 @@ void CommRouter::heaterOn(const std::string& roomId)
 				for(auto sensorId: room.first)
 				{
 					VLOG(1) << "Sending to sensor: " << sensorId;
-					mSensors->heaterOn(sensorId);
+					mSensors->writeHeaterOn(sensorId);
 				}
 			}
 		}
@@ -116,7 +116,7 @@ void CommRouter::heaterOff(const std::string& roomId)
 			{
 				for(auto sensorId: room.first)
 				{
-					mSensors->heaterOff(sensorId);
+					mSensors->writeHeaterOff(sensorId);
 				}
 			}
 		}

@@ -120,4 +120,22 @@ void TemperatureFilter::writeSensorConfig(const std::string& sensorId, double ca
 		mSource->writeSensorConfig(sensorId, calibration, roomName);
 	}
 }
+
+void TemperatureFilter::writeHeaterOn(const std::string& sensorId)
+{
+	if (mSource)
+	{
+		mSource->writeHeaterOn(sensorId);
+	}
+}
+
+void TemperatureFilter::writeHeaterOff(const std::string& sensorId)
+{
+	if (mSource)
+	{
+		mSource->writeHeaterOff(sensorId);
+	}
+}
+
+
 } /* namespace LogicNs */
