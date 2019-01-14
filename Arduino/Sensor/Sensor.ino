@@ -8,7 +8,10 @@
 #include <avr/sleep.h>
 #include <avr/power.h>
 
-const uint8_t ZIGBEE_CHANNEL = 0x17;
+
+uint8_t channelValue[] = {0x17};
+uint8_t idValue[] = { 0x12, 0x13 };
+
 volatile int f_timer=0;
 const int ONEWIRE_PIN = 2;
 const int TOUCH_COMMON = 3;
@@ -73,7 +76,7 @@ XBeeAddress64 sensorListener = XBeeAddress64(0x00000000, 0x0000FFFF);
 ZBTxStatusResponse xbTxStatus = ZBTxStatusResponse();
 ZBRxResponse xbRx = ZBRxResponse();
 
-AtCommandRequest atRequest = AtCommandRequest("");
+AtCommandRequest atRequest = AtCommandRequest((uint8_t*)"");
 void blinkLed()
 {
   digitalWrite(TRANSMIT_LED, LOW);
@@ -178,29 +181,11 @@ void sendAtCommand()
   xbee.readPacket(1000);
 }
 
-void setXBeePowerHigh()
-{
-  atRequest.clearCommandValue();
-  atRequest.setCommand("PL");  
-  atRequest.setCommandValue(4);
-  atRequest.setCommandValueLength(1);  
-  sendAtCommand();  
-}
-
-void setXBeePowerLow()
-{
-  atRequest.clearCommandValue();
-  atRequest.setCommand("PL");  
-  atRequest.setCommandValue(0);
-  atRequest.setCommandValueLength(1);  
-  sendAtCommand();   
-}
-
 void setXBeeName()
 {
   atRequest.clearCommandValue();
-  atRequest.setCommand("NI");  
-  atRequest.setCommandValue(ROOM_NAME);
+  atRequest.setCommand((uint8_t*)"NI");  
+  atRequest.setCommandValue((uint8_t*) ROOM_NAME);
   atRequest.setCommandValueLength(strlen(ROOM_NAME));  
   sendAtCommand();   
 }
@@ -208,7 +193,7 @@ void setXBeeName()
 void setXBeeRetry(uint8_t retryValue)
 {
   atRequest.clearCommandValue();
-  atRequest.setCommand("MR");  
+  atRequest.setCommand((uint8_t*)"MR");  
   atRequest.setCommandValue(&retryValue);
   atRequest.setCommandValueLength(1);  
   sendAtCommand();   
@@ -235,15 +220,15 @@ void setup()
   touchDown.set_CS_AutocaL_Millis(1000);
   
   atRequest.clearCommandValue();
-  atRequest.setCommand("ID");  
-  atRequest.setCommandValue((const uint8_t[2]){0x12, 0x13});
+  atRequest.setCommand((uint8_t*)"ID");  
+  atRequest.setCommandValue(idValue);
   atRequest.setCommandValueLength(2);  
   sendAtCommand();
 
   //Setup Xbee module (DigiMesh protocol)
   atRequest.clearCommandValue();
-  atRequest.setCommand("CH");  
-  atRequest.setCommandValue((const uint8_t[1]){ZIGBEE_CHANNEL});
+  atRequest.setCommand((uint8_t*)"CH");  
+  atRequest.setCommandValue(channelValue);
   atRequest.setCommandValueLength(1);  
   sendAtCommand();
 
