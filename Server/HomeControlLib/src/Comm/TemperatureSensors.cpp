@@ -126,7 +126,7 @@ void TemperatureSensors::writeHeaterOn(const std::string& sensorId)
 	if (mDMComm)
 	{
 		std::stringstream ss;
-		ss << "[" << MSG_HEATER_ON << "]";
+		ss << "[" << MSG_HEATER_ON << ":1]";
 		std::string dataString(ss.str());
 		VLOG(1) << "Writing heater on to sensor: " << sensorId;
 		std::lock_guard<std::recursive_mutex> lg(mDataMutex);
@@ -153,7 +153,7 @@ void TemperatureSensors::writeHeaterOff(const std::string& sensorId)
 	if (mDMComm)
 	{
 		std::stringstream ss;
-		ss << "[" << MSG_HEATER_OFF << "]";
+		ss << "[" << MSG_HEATER_OFF << ":0]";
 		std::string dataString(ss.str());
 		VLOG(1) << "Writing heater off to sensor: " << sensorId;
 		std::lock_guard<std::recursive_mutex> lg(mDataMutex);
