@@ -92,8 +92,10 @@ void CommRouter::heaterOn(const std::string& roomId)
 		{
 			if (room.second->roomId() == roomId)
 			{
+				VLOG(1) << "Room found: " << roomId;
 				for(auto sensorId: room.first)
 				{
+					VLOG(1) << "Sending to sensor: " << sensorId;
 					mSensors->heaterOn(sensorId);
 				}
 			}
