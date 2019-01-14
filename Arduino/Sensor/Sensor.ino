@@ -21,6 +21,18 @@ const unsigned long TEMP_MEASURE_TIME_SECONDS = 1;
 const int TEMP_FILTER_LENGTH = 5; // Take the average of 3 samples;
 const unsigned long MAX_TIME_AGE_MILLIS = 90000; // 90 seconds
 
+const char MSG_SENSOR_STARTUP = '1';
+const char MSG_TEMPERATURE = '2';
+const char MSG_SERVER_DISCOVERY = '3';
+const char MSG_SERVER_DISCOVERY_RESPONSE = '4';
+const char MSG_SET_TEMPERATURE = '5';
+const char MSG_SET_TEMPERATURE_UP = '6';
+const char MSG_SET_TEMPERATURE_DOWN = '7';
+const char MSG_SET_CALIBRATION = '8';
+const char MSG_WRITE_TIME = '9';
+const char MSG_HEATER_ON = 'A';
+const char MSG_HEATER_OFF = 'B';
+
 // LCD Setup
 U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_DEV_0|U8G_I2C_OPT_NO_ACK|U8G_I2C_OPT_FAST);  // Fast I2C / TWI 
 // DS18S20 Setup, use pin 2
@@ -42,6 +54,7 @@ float tempSet = 0;
 float tempCurrent[TEMP_FILTER_LENGTH];
 float dispTemp = 0;
 float calibrationTemp = 0;
+bool heaterOn = false;
 
 
 unsigned long tempStartTime = millis();
@@ -91,6 +104,12 @@ void writeMid(int vert, const char* str)
   u8g.drawStr( (128 - width)/2, vert, str);  
 }
 
+void writeRight(int vert, const char* str)
+{
+  int width = u8g.getStrWidth(str);  
+  u8g.drawStr( (128 - width), vert, str);  
+}
+
 void draw()
 {
   // graphic commands to redraw the complete screen should be placed here  
@@ -125,7 +144,15 @@ void draw()
     char fullTempStr[20];
     sprintf(fullTempStr, "%s \260C", tempStr);
   
-    writeMid(55, fullTempStr);  
+    writeMid(55, fullTempStr);
+	if (heaterOn)
+	{
+		writeRight(10, "1");
+	}
+	else
+	{
+		writeRight(10, " ");
+	}
   }
 
   if (!lastAcknowledged)
@@ -433,7 +460,7 @@ void loop()
             if (rawData[0] == '[' && rawData[xbRx.getDataLength() - 1] == ']')
             {
               //If we received the DigiMesh address of the server
-              if ((rawData[1] == '4') && (xbRx.getDataLength() == 20))
+              if ((rawData[1] == MSG_SERVER_DISCOVERY_RESPONSE) && (xbRx.getDataLength() == 20))
               {
                 char msbStr[10];
                 char lsbStr[10];
@@ -453,7 +480,7 @@ void loop()
               }
               
               //We received the set temperature from the server
-              if (rawData[1] == '5')
+              if (rawData[1] == MSG_SET_TEMPERATURE)
               {
                 memset(SET_TEMPERATURE, 0, sizeof(SET_TEMPERATURE));
                 memcpy(SET_TEMPERATURE, &rawData[3], xbRx.getDataLength() - 4); // len([5:])
@@ -463,7 +490,7 @@ void loop()
               }
 
               //We received the calibration temperature & room name from the server
-              if (rawData[1] == '8')
+              if (rawData[1] == MSG_SET_CALIBRATION)
               {
                 debugSerial.println("Received config");
                 char configStr[30];
@@ -489,7 +516,7 @@ void loop()
               }
 
               //We received the current time from the server
-              if (rawData[1] == '9')
+              if (rawData[1] == MSG_WRITE_TIME)
               {
                 memset(TIME, 0, sizeof(TIME));
                 memcpy(TIME, &rawData[3], xbRx.getDataLength() - 4); // len([9:])
@@ -497,6 +524,18 @@ void loop()
                 debugSerial.print("timeReceivedMillis: ");
                 debugSerial.println(timeReceivedMillis);
               }                            
+			  
+              if (rawData[1] == MSG_HEATER_ON)
+              {
+				heaterOn = true;
+                debugSerial.print("Heater on");
+              } 			  
+              if (rawData[1] == MSG_HEATER_OFF)
+              {
+				heaterOn = false;
+                debugSerial.print("Heater off");
+              } 			  
+			  
             }
           }
         }
