@@ -32,7 +32,7 @@ RoomControl::RoomControl(const std::string& roomId, uint8_t heaterOutput, const 
 	mThermostat(thermostat),
 	mHeaterListener(heaterListener),
 	mRoomTemperature(21.0),
-	mSetTemperature(21),
+	mSetTemperature(16),
 	mWorkerThread(nullptr),
 	mWorkerThreadRunning(false),
 	mUpRequested(0),
