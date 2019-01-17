@@ -247,7 +247,7 @@ void DMComm::init()
 {
 	mFrameId = 1;
 
-	DMMessageIf* received = sendATCmd("AP", {2}, 100);
+	DMMessageIf* received = sendATCmd("AP", {1}, 100);
 	if (received)
 	{
 		delete received;
