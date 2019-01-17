@@ -246,7 +246,14 @@ void DMComm::printFrame(const std::vector<uint8_t>& data)
 void DMComm::init()
 {
 	mFrameId = 1;
-	DMMessageIf* received = sendATCmd("NI", {'S', 'e', 'r', 'v', 'e', 'r'}, 100);
+
+	DMMessageIf* received = sendATCmd("AP", {2}, 100);
+	if (received)
+	{
+		delete received;
+	}
+
+	received = sendATCmd("NI", {'S', 'e', 'r', 'v', 'e', 'r'}, 100);
 	if (received)
 	{
 		delete received;
