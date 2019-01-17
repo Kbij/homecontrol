@@ -50,7 +50,8 @@ private:
 	DMCommIf* mDMComm;
 	std::set<LogicNs::TemperatureListenerIf*> mListeners;
 	std::map<std::string, std::vector<uint8_t>> mSensorAddress;
-	std::recursive_mutex mDataMutex;
+	std::mutex mDataMutex;
+	std::mutex mListenerMutex;
 
 	void receiveLine(const std::string& line, const std::vector<uint8_t> sourceAddress);
 	void sendSensorStarted(const std::string& sensorId);

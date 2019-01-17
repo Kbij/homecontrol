@@ -39,7 +39,8 @@ TemperatureSensors::TemperatureSensors(DMCommIf* dmComm):
 	mDMComm(dmComm),
 	mListeners(),
 	mSensorAddress(),
-	mDataMutex()
+	mDataMutex(),
+	mListenerMutex()
 {
 	if (mDMComm)
 	{
@@ -57,13 +58,13 @@ TemperatureSensors::~TemperatureSensors()
 
 void TemperatureSensors::registerTemperatureListener(LogicNs::TemperatureListenerIf* listener)
 {
-	std::lock_guard<std::recursive_mutex> lg(mDataMutex);
+	std::lock_guard<std::recursive_mutex> lg(mListenerMutex);
 	mListeners.insert(listener);
 }
 
 void TemperatureSensors::unRegisterTemperatureListener(LogicNs::TemperatureListenerIf* listener)
 {
-	std::lock_guard<std::recursive_mutex> lg(mDataMutex);
+	std::lock_guard<std::recursive_mutex> lg(mListenerMutex);
 	mListeners.erase(listener);
 }
 
@@ -75,7 +76,7 @@ void TemperatureSensors::writeSetTemperature(const std::string& sensorId, double
 		ss << "[" << MSG_SET_TEMPERATURE << ":"  << std::fixed << std::setprecision(1) << temperature << "]";
 		std::string dataString(ss.str());
 		VLOG(1) << "Writing set temperature (" << temperature << ") to sensor: " << sensorId;
-		std::lock_guard<std::recursive_mutex> lg(mDataMutex);
+		std::lock_guard<std::mutex> lg(mDataMutex);
 
 		if (mSensorAddress.find(sensorId) != mSensorAddress.end())
 		{
@@ -102,7 +103,7 @@ void TemperatureSensors::writeSensorConfig(const std::string& sensorId, double c
 		ss << "[" << MSG_SET_CALIBRATION << ":"  << std::fixed << std::setprecision(2) << calibration << ":" << roomName << "]";
 		std::string dataString(ss.str());
 		VLOG(1) << "Writing calibration (" << calibration << ") to sensor: " << sensorId;
-		std::lock_guard<std::recursive_mutex> lg(mDataMutex);
+		std::lock_guard<std::mutex> lg(mDataMutex);
 
 		if (mSensorAddress.find(sensorId) != mSensorAddress.end())
 		{
@@ -129,7 +130,7 @@ void TemperatureSensors::writeHeaterOn(const std::string& sensorId)
 		ss << "[" << MSG_HEATER_ON << ":1]";
 		std::string dataString(ss.str());
 		VLOG(1) << "Writing heater on to sensor: " << sensorId;
-		std::lock_guard<std::recursive_mutex> lg(mDataMutex);
+		std::lock_guard<std::mutex> lg(mDataMutex);
 
 		if (mSensorAddress.find(sensorId) != mSensorAddress.end())
 		{
@@ -156,7 +157,7 @@ void TemperatureSensors::writeHeaterOff(const std::string& sensorId)
 		ss << "[" << MSG_HEATER_OFF << ":0]";
 		std::string dataString(ss.str());
 		VLOG(1) << "Writing heater off to sensor: " << sensorId;
-		std::lock_guard<std::recursive_mutex> lg(mDataMutex);
+		std::lock_guard<std::mutex> lg(mDataMutex);
 
 		if (mSensorAddress.find(sensorId) != mSensorAddress.end())
 		{
@@ -242,6 +243,7 @@ void TemperatureSensors::receiveLine(const std::string& line, const std::vector<
 
 			if (lineParts[MESSAGE_TYPE_POS] == MSG_SENSOR_STARTUP)
 			{
+				std::lock_guard<std::recursive> lg(mDataMutex);
 				std::string sensorId = lineParts[SERIAL_POS];
 				mSensorAddress[sensorId] = sourceAddress;
 				sendSensorStarted(sensorId);
@@ -249,6 +251,7 @@ void TemperatureSensors::receiveLine(const std::string& line, const std::vector<
 			}
 			if (lineParts[MESSAGE_TYPE_POS] == MSG_TEMPERATURE)
 			{
+				std::lock_guard<std::recursive> lg(mDataMutex);
 				std::string sensorId = lineParts[SERIAL_POS];
 				mSensorAddress[sensorId] = sourceAddress;
 				float temp = std::stof(lineParts[TEMPERATURE_POS]);
@@ -263,7 +266,7 @@ void TemperatureSensors::receiveLine(const std::string& line, const std::vector<
 			}
 			if (lineParts[MESSAGE_TYPE_POS] == MSG_SET_TEMPERATURE_UP)
 			{
-				std::lock_guard<std::recursive_mutex> lg(mDataMutex);
+				std::lock_guard<std::recursive_mutex> lg(mListenerMutex);
 				VLOG(3) << "Received set temperature up, from sensor: " << lineParts[SERIAL_POS];
 				for (auto listener: mListeners)
 				{
@@ -273,7 +276,7 @@ void TemperatureSensors::receiveLine(const std::string& line, const std::vector<
 			}
 			if (lineParts[MESSAGE_TYPE_POS] == MSG_SET_TEMPERATURE_DOWN)
 			{
-				std::lock_guard<std::recursive_mutex> lg(mDataMutex);
+				std::lock_guard<std::recursive_mutex> lg(mListenerMutex);
 				VLOG(3) << "Received set temperature down, from sensor: " << lineParts[SERIAL_POS];
 				for (auto listener: mListeners)
 				{
@@ -296,7 +299,7 @@ void TemperatureSensors::receiveLine(const std::string& line, const std::vector<
 
 void TemperatureSensors::sendSensorStarted(const std::string& sensorId)
 {
-	std::lock_guard<std::recursive_mutex> lg(mDataMutex);
+	std::lock_guard<std::recursive_mutex> lg(mListenerMutex);
 	for (auto listener: mListeners)
 	{
 		listener->sensorStarted(sensorId);
@@ -305,7 +308,7 @@ void TemperatureSensors::sendSensorStarted(const std::string& sensorId)
 
 void TemperatureSensors::sendTemperature(const std::string& sensorId, float temperature)
 {
-	std::lock_guard<std::recursive_mutex> lg(mDataMutex);
+	std::lock_guard<std::recursive_mutex> lg(mListenerMutex);
 	for (auto listener: mListeners)
 	{
 		listener->sensorTemperature(sensorId, temperature);
@@ -314,7 +317,7 @@ void TemperatureSensors::sendTemperature(const std::string& sensorId, float temp
 
 void TemperatureSensors::sendSetTemperatureUp(const std::string& sensorId)
 {
-	std::lock_guard<std::recursive_mutex> lg(mDataMutex);
+	std::lock_guard<std::recursive_mutex> lg(mListenerMutex);
 	for (auto listener: mListeners)
 	{
 		listener->sensorSetTemperatureUp(sensorId);
@@ -323,7 +326,7 @@ void TemperatureSensors::sendSetTemperatureUp(const std::string& sensorId)
 
 void TemperatureSensors::sendSetTemperatureDown(const std::string& sensorId)
 {
-	std::lock_guard<std::recursive_mutex> lg(mDataMutex);
+	std::lock_guard<std::recursive_mutex> lg(mListenerMutex);
 	for (auto listener: mListeners)
 	{
 		listener->sensorSetTemperatureDown(sensorId);
