@@ -76,11 +76,14 @@ void TemperatureSensors::writeSetTemperature(const std::string& sensorId, double
 		ss << "[" << MSG_SET_TEMPERATURE << ":"  << std::fixed << std::setprecision(1) << temperature << "]";
 		std::string dataString(ss.str());
 		VLOG(1) << "Writing set temperature (" << temperature << ") to sensor: " << sensorId;
-		std::lock_guard<std::recursive_mutex> lg(mDataMutex);
-
-		if (mSensorAddress.find(sensorId) != mSensorAddress.end())
+		std::vector<uint8_t> sensorAddress;
 		{
-			TxMessage* txMessage = new TxMessage(std::vector<uint8_t>(dataString.begin(), dataString.end()), mSensorAddress[sensorId]);
+			std::lock_guard<std::recursive_mutex> lg(mDataMutex);
+			if (mSensorAddress.find(sensorId) != mSensorAddress.end()) sensorAddress = mSensorAddress[sensorId];
+		}
+		if (sensorAddress.size() > 0)
+		{
+			TxMessage* txMessage = new TxMessage(std::vector<uint8_t>(dataString.begin(), dataString.end()), sensorAddress);
 			//Send synchronously (avoid sending to fast)
 			DMMessageIf* result = mDMComm->sendMessage(txMessage, 10000);
 			if (result != nullptr)
@@ -103,11 +106,15 @@ void TemperatureSensors::writeSensorConfig(const std::string& sensorId, double c
 		ss << "[" << MSG_SET_CALIBRATION << ":"  << std::fixed << std::setprecision(2) << calibration << ":" << roomName << "]";
 		std::string dataString(ss.str());
 		VLOG(1) << "Writing calibration (" << calibration << ") to sensor: " << sensorId;
-		std::lock_guard<std::recursive_mutex> lg(mDataMutex);
-
-		if (mSensorAddress.find(sensorId) != mSensorAddress.end())
+		std::vector<uint8_t> sensorAddress;
 		{
-			TxMessage* txMessage = new TxMessage(std::vector<uint8_t>(dataString.begin(), dataString.end()), mSensorAddress[sensorId]);
+			std::lock_guard<std::recursive_mutex> lg(mDataMutex);
+			if (mSensorAddress.find(sensorId) != mSensorAddress.end()) sensorAddress = mSensorAddress[sensorId];
+		}
+
+		if (sensorAddress.size() > 0)
+		{
+			TxMessage* txMessage = new TxMessage(std::vector<uint8_t>(dataString.begin(), dataString.end()), sensorAddress);
 			//Send synchronously (avoid sending to fast)
 			DMMessageIf* result = mDMComm->sendMessage(txMessage, 10000);
 			if (result != nullptr)
@@ -130,11 +137,15 @@ void TemperatureSensors::writeHeaterOn(const std::string& sensorId)
 		ss << "[" << MSG_HEATER_ON << ":1]";
 		std::string dataString(ss.str());
 		VLOG(1) << "Writing heater on to sensor: " << sensorId;
-		std::lock_guard<std::recursive_mutex> lg(mDataMutex);
-
-		if (mSensorAddress.find(sensorId) != mSensorAddress.end())
+		std::vector<uint8_t> sensorAddress;
 		{
-			TxMessage* txMessage = new TxMessage(std::vector<uint8_t>(dataString.begin(), dataString.end()), mSensorAddress[sensorId]);
+			std::lock_guard<std::recursive_mutex> lg(mDataMutex);
+			if (mSensorAddress.find(sensorId) != mSensorAddress.end()) sensorAddress = mSensorAddress[sensorId];
+		}
+
+		if (sensorAddress.size() > 0)
+		{
+			TxMessage* txMessage = new TxMessage(std::vector<uint8_t>(dataString.begin(), dataString.end()), sensorAddress);
 			//Send synchronously (avoid sending to fast)
 			DMMessageIf* result = mDMComm->sendMessage(txMessage, 10000);
 			if (result != nullptr)
@@ -157,11 +168,15 @@ void TemperatureSensors::writeHeaterOff(const std::string& sensorId)
 		ss << "[" << MSG_HEATER_OFF << ":0]";
 		std::string dataString(ss.str());
 		VLOG(1) << "Writing heater off to sensor: " << sensorId;
-		std::lock_guard<std::recursive_mutex> lg(mDataMutex);
-
-		if (mSensorAddress.find(sensorId) != mSensorAddress.end())
+		std::vector<uint8_t> sensorAddress;
 		{
-			TxMessage* txMessage = new TxMessage(std::vector<uint8_t>(dataString.begin(), dataString.end()), mSensorAddress[sensorId]);
+			std::lock_guard<std::recursive_mutex> lg(mDataMutex);
+			if (mSensorAddress.find(sensorId) != mSensorAddress.end()) sensorAddress = mSensorAddress[sensorId];
+		}
+
+		if (sensorAddress.size() > 0)
+		{
+			TxMessage* txMessage = new TxMessage(std::vector<uint8_t>(dataString.begin(), dataString.end()), sensorAddress);
 			//Send synchronously (avoid sending to fast)
 			DMMessageIf* result = mDMComm->sendMessage(txMessage, 10000);
 			if (result != nullptr)
@@ -243,19 +258,25 @@ void TemperatureSensors::receiveLine(const std::string& line, const std::vector<
 
 			if (lineParts[MESSAGE_TYPE_POS] == MSG_SENSOR_STARTUP)
 			{
-				std::lock_guard<std::recursive_mutex> lg(mDataMutex);
-				std::string sensorId = lineParts[SERIAL_POS];
-				mSensorAddress[sensorId] = sourceAddress;
+				std::string sensorId;
+				{
+					std::lock_guard<std::recursive_mutex> lg(mDataMutex);
+					sensorId = lineParts[SERIAL_POS];
+					mSensorAddress[sensorId] = sourceAddress;
+				}
 				sendSensorStarted(sensorId);
 				return;
 			}
 			if (lineParts[MESSAGE_TYPE_POS] == MSG_TEMPERATURE)
 			{
-				std::lock_guard<std::recursive_mutex> lg(mDataMutex);
-				std::string sensorId = lineParts[SERIAL_POS];
-				mSensorAddress[sensorId] = sourceAddress;
+				std::string sensorId;
 				float temp = std::stof(lineParts[TEMPERATURE_POS]);
-				VLOG(3) << "Received unfiltered temperature: " << temp << ", from sensor: " << sensorId;
+				{
+					std::lock_guard<std::recursive_mutex> lg(mDataMutex);
+					sensorId = lineParts[SERIAL_POS];
+					mSensorAddress[sensorId] = sourceAddress;
+					VLOG(3) << "Received unfiltered temperature: " << temp << ", from sensor: " << sensorId;
+				}
 				sendTemperature(sensorId, temp);
 				return;
 			}
