@@ -11,6 +11,7 @@
 
 uint8_t channelValue[] = {0x17};
 uint8_t idValue[] = { 0x12, 0x13 };
+uint8_t apiModeValue[] = {0x02};
 
 volatile int f_timer=0;
 const int ONEWIRE_PIN = 2;
@@ -218,6 +219,13 @@ void setup()
   
   touchUp.set_CS_AutocaL_Millis(1000);
   touchDown.set_CS_AutocaL_Millis(1000);
+  
+  //Set API mode  (with escape)
+  atRequest.clearCommandValue();
+  atRequest.setCommand((uint8_t*)"AP");  
+  atRequest.setCommandValue(apiModeValue);
+  atRequest.setCommandValueLength(1);  
+  sendAtCommand();
   
   atRequest.clearCommandValue();
   atRequest.setCommand((uint8_t*)"ID");  
