@@ -21,7 +21,7 @@ namespace WindowsMonitor.DAL
                     string sqlCmd = "SELECT * FROM HC_DB.Temperature " +
                                     " INNER JOIN TemperatureSensor on Temperature.idSensor = TemperatureSensor.idTemperatureSensor " + 
                                     " INNER JOIN Room ON TemperatureSensor.idRoom = Room.idRoom" +
-                                    " WHERE date > @start and date < @end and RoomId = @roomId";
+                                    " WHERE date > @start and date < @end and RoomId = @roomId order by date";
 
                     MySqlDataAdapter adapter = new MySqlDataAdapter(sqlCmd, conn);
                     adapter.SelectCommand.CommandType = CommandType.Text;
@@ -37,6 +37,30 @@ namespace WindowsMonitor.DAL
             }
         }
 
+        public void fillRoomHeaterState(HomeControlData.RoomHeaterStateDataTable dt, DateTime start, DateTime end, string roomId)
+        {
+            try
+            {
+                using (MySqlConnection conn = new MySqlConnection(DB_CONN_STR))
+                {
+                    conn.Open();
+                    string sqlCmd = "SELECT * FROM HC_DB.RoomHeaterState " +
+                                    " INNER JOIN Room ON RoomHeaterState.idRoom = Room.idRoom" +
+                                    " WHERE date > @start and date < @end and RoomId = @roomId order by date";
+
+                    MySqlDataAdapter adapter = new MySqlDataAdapter(sqlCmd, conn);
+                    adapter.SelectCommand.CommandType = CommandType.Text;
+                    adapter.SelectCommand.Parameters.AddWithValue("@start", start);
+                    adapter.SelectCommand.Parameters.AddWithValue("@end", end);
+                    adapter.SelectCommand.Parameters.AddWithValue("@roomId", roomId);
+                    adapter.Fill(dt);
+                }
+            }
+            catch (Exception /*ex*/)
+            {
+
+            }
+        }
         public void fillRooms(HomeControlData.RoomDataTable dt)
         {
             try

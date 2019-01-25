@@ -14,12 +14,14 @@ namespace WindowsMonitor
         readonly List<Color> GraphColors = new List<Color> {Color.Red, Color.Green, Color.Lavender, Color.Blue, Color.Brown};
 
         Dictionary<string, HomeControlData.TemperatureDataTable> mTemperatures;
+        Dictionary<string, HomeControlData.RoomHeaterStateDataTable> mRoomHeaterState;
         Dictionary<string, Dictionary<DateTime, int>> mTemperatureCount;
 
         public TemperatureViewer()
         {
             InitializeComponent();
             mTemperatures = new Dictionary<string, HomeControlData.TemperatureDataTable>();
+            mRoomHeaterState = new Dictionary<string, HomeControlData.RoomHeaterStateDataTable>();
 
             // set your pane
             mGraphPane = zedGraph.GraphPane;
@@ -47,6 +49,7 @@ namespace WindowsMonitor
             dal.fillRooms(dt);
             lstRooms.Items.Clear();
             mTemperatures.Clear();
+            mRoomHeaterState.Clear();
 
             foreach (var room in dt)
             {
@@ -85,6 +88,7 @@ namespace WindowsMonitor
                 foreach (var remove in removeTemperatures)
                 {
                     mTemperatures.Remove(remove);
+                    mRoomHeaterState.Remove(remove);
                 }
 
                 //Add the new ones to the list
@@ -94,14 +98,17 @@ namespace WindowsMonitor
                     {
                         if (!mTemperatures.ContainsKey(item.ToString()))
                         {
-                            HomeControlData.TemperatureDataTable dt = new HomeControlData.TemperatureDataTable();
+                            HomeControlData.TemperatureDataTable tempTable = new HomeControlData.TemperatureDataTable();
+                            HomeControlData.RoomHeaterStateDataTable heaterStateTable = new HomeControlData.RoomHeaterStateDataTable();
                             TemperatureDal dal = new TemperatureDal();
                             DateTime start = dtFrom.Value;
                             DateTime end = dtTo.Value;
 
-                            dal.fillTemperatures(dt, start, end, item.Text);
-                            mTemperatures[item.Text] = dt;
-                            Debug.WriteLine(string.Format("RoomId: {0}, items: {1}", item.Text, dt.Count));
+                            dal.fillTemperatures(tempTable, start, end, item.Text);
+                            dal.fillRoomHeaterState(heaterStateTable, start, end, item.Text);
+                            mTemperatures[item.Text] = tempTable;
+                            mRoomHeaterState[item.Text] = heaterStateTable;
+                            Debug.WriteLine(string.Format("RoomId: {0}, items: {1}", item.Text, tempTable.Count));
                         }
                     }
                 }
@@ -169,33 +176,34 @@ namespace WindowsMonitor
                 foreach (var temperatues in mTemperatures)
                 {
                     PointPairList rawPoints = new PointPairList();
-                    PointPairList runninigAveragePoints = new PointPairList();
-                    PointPairList runninigAveragePoints2 = new PointPairList();
-                    PointPairList weightedAveragePoints = new PointPairList();
-                    PointPairList expAveragePoints = new PointPairList();
-
-
-                    RunningAverageFilter runningAverage = new RunningAverageFilter(10);
-                    RunningAverageFilter2 runningAverage2 = new RunningAverageFilter2(12);
-                    WeigtedAverageFilter weightedAverage = new WeigtedAverageFilter(new List<double> { 0.02375, 0.00125, 0.025, 0.05, 0.1, 0.2, 0.6 });
-                    ExponentialWeightedAverage expAverage = new ExponentialWeightedAverage(0.2);
+                    PointPairList statePoints = new PointPairList();
 
                     foreach (HomeControlData.TemperatureRow temp in temperatues.Value)
                     {
                         rawPoints.Add(new XDate(temp.date.ToOADate()), (double)temp.temperature);
-                        runninigAveragePoints.Add(new XDate(temp.date.ToOADate()), runningAverage.AddValue((double)temp.temperature));
-                        runninigAveragePoints2.Add(new XDate(temp.date.ToOADate()), runningAverage2.AddValue((double)temp.temperature));
-                        weightedAveragePoints.Add(new XDate(temp.date.ToOADate()), weightedAverage.AddValue((double)temp.temperature));
-                        expAveragePoints.Add(new XDate(temp.date.ToOADate()), expAverage.AddValue((double)temp.temperature));
                     }
 
-
-                    mGraphPane.AddCurve(temperatues.Key, rawPoints, colorPos < GraphColors.Count ? GraphColors[colorPos++] : Color.Black, SymbolType.None);
-                    //       mGraphPane.AddCurve(temperatues.Key + "_RunAvg", runninigAveragePoints, colorPos < GraphColors.Count ? GraphColors[colorPos++] : Color.Black, SymbolType.None);
-                    //      mGraphPane.AddCurve(temperatues.Key + "_RunAvg2", runninigAveragePoints2, colorPos < GraphColors.Count ? GraphColors[colorPos++] : Color.Black, SymbolType.None);
-                    //     mGraphPane.AddCurve(temperatues.Key + "_Weight", weightedAveragePoints, colorPos < GraphColors.Count ? GraphColors[colorPos++] : Color.Black, SymbolType.None);
-                    //mGraphPane.AddCurve(temperatues.Key + "_Exp", expAveragePoints, colorPos < GraphColors.Count ? GraphColors[colorPos++] : Color.Black, SymbolType.None);
-
+                    //Lookup the corresponding heaterstate list
+                    foreach(var states in mRoomHeaterState)
+                    {
+                        if (states.Key == temperatues.Key)
+                        {//Found it
+                            bool prevState = false;
+                            foreach(var state in states.Value)
+                            {
+                                if (state.heater != prevState)
+                                {//If there is a difference
+                                    statePoints.Add(new XDate(state.date.AddSeconds(-1).ToOADate()), !state.heater ? 10 : 0);
+                                }
+                                statePoints.Add(new XDate(state.date.ToOADate()), state.heater ? 10 : 0);
+                                prevState = state.heater;
+                            }
+                        }
+                         
+                    }
+                    Color graphColor = colorPos < GraphColors.Count ? GraphColors[colorPos++] : Color.Black;
+                    mGraphPane.AddCurve(temperatues.Key, rawPoints, graphColor, SymbolType.None);
+                    mGraphPane.AddCurve(temperatues.Key, statePoints, graphColor, SymbolType.None);
                 }
             }
             else

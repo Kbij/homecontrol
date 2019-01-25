@@ -45,6 +45,26 @@ FROM            Temperature</CommandText>
             </Mappings>
             <Sources />
           </TableAdapter>
+          <TableAdapter BaseClass="System.ComponentModel.Component" DataAccessorModifier="AutoLayout, AnsiClass, Class, Public" DataAccessorName="RoomHeaterStateTableAdapter" GeneratorDataComponentClassName="RoomHeaterStateTableAdapter" Name="RoomHeaterState" UserDataComponentName="RoomHeaterStateTableAdapter">
+            <MainSource>
+              <DbSource ConnectionRef="HC_DBConnectionString (Settings)" DbObjectType="Unknown" FillMethodModifier="Public" FillMethodName="Fill" GenerateMethods="Both" GenerateShortCommands="false" GeneratorGetMethodName="GetData" GeneratorSourceName="Fill" GetMethodModifier="Public" GetMethodName="GetData" QueryType="Rowset" ScalarCallRetval="System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" UseOptimisticConcurrency="true" UserGetMethodName="GetData" UserSourceName="Fill">
+                <SelectCommand>
+                  <DbCommand CommandType="Text" ModifiedByUser="true">
+                    <CommandText>SELECT        idRoomHeaterState, idRoom, heater, `date`
+FROM            RoomHeaterState</CommandText>
+                    <Parameters />
+                  </DbCommand>
+                </SelectCommand>
+              </DbSource>
+            </MainSource>
+            <Mappings>
+              <Mapping SourceColumn="idRoomHeaterState" DataSetColumn="idRoomHeaterState" />
+              <Mapping SourceColumn="idRoom" DataSetColumn="idRoom" />
+              <Mapping SourceColumn="heater" DataSetColumn="heater" />
+              <Mapping SourceColumn="date" DataSetColumn="date" />
+            </Mappings>
+            <Sources />
+          </TableAdapter>
         </Tables>
         <Sources />
       </DataSource>
@@ -53,7 +73,7 @@ FROM            Temperature</CommandText>
   <xs:element name="HomeControlData" msdata:IsDataSet="true" msdata:UseCurrentLocale="true" msprop:EnableTableAdapterManager="true" msprop:Generator_DataSetName="HomeControlData" msprop:Generator_UserDSName="HomeControlData">
     <xs:complexType>
       <xs:choice minOccurs="0" maxOccurs="unbounded">
-        <xs:element name="Temperature" msprop:Generator_TableClassName="TemperatureDataTable" msprop:Generator_TableVarName="tableTemperature" msprop:Generator_TablePropName="Temperature" msprop:Generator_RowDeletingName="TemperatureRowDeleting" msprop:Generator_RowChangingName="TemperatureRowChanging" msprop:Generator_RowEvHandlerName="TemperatureRowChangeEventHandler" msprop:Generator_RowDeletedName="TemperatureRowDeleted" msprop:Generator_UserTableName="Temperature" msprop:Generator_RowChangedName="TemperatureRowChanged" msprop:Generator_RowEvArgName="TemperatureRowChangeEvent" msprop:Generator_RowClassName="TemperatureRow">
+        <xs:element name="Temperature" msprop:Generator_TableClassName="TemperatureDataTable" msprop:Generator_TableVarName="tableTemperature" msprop:Generator_RowChangedName="TemperatureRowChanged" msprop:Generator_TablePropName="Temperature" msprop:Generator_RowDeletingName="TemperatureRowDeleting" msprop:Generator_RowChangingName="TemperatureRowChanging" msprop:Generator_RowEvHandlerName="TemperatureRowChangeEventHandler" msprop:Generator_RowDeletedName="TemperatureRowDeleted" msprop:Generator_RowClassName="TemperatureRow" msprop:Generator_UserTableName="Temperature" msprop:Generator_RowEvArgName="TemperatureRowChangeEvent">
           <xs:complexType>
             <xs:sequence>
               <xs:element name="idTemperature" msdata:AutoIncrement="true" msdata:AutoIncrementSeed="-1" msdata:AutoIncrementStep="-1" msprop:Generator_ColumnVarNameInTable="columnidTemperature" msprop:Generator_ColumnPropNameInRow="idTemperature" msprop:Generator_ColumnPropNameInTable="idTemperatureColumn" msprop:Generator_UserColumnName="idTemperature" type="xs:int" minOccurs="0" />
@@ -63,7 +83,7 @@ FROM            Temperature</CommandText>
             </xs:sequence>
           </xs:complexType>
         </xs:element>
-        <xs:element name="Room" msprop:Generator_TableClassName="RoomDataTable" msprop:Generator_TableVarName="tableRoom" msprop:Generator_RowChangedName="RoomRowChanged" msprop:Generator_TablePropName="Room" msprop:Generator_RowDeletingName="RoomRowDeleting" msprop:Generator_RowChangingName="RoomRowChanging" msprop:Generator_RowEvHandlerName="RoomRowChangeEventHandler" msprop:Generator_RowDeletedName="RoomRowDeleted" msprop:Generator_RowClassName="RoomRow" msprop:Generator_UserTableName="Room" msprop:Generator_RowEvArgName="RoomRowChangeEvent">
+        <xs:element name="Room" msprop:Generator_TableClassName="RoomDataTable" msprop:Generator_TableVarName="tableRoom" msprop:Generator_TablePropName="Room" msprop:Generator_RowDeletingName="RoomRowDeleting" msprop:Generator_RowChangingName="RoomRowChanging" msprop:Generator_RowEvHandlerName="RoomRowChangeEventHandler" msprop:Generator_RowDeletedName="RoomRowDeleted" msprop:Generator_UserTableName="Room" msprop:Generator_RowChangedName="RoomRowChanged" msprop:Generator_RowEvArgName="RoomRowChangeEvent" msprop:Generator_RowClassName="RoomRow">
           <xs:complexType>
             <xs:sequence>
               <xs:element name="idRoom" msdata:AutoIncrement="true" msdata:AutoIncrementSeed="-1" msdata:AutoIncrementStep="-1" msprop:Generator_ColumnVarNameInTable="columnidRoom" msprop:Generator_ColumnPropNameInRow="idRoom" msprop:Generator_ColumnPropNameInTable="idRoomColumn" msprop:Generator_UserColumnName="idRoom" type="xs:int" minOccurs="0" />
@@ -84,6 +104,16 @@ FROM            Temperature</CommandText>
             </xs:sequence>
           </xs:complexType>
         </xs:element>
+        <xs:element name="RoomHeaterState" msprop:Generator_TableClassName="RoomHeaterStateDataTable" msprop:Generator_TableVarName="tableRoomHeaterState" msprop:Generator_TablePropName="RoomHeaterState" msprop:Generator_RowDeletingName="RoomHeaterStateRowDeleting" msprop:Generator_RowChangingName="RoomHeaterStateRowChanging" msprop:Generator_RowEvHandlerName="RoomHeaterStateRowChangeEventHandler" msprop:Generator_RowDeletedName="RoomHeaterStateRowDeleted" msprop:Generator_UserTableName="RoomHeaterState" msprop:Generator_RowChangedName="RoomHeaterStateRowChanged" msprop:Generator_RowEvArgName="RoomHeaterStateRowChangeEvent" msprop:Generator_RowClassName="RoomHeaterStateRow">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="idRoomHeaterState" msdata:AutoIncrement="true" msdata:AutoIncrementSeed="-1" msdata:AutoIncrementStep="-1" msprop:Generator_ColumnVarNameInTable="columnidRoomHeaterState" msprop:Generator_ColumnPropNameInRow="idRoomHeaterState" msprop:Generator_ColumnPropNameInTable="idRoomHeaterStateColumn" msprop:Generator_UserColumnName="idRoomHeaterState" type="xs:int" minOccurs="0" />
+              <xs:element name="idRoom" msprop:Generator_ColumnVarNameInTable="columnidRoom" msprop:Generator_ColumnPropNameInRow="idRoom" msprop:Generator_ColumnPropNameInTable="idRoomColumn" msprop:Generator_UserColumnName="idRoom" type="xs:int" />
+              <xs:element name="heater" msprop:Generator_ColumnVarNameInTable="columnheater" msprop:Generator_ColumnPropNameInRow="heater" msprop:Generator_ColumnPropNameInTable="heaterColumn" msprop:Generator_UserColumnName="heater" type="xs:boolean" />
+              <xs:element name="date" msprop:Generator_ColumnVarNameInTable="columndate" msprop:Generator_ColumnPropNameInRow="date" msprop:Generator_ColumnPropNameInTable="dateColumn" msprop:Generator_UserColumnName="date" type="xs:dateTime" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
       </xs:choice>
     </xs:complexType>
     <xs:unique name="Constraint1">
@@ -93,6 +123,10 @@ FROM            Temperature</CommandText>
     <xs:unique name="Room_Constraint1" msdata:ConstraintName="Constraint1">
       <xs:selector xpath=".//mstns:Room" />
       <xs:field xpath="mstns:idRoom" />
+    </xs:unique>
+    <xs:unique name="RoomHeaterState_Constraint1" msdata:ConstraintName="Constraint1">
+      <xs:selector xpath=".//mstns:RoomHeaterState" />
+      <xs:field xpath="mstns:idRoomHeaterState" />
     </xs:unique>
   </xs:element>
 </xs:schema>
