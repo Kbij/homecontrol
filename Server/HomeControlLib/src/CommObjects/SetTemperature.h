@@ -5,8 +5,8 @@
  *      Author: koen
  */
 
-#ifndef COMMOBJECTS_ROOMTEMPERATURE_H_
-#define COMMOBJECTS_ROOMTEMPERATURE_H_
+#ifndef COMMOBJECTS_SETTEMPERATURE_H_
+#define COMMOBJECTS_SETTEMPERATURE_H_
 #include "CommObjectIf.h"
 #include <string>
 #include <stdint.h>
@@ -36,4 +36,4 @@ private:
 } /* namespace CommNs */
 
 
-#endif /* COMMOBJECTS_ROOMTEMPERATURE_H_ */
+#endif /* COMMOBJECTS_SETTEMPERATURE_H_ */

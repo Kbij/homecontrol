@@ -44,6 +44,7 @@ DEFINE_string(pidfile,"","Pid file when running as Daemon");
 DEFINE_int32(simulate, 0, "The number of simulation sensors");
 DEFINE_string(serial, "", "Serial port to use"); ///dev/ttyUSB0
 DEFINE_string(i2c, "/dev/i2c-1", "I2C port to use");
+DEFINE_string(dbserver, "192.168.10.7", "Database server");
 
 void signal_handler(int sig);
 void daemonize();
@@ -199,8 +200,10 @@ int main (int argc, char* argv[])
 		LOG(INFO) << "Home Control ServerApp";
 		LOG(INFO) << "======================";
 		LOG(INFO) << "Build on: " << __DATE__ << ", " << __TIME__;
-		DalNs::ObjectWriter* writer = new DalNs::ObjectWriter("tcp://192.168.10.7:3306", "hc", "bugs bunny");
-		DalNs::HomeControlDal* dal = new DalNs::HomeControlDal("tcp://192.168.10.7:3306", "hc", "bugs bunny");
+		std::stringstream connectString;
+		connectString << "tcp://" << FLAGS_dbserver << ":3306";
+		DalNs::ObjectWriter* writer = new DalNs::ObjectWriter(connectString.str(), "hc", "bugs bunny");
+		DalNs::HomeControlDal* dal = new DalNs::HomeControlDal(connectString.str(), "hc", "bugs bunny");
 
 		CommNs::SocketFactory* factory = new CommNs::SocketFactory;
 		CommNs::Server* server = new CommNs::Server(factory, 5678, dal);
@@ -220,7 +223,7 @@ int main (int argc, char* argv[])
 		DalNs::TemperatureWriter* tempWriter = nullptr;
 		LogicNs::CommRouter* commRouter = nullptr;
 
-		if (FLAGS_serial != "")
+		if (FLAGS_serial != "" || FLAGS_simulate > 0)
 		{
 			if (FLAGS_simulate == 0)
 			{

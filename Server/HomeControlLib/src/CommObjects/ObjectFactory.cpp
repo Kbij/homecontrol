@@ -12,6 +12,8 @@
 #include "RoomTemperature.h"
 #include "RoomList.h"
 #include "TemperatureMonitoring.h"
+#include "TemperatureUp.h"
+#include "TemperatureDown.h"
 
 namespace CommNs {
 
@@ -36,6 +38,9 @@ CommObjectIf* ObjectFactory::createObject(uint8_t objectId, const std::string& j
 		case 20: return new TemperatureMonitoring(json);
 		case 21: return new RoomList(json);
 		case 22: return new RoomTemperature(json);
+
+		case 30: return new TemperatureUp(json);
+		case 31: return new TemperatureDown(json);
 		default: return nullptr;
 	}
 

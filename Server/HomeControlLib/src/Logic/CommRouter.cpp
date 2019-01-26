@@ -12,6 +12,9 @@
 #include "CommObjects/RoomTemperature.h"
 #include "CommObjects/RoomList.h"
 #include "CommObjects/TemperatureMonitoring.h"
+#include "CommObjects/TemperatureUp.h"
+#include "CommObjects/TemperatureDown.h"
+#include "CommObjects/SetTemperature.h"
 #include "Logic/RoomControl.h"
 #include "Logic/TwoPointThermostat.h"
 #include "DAL/HomeControlDalIf.h"
@@ -78,6 +81,15 @@ void CommRouter::setPointChanged(const std::string& roomId, double setTemperatur
 					mSensors->writeSetTemperature(sensorId, setTemperature);
 				}
 			}
+		}
+
+		for(const auto& client: mConnnectedClients)
+		{
+			VLOG(1) << "Send set Temperature to client: " << client;
+			CommNs::SetTemperature* setTemp = new CommNs::SetTemperature(roomId, setTemperature);
+
+			//CommServer takes ownership of the object (and free's the object)
+			mCommServer->sendObject(client, setTemp);
 		}
 	}
 }
@@ -158,6 +170,32 @@ void CommRouter::receiveObject(const std::string name, const CommNs::CommObjectI
 			{
 				LOG(INFO) << "Disable monitoring for: " << name;
 				mConnnectedClients.erase(name);
+			}
+		}
+	}
+	if (object->objectId() == 30)
+	{
+		if(const CommNs::TemperatureUp* up = dynamic_cast<const CommNs::TemperatureUp*> (object))
+		{
+			std::lock_guard<std::recursive_mutex> lg(mDataMutex);
+			VLOG(1) << "Temperature Up for room: " << up->roomId();
+			RoomControl* room = findRoomByRoomId(up->roomId(), false);
+			if (room)
+			{
+				room->setPointUp();
+			}
+		}
+	}
+	if (object->objectId() == 31)
+	{
+		if(const CommNs::TemperatureDown* down = dynamic_cast<const CommNs::TemperatureDown*> (object))
+		{
+			std::lock_guard<std::recursive_mutex> lg(mDataMutex);
+			VLOG(1) << "Temperature Down for room: " << down->roomId();
+			RoomControl* room = findRoomByRoomId(down->roomId(), false);
+			if (room)
+			{
+				room->setPointDown();
 			}
 		}
 	}
