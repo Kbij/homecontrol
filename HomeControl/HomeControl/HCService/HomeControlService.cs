@@ -26,7 +26,6 @@ namespace HomeControl.HCService
     {
         HCServiceBinder mBinder;
         const string TAG = "HomeControlService";
-        CommModel mCommModel;
         HCLogger mLog;
         FusedLocationProviderClient mFusedLocationProviderClient;
         LocationCallBack mLocationCallBack;
@@ -80,8 +79,9 @@ namespace HomeControl.HCService
             mRequestedInterval = 0;
             mLog = new HCLogger("192.168.10.10", 8001, "Service.log");
             mLog.SendToHost("HomeControlService", "HomeControlService started");
-            mCommModel = new CommModel(mLog);
-            mCommModel.startComm();
+
+            //Make sure it exists
+            CommModel.Instance(mLog);
 
             InitializeLocationManager();
 
@@ -97,9 +97,9 @@ namespace HomeControl.HCService
             ////Service is destroyed; restart it...
             //var intent = new Intent("RestartHCService");
             //SendBroadcast(intent);
-            mCommModel.unRegisterCommReceiver(this);
+            CommModel.Instance(mLog).unRegisterCommReceiver(this);
             mLog.SendToHost("HomeControlService", "HomeControlService destroyed");
-            mCommModel.Dispose();
+//            mCommModel.Dispose();
             base.OnDestroy();
         }
 
@@ -118,19 +118,19 @@ namespace HomeControl.HCService
         #region hcservice
         public void registerCommReceiver(ICommReceiver receiver)
         {
-            mCommModel.registerCommReceiver(receiver);
+            CommModel.Instance(mLog).registerCommReceiver(receiver);
         }
 
         public void unRegisterCommReceiver(ICommReceiver receiver)
         {
-            mCommModel.unRegisterCommReceiver(receiver);
+            CommModel.Instance(mLog).unRegisterCommReceiver(receiver);
         }
 
         public void sendObject(ICommObject obj)
         {
-            if (mCommModel != null)
+            if (CommModel.Instance(mLog) != null)
             {
-                mCommModel.sendObjectQueued(obj);
+                CommModel.Instance(mLog).sendObjectQueued(obj);
             }
         }
 
@@ -149,7 +149,7 @@ namespace HomeControl.HCService
             mLog.SendToHost("HomeControlService", "Location Manager Initialised");
 
             //Listen for updates on the location interval
-            mCommModel.registerCommReceiver(this);
+            CommModel.Instance(mLog).registerCommReceiver(this);
         }
 
         #region location
@@ -205,7 +205,7 @@ namespace HomeControl.HCService
                 int level_0_to_100 = (int) System.Math.Floor(level * 100D / scale);
 
                 GpsLocation loc = new GpsLocation { Latitude = location.Latitude, Longitude = location.Longitude, Accuracy = location.Accuracy, BatteryLevel = level_0_to_100 };
-                mCommModel.sendObjectQueued(loc);
+                CommModel.Instance(mLog).sendObjectQueued(loc);
             }
         }
         #endregion

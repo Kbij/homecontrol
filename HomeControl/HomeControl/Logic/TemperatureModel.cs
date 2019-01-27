@@ -39,9 +39,22 @@ namespace HomeControl.Logic
 
     public class TemperatureModel : ICommReceiver
     {
+        private static TemperatureModel mInstance = null;
         private List<Logic.RoomTemperature> mRoomTemperatures;
         private List<ITemperatureListener> mListeners;
         private HomeControlService mCommService;
+        public static TemperatureModel Instance
+        {
+            get
+            {
+                if (mInstance == null)
+                {
+                    mInstance = new TemperatureModel();
+                }
+                return mInstance;
+            }
+        }
+
         public TemperatureModel()
         {
             mRoomTemperatures = new List<RoomTemperature>();
@@ -106,6 +119,16 @@ namespace HomeControl.Logic
                         }
                     }
                 }
+                if ((obj as Comm.SetTemperature) != null)
+                {
+                    foreach (var room in mRoomTemperatures)
+                    {
+                        if (room.roomId == ((Comm.SetTemperature)obj).roomId)
+                        {
+                            room.setTemperature = ((Comm.SetTemperature)obj).setTemperature;
+                        }
+                    }
+                }
             }
 
             foreach(var listener in mListeners)
@@ -158,6 +181,25 @@ namespace HomeControl.Logic
             return null;
         }
 
+        public void setTemperatureUp(string roomId)
+        {
+            if (mCommService != null)
+            {
+                TemperatureUp up = new TemperatureUp();
+                up.roomId = roomId;
+                mCommService.sendObject(up);
+            }
+        }
+
+        public void setTemperatureDown(string roomId)
+        {
+            if (mCommService != null)
+            {
+                TemperatureDown down = new TemperatureDown();
+                down.roomId = roomId;
+                mCommService.sendObject(down);
+            }
+        }
 
     }
 }

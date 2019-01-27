@@ -33,9 +33,31 @@ namespace HomeControl.Comm
         const int CONNECT_TIMEOUT_SECONDS = 30;
      //   int mLastObjectSendSeconds;
         private Object mLock;
+        Guid mId;
+        private static CommModel mInstance = null;
+        public static CommModel Instance(HCLogger logger)
+        {
+            if (mInstance == null)
+            {
+                mInstance = new CommModel(logger);
+                mInstance.startComm();
+            }
+            return mInstance;
+        }
+
+        public static CommModel Instance()
+        {
+            if (mInstance == null)
+            {
+                mInstance = new CommModel(null);
+                mInstance.startComm();
+            }
+            return mInstance;
+        }
 
         public CommModel(HCLogger logger)
         {
+            mId = Guid.NewGuid();
             mOutstandingKeepAlives = 0;
             mLock = new Object();
             mSendQueue = new Queue<ICommObject>();

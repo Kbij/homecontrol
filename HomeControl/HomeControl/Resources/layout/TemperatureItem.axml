@@ -5,20 +5,20 @@
     android:layout_height="match_parent"
     android:minWidth="25px"
     android:minHeight="25px">
-    <TextView
-        android:text="Large Text"
-        android:textSize="40sp"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight=".60"
-        android:id="@+id/textName"
-        android:layout_marginRight="0.0dp" />
-    <TextView
-        android:text="Large Text"
-        android:textSize="40sp"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight=".40"
-        android:textColor="#00FF00"
-        android:id="@+id/textTemperature" />
+	<TextView
+		android:text="Large Text"
+		android:textSize="40sp"
+		android:layout_width="0dp"
+		android:layout_height="62.0dp"
+		android:layout_weight=".60"
+		android:id="@+id/textName"
+		android:layout_marginRight="0.0dp" />
+	<TextView
+		android:text="Large Text"
+		android:textSize="40sp"
+		android:layout_width="0dp"
+		android:layout_height="62.0dp"
+		android:layout_weight=".40"
+		android:textColor="#00FF00"
+		android:id="@+id/textTemperature" />
 </LinearLayout>

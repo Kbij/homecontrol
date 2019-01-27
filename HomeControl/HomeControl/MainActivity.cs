@@ -14,19 +14,20 @@ using HomeControl.Logic;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using RoomTemperature = HomeControl.Logic.RoomTemperature;
 
 namespace HomeControl
 {
-    [Activity(Label = "Home Control", MainLauncher = true, Icon = "@drawable/icon")]
+    [Activity(Label = "Home Control", MainLauncher = true, LaunchMode = LaunchMode.SingleInstance, Icon = "@drawable/icon")]
     public class MainActivity : Activity, ICommReceiver
     {
         private HCServiceBinder mBinder;
         private bool mIsBound;
         private HCServiceConnection mServiceConnection;
         private GridView mGridView;
-        private TemperatureModel mTemperatureModel;
         private HCLogger mLog;
         private const int REQUEST_PERMISSIONS = 1;
+        private bool mWasAlreadyStarted = false;
         static void HandleExceptions(object sender, UnhandledExceptionEventArgs ex)
         {
             string fileName = "/sdcard/Android/data/HomeControl.HomeControl/files/HomeControlUnhandled.log";//Path.Combine(path, "HomeControl.log");
@@ -47,26 +48,65 @@ namespace HomeControl
 
             // Set our view from the "main" layout resource
             SetContentView(Resource.Layout.Main);
-            mTemperatureModel = new TemperatureModel();
             mGridView = FindViewById<GridView>(Resource.Id.gridView);
-            mGridView.Adapter = new TemperatureAdapter(this, mTemperatureModel);
+            mGridView.Adapter = new TemperatureAdapter(this, TemperatureModel.Instance);
+            mGridView.ItemClick += listViewItemClick;
         }
 
         protected override void OnStart()
         {
+            mLog.SendToHost("MainService", "OnStart");
             base.OnStart();
-            if (!IsGooglePlayServicesInstalled())
+            if (!mWasAlreadyStarted)
             {
-                mLog.Send("Google play services are not installed (should not happen)");
-            }
+                if (!IsGooglePlayServicesInstalled())
+                {
+                    mLog.Send("Google play services are not installed (should not happen)");
+                }
 
-            if (CheckPermissions())
-            {   //Start immediately if all permissions are ok
-                startHomeControlService();
+                if (CheckPermissions())
+                {   //Start immediately if all permissions are ok
+                    startHomeControlService();
+                }
             }
-
+            mWasAlreadyStarted = true;
         }
 
+        protected override void OnStop()
+        {
+            mLog.SendToHost("MainService", "OnStop");
+            if (mIsBound && mBinder != null)
+            {
+                //mLog.SendToHost("MainService", "OnStop, unbind");
+                //mBinder.GetHCService().unRegisterCommReceiver(TemperatureModel.Instance);
+                //mBinder.GetHCService().unRegisterCommReceiver(this);
+                //TemperatureModel.Instance.unsetCommService();
+                //UnbindService(mServiceConnection);
+                //mIsBound = false;
+            }
+            base.OnStop();
+        }
+
+        protected override void OnDestroy()
+        {
+            mLog.SendToHost("MainService", "OnDestroy");
+            if (mIsBound && mBinder != null)
+            {
+                mLog.SendToHost("MainService", "OnDestroy, unbind");
+                mBinder.GetHCService().unRegisterCommReceiver(TemperatureModel.Instance);
+                mBinder.GetHCService().unRegisterCommReceiver(this);
+                TemperatureModel.Instance.unsetCommService();
+                UnbindService(mServiceConnection);
+                mIsBound = false;
+            }
+            base.OnDestroy();
+        }
+
+        protected override void OnResume()
+        {
+            base.OnResume();
+            mLog.SendToHost("MainService", "OnResume");
+        }
         #region permissions
         bool CheckPermissions()
         {
@@ -168,43 +208,13 @@ namespace HomeControl
             return false;
         }
 
-        protected override void OnStop()
-        {
-            mLog.SendToHost("MainService", "OnStop");
-            if (mIsBound && mBinder != null)
-            {
-                mLog.SendToHost("MainService", "OnStop, unbind");
-                mBinder.GetHCService().unRegisterCommReceiver(mTemperatureModel);
-                mBinder.GetHCService().unRegisterCommReceiver(this);
-                mTemperatureModel.unsetCommService();
-                UnbindService(mServiceConnection);
-                mIsBound = false;
-            }
-            base.OnStop();
-        }
-
-        protected override void OnDestroy()
-        {
-            mLog.SendToHost("MainService", "OnDestroy");
-            if (mIsBound && mBinder != null)
-            {
-                mLog.SendToHost("MainService", "OnDestroy, unbind");
-                mBinder.GetHCService().unRegisterCommReceiver(mTemperatureModel);
-                mBinder.GetHCService().unRegisterCommReceiver(this);
-                mTemperatureModel.unsetCommService();
-                UnbindService(mServiceConnection);
-                mIsBound = false;
-            }
-            base.OnDestroy();
-        }
-
         public void onBind()
         {
             if (mIsBound)
             {
                 mBinder.GetHCService().registerCommReceiver(this);
-                mBinder.GetHCService().registerCommReceiver(mTemperatureModel);
-                mTemperatureModel.setCommService(mBinder.GetHCService());
+                mBinder.GetHCService().registerCommReceiver(TemperatureModel.Instance);
+                TemperatureModel.Instance.setCommService(mBinder.GetHCService());
             }
         }
 
@@ -235,6 +245,18 @@ namespace HomeControl
         {
             mLog.SendToHost("MainService", "Disconnected");
             RunOnUiThread(() => this.Title = "Home Control");
+        }
+
+        public void listViewItemClick(object sender, AdapterView.ItemClickEventArgs args)
+        {
+            var intent = new Intent(this, typeof(RoomDetail));
+            RoomTemperature room = TemperatureModel.Instance.roomTemperatues()[args.Position];
+            if (room != null)
+            {
+                intent.PutExtra("roomId", room.roomId);
+                StartActivity(intent);
+            }
+
         }
     }
 }
