@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using ThermoSimulation.Interfaces;
+using ThermoSimulation.Thermostat;
 using ZedGraph;
 
 namespace ThermoSimulation
@@ -63,7 +59,14 @@ namespace ThermoSimulation
             bool increaseTemp = false;
             if (mHeaterState)
             { //Heater is on
-                increaseTemp = mCurrentTime > (mHeaterOnTime + mHeaterOnDelaySeconds) ? true : false;
+                if ((mHeaterOnTime - mHeaterOffTime) < mHeaterOnDelaySeconds)
+                { // Heater was on for very short time
+                    increaseTemp = true;
+                }
+                else
+                { 
+                    increaseTemp = mCurrentTime > (mHeaterOnTime + mHeaterOnDelaySeconds) ? true : false;
+                }
             }
             else
             {
@@ -115,24 +118,31 @@ namespace ThermoSimulation
         {
             mGraphPane.CurveList.Clear();
             setupWinter();
-            mThermo = new TwoPointThermostat(0.5);
+            mHeaterOnDelaySeconds = 120;
+            mHeaterOffDelaySeconds = 10000;
+            mThermo = new PidThermostat(10*60, 60); //Heater period = 30 min, min on time = 10 min
+            //mThermo = new TwoPointThermostat(0.5);
             mThermo.registerListener(this);
             mSetTemperature = 20;
 
             PointPairList simulationPoints = new PointPairList();
             PointPairList heaterState = new PointPairList();
+            PointPairList heaterOutput = new PointPairList();
 
             //Every 30 seconds
             for (long time = 0; time < 16 * 60 * 60; time = time + 30)
             {
-                if (time > 240) mThermo.setPointChanged(time, 20);
+                if (time > 240) mThermo.setPointChanged(time, mSetTemperature);
                 process(time);
                 simulationPoints.Add(time / 60, mRoomTemperature);
                 heaterState.Add(time / 60, mHeaterState ? 10 : 0);
+                PidThermostat pidthermo = mThermo as PidThermostat;
+                heaterOutput.Add(time / 60, pidthermo.HeaterOutput/10);
 
             }
             mGraphPane.AddCurve("Twopoint", simulationPoints, Color.Black, SymbolType.None);
             mGraphPane.AddCurve("Twopoint", heaterState, Color.Black, SymbolType.None);
+            mGraphPane.AddCurve("Twopoint", heaterOutput, Color.Black, SymbolType.None);
             zedGraph.AxisChange();
             zedGraph.Refresh();
 

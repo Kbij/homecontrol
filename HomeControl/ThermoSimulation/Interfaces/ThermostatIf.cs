@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ThermoSimulation
+namespace ThermoSimulation.Interfaces
 {
     public interface ThermostatIf
     {

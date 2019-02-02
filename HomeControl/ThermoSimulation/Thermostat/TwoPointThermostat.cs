@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ThermoSimulation.Interfaces;
 
-namespace ThermoSimulation
+namespace ThermoSimulation.Thermostat
 {
     public class TwoPointThermostat: ThermostatIf
     {
@@ -24,6 +20,7 @@ namespace ThermoSimulation
         {
             mListener = null;
         }
+
         public void temperatureChanged(long timePoint, double temperature)
         {
             double hysteresisTop = mSetPoint + (mHysteresis / 2.0);
@@ -45,10 +42,10 @@ namespace ThermoSimulation
                 if (mListener != null) mListener.heaterOff();
             }
         }
+
         public void setPointChanged(long timePoint, double setTemperature)
         {
             mSetPoint = setTemperature;
         }
-
     }
 }
