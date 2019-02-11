@@ -13,8 +13,12 @@ namespace HomeControl.Comm
         private UdpClient client;
         private string mFileName;
         private object mLock;
+        private string mHostName;
+        private int mPort;
         public HCLogger(string ipAddress, int port, string fileName)
         {
+            mPort = port;
+            mHostName = ipAddress;
             //string path = Environment.GetFolderPath(Environment.SpecialFolder.);
             //mFileName = string.Format("/sdcard/Android/data/HomeControl.HomeControl/files/{0}", fileName);//Path.Combine(path, "HomeControl.log");
             string path = Android.OS.Environment.ExternalStorageDirectory.AbsolutePath;
@@ -23,8 +27,6 @@ namespace HomeControl.Comm
             try
             {
                 client = new UdpClient();
-                client.Connect(new IPEndPoint(IPAddress.Parse(ipAddress), port));
-
             }
             catch (Exception) { }
             mLock = new object();
@@ -56,7 +58,7 @@ namespace HomeControl.Comm
             try
             {
                 byte[] data = Encoding.ASCII.GetBytes(string.Format("{0}:{1}: {2}/{3}", DateTime.Now, Android.OS.Build.Model, category, message));
-                client.Send(data, data.Length);
+                client.Send(data, data.Length, mHostName, mPort);
             }
             catch (Exception ex)
             {

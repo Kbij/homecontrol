@@ -100,8 +100,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Comm\AsyncCloudSocket.cs" />
     <Compile Include="Comm\CloudSocket.cs" />
     <Compile Include="Comm\CommModel.cs" />
+    <Compile Include="Comm\FrameReceivedArgs.cs" />
     <Compile Include="Comm\GpsLocation.cs" />
     <Compile Include="Comm\ICommObject.cs" />
     <Compile Include="Comm\ICommReceiver.cs" />

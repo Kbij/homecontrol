@@ -27,11 +27,10 @@ namespace HomeControl.Comm
         const int KEEPALIVE_INTERVAL_SECONDS = 30;
         const int RECONNECT_SECONDS = 10;
         const int MAX_LOST_KEEPALIVE = 4;
-        CloudSocket mCloudSocket;
+        AsyncCloudSocket mCloudSocket;
         Thread mThread;
         bool mThreadRunning = false;
         const int CONNECT_TIMEOUT_SECONDS = 30;
-     //   int mLastObjectSendSeconds;
         private Object mLock;
         Guid mId;
         private static CommModel mInstance = null;
@@ -189,11 +188,10 @@ namespace HomeControl.Comm
 
         public void OnCloudSocketConnected(Object sender, EventArgs e)
         {
-           // lock (mLock)
+            string modelName = Android.OS.Build.Model;
+            changeState(CommState.NameSend);
+            lock (mLock)
             {
-              //  mLastObjectSendSeconds = 0;
-                string modelName = Android.OS.Build.Model;
-                changeState(mCommState = CommState.NameSend);
                 mCloudSocket.sendFrame(OBJ_HCNAME, System.Text.Encoding.ASCII.GetBytes(modelName).ToList());
             }
         }
@@ -254,13 +252,16 @@ namespace HomeControl.Comm
                                             receiver.disconnected();
                                         }
                                     }
-                                    if (mCloudSocket != null)
+                                    lock (mLock)
                                     {
-                                        if (mLog != null) mLog.SendToHost("CommModel", string.Format("disconnected, disposing socket: {0}", mCloudSocket.Id()));
-                                        mCloudSocket.OnFrameReceived -= OnCloudFrameReceived;
-                                        mCloudSocket.OnSocketConnected -= OnCloudSocketConnected;
-                                        mCloudSocket.Dispose();
-                                        mCloudSocket = null;
+                                        if (mCloudSocket != null)
+                                        {
+                                            if (mLog != null) mLog.SendToHost("CommModel", string.Format("disconnected, disposing socket: {0}", mCloudSocket.Id()));
+                                            mCloudSocket.OnFrameReceived -= OnCloudFrameReceived;
+                                            mCloudSocket.OnSocketConnected -= OnCloudSocketConnected;
+                                            mCloudSocket.Dispose();
+                                            mCloudSocket = null;
+                                        }
                                     }
                                     break;
                                 }
@@ -283,17 +284,20 @@ namespace HomeControl.Comm
             mOutstandingKeepAlives = 0;
 
             changeState(CommState.Connecting);
-            if (mCloudSocket != null)
+            lock (mLock)
             {
-                if (mLog != null) mLog.SendToHost("CommModel", string.Format("startConnect, disposing socket: {0}", mCloudSocket.Id()));
-                mCloudSocket.OnFrameReceived -= OnCloudFrameReceived;
-                mCloudSocket.OnSocketConnected -= OnCloudSocketConnected;
-                mCloudSocket.Dispose();
-                mCloudSocket = null;
+                if (mCloudSocket != null)
+                {
+                    if (mLog != null) mLog.SendToHost("CommModel", string.Format("startConnect, disposing socket: {0}", mCloudSocket.Id()));
+                    mCloudSocket.OnFrameReceived -= OnCloudFrameReceived;
+                    mCloudSocket.OnSocketConnected -= OnCloudSocketConnected;
+                    mCloudSocket.Dispose();
+                    mCloudSocket = null;
+                }
+                mCloudSocket = new AsyncCloudSocket(mLog);
+                mCloudSocket.OnFrameReceived += OnCloudFrameReceived;
+                mCloudSocket.OnSocketConnected += OnCloudSocketConnected;
             }
-            mCloudSocket = new CloudSocket(mLog);
-            mCloudSocket.OnFrameReceived += OnCloudFrameReceived;
-            mCloudSocket.OnSocketConnected += OnCloudSocketConnected;
         }
 
         private void processSendQueue()
@@ -321,7 +325,7 @@ namespace HomeControl.Comm
 
         private bool sendObject(ICommObject obj)
         {
-          //  lock (mLock)
+            lock (mLock)
             {
               //  mLastObjectSendSeconds = 0;
                 string json = obj.serialise();
@@ -331,24 +335,19 @@ namespace HomeControl.Comm
 
         private void sendKeepAlive()
         {
-            if (mCommState == CommState.Connected)
+            //Already locked
+            if (mOutstandingKeepAlives > 0)
             {
-                if (mOutstandingKeepAlives > 0)
-                {
-                    if (mLog != null) mLog.SendToHost("CommModem", string.Format("Keepalive missing ({0}), reconnecting", mOutstandingKeepAlives));
+                if (mLog != null) mLog.SendToHost("CommModem", string.Format("Keepalive missing ({0}), reconnecting", mOutstandingKeepAlives));
 
-                    changeState(CommState.Disconnected);
-                }
-                else
-                {
-                    if (mLog != null) mLog.SendToHost("CommModem", "sending keepalive");
-                  //  mLastObjectSendSeconds = 0;
-                   // lock (mLock)
-                    {
-                        mCloudSocket.sendFrame(OBJ_KEEPALIVE, new List<byte>());
-                    }
-                    ++mOutstandingKeepAlives;
-                }
+                changeState(CommState.Disconnected);
+            }
+            else
+            {
+                if (mLog != null) mLog.SendToHost("CommModem", "sending keepalive");
+
+                mCloudSocket.sendFrame(OBJ_KEEPALIVE, new List<byte>());
+                ++mOutstandingKeepAlives;
             }
         }
 
@@ -412,28 +411,28 @@ namespace HomeControl.Comm
                 try
                 {
                    Thread.Sleep(THREAD_INTERVAL_SECONDS * 1000);
-                    //   lock (mLock)
+
+                    if (mCommState == CommState.Disconnected)
                     {
-
-                        if (mCommState == CommState.Disconnected)
+                        --mConnectTimeoutSeconds;
+                        if (mConnectTimeoutSeconds <= 0)
                         {
-                            --mConnectTimeoutSeconds;
-                            if (mConnectTimeoutSeconds <= 0)
-                            {
-                                startConnect();
-                            }
+                            if (mLog != null) mLog.SendToHost("CommModel", "Starting reconnect");
+                            startConnect();
                         }
+                    }
 
+                    lock(mLock)
+                    {
                         if (mCloudSocket != null)
                         {
-
                             if (mCommState == CommState.Connected && mCloudSocket.isActive())
                             {
                                 ++keepAliveSendSecondsAgo;
                                 if (keepAliveSendSecondsAgo > KEEPALIVE_INTERVAL_SECONDS)
                                 {
                                     keepAliveSendSecondsAgo = 0;
-                                    sendKeepAlive();
+                                   // sendKeepAlive();
                                 }
                             }
 
@@ -441,8 +440,12 @@ namespace HomeControl.Comm
                             if (!mCloudSocket.isActive())
                             {
                                 if (mLog != null) mLog.SendToHost("CommModel", "Cloudsocket no longer active, restarting connection");
-                                changeState(CommState.Disconnected);
+                                                              changeState(CommState.Disconnected);
                             }
+                        }
+                        else
+                        {
+                            if (mLog != null) mLog.SendToHost("CommModel", "Cloudsocket null");
                         }
                     }
                 }

@@ -6,12 +6,6 @@ using System.Threading;
 
 namespace HomeControl.Comm
 {
-    public class FrameReceivedArgs
-    {
-        public int ObjectId { get; set; }
-        public List<byte> Frame { get; set; }
-    }
-
     class CloudSocket : IDisposable
     {
         enum SocketState { Connecting, Connected, Disconnected };

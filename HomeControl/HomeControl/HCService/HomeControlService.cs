@@ -176,6 +176,7 @@ namespace HomeControl.HCService
                                   .SetPriority(LocationRequest.PriorityBalancedPowerAccuracy)
                                   .SetInterval(mCurrentUpdateFreqSeconds * 1000)
                                   .SetFastestInterval(10 * 1000); //Fasted inteval
+                                mFusedLocationProviderClient.RemoveLocationUpdates(mLocationCallBack);
                                 mFusedLocationProviderClient.RequestLocationUpdates(locationRequest, mLocationCallBack, null);
                             }
 
@@ -193,6 +194,7 @@ namespace HomeControl.HCService
                           .SetPriority(LocationRequest.PriorityBalancedPowerAccuracy)
                           .SetInterval(mCurrentUpdateFreqSeconds * 1000)
                           .SetFastestInterval(10 * 1000); //Fasted inteval
+                        mFusedLocationProviderClient.RemoveLocationUpdates(mLocationCallBack);
                         mFusedLocationProviderClient.RequestLocationUpdates(locationRequest, mLocationCallBack, null);
                     }
                 }
@@ -238,6 +240,7 @@ namespace HomeControl.HCService
                       .SetPriority(accuracy)
                       .SetInterval(mCurrentUpdateFreqSeconds * 1000)
                       .SetFastestInterval(10 * 1000); //Fasted inteval
+                    mFusedLocationProviderClient.RemoveLocationUpdates(mLocationCallBack);
                     mFusedLocationProviderClient.RequestLocationUpdates(locationRequest, mLocationCallBack, null);
                 }
                     
