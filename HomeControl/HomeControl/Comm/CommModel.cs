@@ -44,16 +44,6 @@ namespace HomeControl.Comm
             return mInstance;
         }
 
-        public static CommModel Instance()
-        {
-            if (mInstance == null)
-            {
-                mInstance = new CommModel(null);
-                mInstance.startComm();
-            }
-            return mInstance;
-        }
-
         public CommModel(HCLogger logger)
         {
             mId = Guid.NewGuid();
@@ -62,8 +52,12 @@ namespace HomeControl.Comm
             mSendQueue = new Queue<ICommObject>();
             mReceivers = new HashSet<ICommReceiver>();
             mLog = logger;
-            if (mLog != null) mLog.SendToHost("CommModel", "CommModel created");
+            if (mLog != null) mLog.SendToHost("CommModel", string.Format("[{0}] CommModel created", Id()));
             mCommStarted = false;
+        }
+        public string Id()
+        {
+            return mId.ToString().ToUpper();
         }
         #region public
         public void startComm()
@@ -74,16 +68,17 @@ namespace HomeControl.Comm
                 mCommState = CommState.Disconnected;
 
                 startMaintenanceThread();
-                if (mLog != null) mLog.SendToHost("CommModel", "CommModel started");
+                if (mLog != null) mLog.SendToHost("CommModel", string.Format("[{0}] CommModel started", Id()));
             }
         }
 
         public void Dispose()
         {
+            if (mLog != null) mLog.SendToHost("CommModel", string.Format("[{0}] Dispose commmodel", Id()));
             stopMaintenanceThread();
             if (mCloudSocket != null)
             {
-                if (mLog != null) mLog.SendToHost("CommModel", string.Format("dispose commmodel, disposing socket: {0}", mCloudSocket.Id()));
+                if (mLog != null) mLog.SendToHost("CommModel", string.Format("[{0}] Dispose commmodel, disposing socket: {0}", Id(), mCloudSocket.Id()));
                 mCloudSocket.OnFrameReceived -= OnCloudFrameReceived;
                 mCloudSocket.OnSocketConnected -= OnCloudSocketConnected;
                 mCloudSocket.Dispose();
@@ -110,14 +105,14 @@ namespace HomeControl.Comm
                 switch (e.ObjectId)
                 {
                     case OBJ_KEEPALIVE:
-                        if (mLog != null) mLog.SendToHost("CommModel", "keepalive received");
+                        if (mLog != null) mLog.SendToHost("CommModel", string.Format("[{0}] keepalive received", Id()));
                         --mOutstandingKeepAlives;
                         break;
                     case OBJ_SERVERNAME:
                         string serverName = System.Text.Encoding.ASCII.GetString(e.Frame.ToArray());
                         changeState(CommState.Connected);
 
-                        if (mLog != null) mLog.SendToHost("CommModel", string.Format("Connected with server: {0}", serverName));
+                        if (mLog != null) mLog.SendToHost("CommModel", string.Format("[{0}] Connected with server: {1}", Id(), serverName));
                         processSendQueue();
                         break;
                     case OBJ_ROOM_TEMPERATURE:
@@ -199,7 +194,7 @@ namespace HomeControl.Comm
 
         private void changeState(CommState newState)
         {
-            if (mLog != null) mLog.SendToHost("CommModel", string.Format("State change, from: {0} to: {1}", mCommState, newState));
+            if (mLog != null) mLog.SendToHost("CommModel", string.Format("[{0}] State change, from: {1} to: {2}", Id(), mCommState, newState));
             switch (mCommState)
             {
                 case CommState.Init:
@@ -213,7 +208,7 @@ namespace HomeControl.Comm
                                 }
                             default:
                                 {
-                                    if (mLog != null) mLog.SendToHost("CommModel", string.Format("Unknown state change, from: {0} to: {1}", mCommState, newState));
+                                    if (mLog != null) mLog.SendToHost("CommModel", string.Format("[{0}] Unknown state change, from: {1} to: {2}", Id(), mCommState, newState));
                                     break;
                                 }
                         }
@@ -256,7 +251,7 @@ namespace HomeControl.Comm
                                     {
                                         if (mCloudSocket != null)
                                         {
-                                            if (mLog != null) mLog.SendToHost("CommModel", string.Format("disconnected, disposing socket: {0}", mCloudSocket.Id()));
+                                            if (mLog != null) mLog.SendToHost("CommModel", string.Format("[{0}] Disconnected, disposing socket: {1}", Id(), mCloudSocket.Id()));
                                             mCloudSocket.OnFrameReceived -= OnCloudFrameReceived;
                                             mCloudSocket.OnSocketConnected -= OnCloudSocketConnected;
                                             mCloudSocket.Dispose();
@@ -288,7 +283,7 @@ namespace HomeControl.Comm
             {
                 if (mCloudSocket != null)
                 {
-                    if (mLog != null) mLog.SendToHost("CommModel", string.Format("startConnect, disposing socket: {0}", mCloudSocket.Id()));
+                    if (mLog != null) mLog.SendToHost("CommModel", string.Format("[{0}] StartConnect, disposing socket: {1}", Id(), mCloudSocket.Id()));
                     mCloudSocket.OnFrameReceived -= OnCloudFrameReceived;
                     mCloudSocket.OnSocketConnected -= OnCloudSocketConnected;
                     mCloudSocket.Dispose();
@@ -338,13 +333,13 @@ namespace HomeControl.Comm
             //Already locked
             if (mOutstandingKeepAlives > 0)
             {
-                if (mLog != null) mLog.SendToHost("CommModem", string.Format("Keepalive missing ({0}), reconnecting", mOutstandingKeepAlives));
+                if (mLog != null) mLog.SendToHost("CommModel", string.Format("[{0}] Keepalive missing ({1}), reconnecting", Id(), mOutstandingKeepAlives));
 
                 changeState(CommState.Disconnected);
             }
             else
             {
-                if (mLog != null) mLog.SendToHost("CommModem", "sending keepalive");
+                if (mLog != null) mLog.SendToHost("CommModel", string.Format("[{0}] sending keepalive", Id()));
 
                 mCloudSocket.sendFrame(OBJ_KEEPALIVE, new List<byte>());
                 ++mOutstandingKeepAlives;
@@ -353,7 +348,7 @@ namespace HomeControl.Comm
 
         public void registerCommReceiver(ICommReceiver receiver)
         {
-            if (mLog != null) mLog.SendToHost("CommModel", "registerCommReceiver");
+            if (mLog != null) mLog.SendToHost("CommModel", string.Format("[{0}] registerCommReceiver", Id()));
             lock (mReceivers)
             {
                 mReceivers.Add(receiver);
@@ -377,7 +372,7 @@ namespace HomeControl.Comm
 
         public void unRegisterCommReceiver(ICommReceiver receiver)
         {
-            if (mLog != null) mLog.SendToHost("CommModel", "unRegisterCommReceiver");
+            if (mLog != null) mLog.SendToHost("CommModel", string.Format("[{0}] unRegisterCommReceiver", Id()));
             lock (mReceivers)
             {
                 mReceivers.Remove(receiver);
@@ -404,20 +399,24 @@ namespace HomeControl.Comm
 
         private void maintenanceThread()
         {
-            const int THREAD_INTERVAL_SECONDS = 1;
+            const int THREAD_INTERVAL_SECONDS = 5;
             int keepAliveSendSecondsAgo = 0;
             while (mThreadRunning)
             {
                 try
                 {
-                   Thread.Sleep(THREAD_INTERVAL_SECONDS * 1000);
-
+                    Thread.Sleep(THREAD_INTERVAL_SECONDS * 1000);
+                    if (mLog != null)
+                    {
+                        mLog.SendToHost("CommModel", string.Format("[{0}] Maintenance thread, connection state: {1}, cloudsocket: {2}, keepaliveSeconds: {3}",
+                                                                    Id(), mCommState.ToString(), mCloudSocket != null ? mCloudSocket.Id() : "null", keepAliveSendSecondsAgo));
+                    }
                     if (mCommState == CommState.Disconnected)
                     {
-                        --mConnectTimeoutSeconds;
+                        mConnectTimeoutSeconds -= THREAD_INTERVAL_SECONDS;
                         if (mConnectTimeoutSeconds <= 0)
                         {
-                            if (mLog != null) mLog.SendToHost("CommModel", "Starting reconnect");
+                            if (mLog != null) mLog.SendToHost("CommModel", string.Format("[{0}] Starting reconnect", Id()));
                             startConnect();
                         }
                     }
@@ -428,35 +427,41 @@ namespace HomeControl.Comm
                         {
                             if (mCommState == CommState.Connected && mCloudSocket.isActive())
                             {
-                                ++keepAliveSendSecondsAgo;
+                                mLog.SendToHost("CommModel", string.Format("[{0}] keepaliveSeconds: {1}", Id(), keepAliveSendSecondsAgo));
+
+                                keepAliveSendSecondsAgo += THREAD_INTERVAL_SECONDS;
                                 if (keepAliveSendSecondsAgo > KEEPALIVE_INTERVAL_SECONDS)
                                 {
                                     keepAliveSendSecondsAgo = 0;
-                                   // sendKeepAlive();
+                                    sendKeepAlive();
                                 }
+                            }
+                            else
+                            {
+                                mLog.SendToHost("CommModel", string.Format("[{0}] not sending keepalive", Id()));
                             }
 
                             // No longer active (connected failed, or disconnected
                             if (!mCloudSocket.isActive())
                             {
-                                if (mLog != null) mLog.SendToHost("CommModel", "Cloudsocket no longer active, restarting connection");
+                                if (mLog != null) mLog.SendToHost("CommModel", string.Format("[{0}] Cloudsocket no longer active, restarting connection (Socket: {1})", Id(), mCloudSocket.Id()));
                                                               changeState(CommState.Disconnected);
                             }
                         }
                         else
                         {
-                            if (mLog != null) mLog.SendToHost("CommModel", "Cloudsocket null");
+                            if (mLog != null) mLog.SendToHost("CommModel", string.Format("[{0}] Cloudsocket null", Id()));
                         }
                     }
                 }
 
                 catch (Exception ex )
                 {
-                    if (mLog != null) mLog.SendToHost("CommModel", "Maintenance thread exception:" + ex.Message);
+                    if (mLog != null) mLog.SendToHost("CommModel", string.Format("[{0}] Maintenance thread exception: {1}", Id(), ex.Message));
                 }
             }
 
-            if (mLog != null) mLog.SendToHost("CommModel", "Maintenance Thread Exit thread");
+            if (mLog != null) mLog.SendToHost("CommModel", string.Format("[{0}] Maintenance Thread Exit thread", Id()));
         }
     }
 }

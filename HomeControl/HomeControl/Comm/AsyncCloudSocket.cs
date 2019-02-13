@@ -33,6 +33,7 @@ namespace HomeControl.Comm
         public AsyncCloudSocket(HCLogger logger)
         {
             mId = Guid.NewGuid();
+            if (mLog != null) mLog.SendToHost("CloudSocket", string.Format("[{0}] Constructed", Id()));
             mLog = logger;
             mReceiveBuffer = new byte[1024];
             mSocketState = SocketState.Connecting;
@@ -80,9 +81,6 @@ namespace HomeControl.Comm
                     sendFrame.Add(objectId);
                     sendFrame.AddRange(frame);
                     mSendBuffer = sendFrame.ToArray();
-
-                    if (mLog != null) mLog.SendToHost("CloudSocket", string.Format("[{0}] Sendframe, objectId: {1}, length: {2}, id: {3}, Frame: {4}",
-                                                      Id(), objectId, frame.Count, mId.ToString().ToUpper(), Encoding.ASCII.GetString(mSendBuffer)));
 
                     // Begin sending the data to the remote device.  
                     mSocket.BeginSend(mSendBuffer, 0, sendFrame.Count, 0, new AsyncCallback(SendCallback), null);
@@ -132,7 +130,6 @@ namespace HomeControl.Comm
             try
             {
                 int bytesRead = mSocket.EndReceive(ar);
-                if (mLog != null) mLog.SendToHost("CloudSocket", string.Format("[{0}] Receivecallback, bytes received: {1}", Id(), bytesRead));
 
                 if (bytesRead > 0)
                 {
@@ -179,7 +176,6 @@ namespace HomeControl.Comm
             try
             {
                 int bytesSent =  mSocket.EndSend(ar);
-                if (mLog != null) mLog.SendToHost("CloudSocket", string.Format("[{0}] SendCallback, bytes send: {1}", Id(), bytesSent));
             }
             catch (Exception ex)
             {

@@ -662,9 +662,6 @@ namespace HomeControl
 			// aapt resource value: 0x7f030011
 			public const int TemperatureItem = 2130903057;
 			
-			// aapt resource value: 0x7f030012
-			public const int TemperatureTest = 2130903058;
-			
 			static Layout()
 			{
 				global::Android.Runtime.ResourceIdManager.UpdateIdValues();
