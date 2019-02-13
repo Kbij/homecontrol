@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 using ThermoSimulation.Interfaces;
 using ThermoSimulation.Thermostat;
@@ -8,6 +10,7 @@ using ZedGraph;
 
 namespace ThermoSimulation
 {
+
     public partial class MainForm : Form, ThermostatListenerIf
     {
         GraphPane mGraphPane;
@@ -30,7 +33,7 @@ namespace ThermoSimulation
             mGraphPane.Title.Text = "Thermo Simulation";
             mGraphPane.XAxis.Title.Text = "Tijd (min)";
             mGraphPane.YAxis.Title.Text = "Temperatuur";
-            mGraphPane.XAxis.Type = AxisType.Linear;
+            mGraphPane.XAxis.Type = AxisType.Date;//AxisType.Linear;
             mGraphPane.Legend.IsVisible = true;
 
         }
@@ -114,6 +117,22 @@ namespace ThermoSimulation
             mHeaterOffDelaySeconds = (int)(riseEnd - heaterOff).TotalSeconds;
         }
 
+        private List<TemperaturePoint> readSimulationTemperatures(string fileName)
+        {
+            List<TemperaturePoint> result = new List<TemperaturePoint>();
+            using (var reader = new StreamReader(fileName))
+            {
+                while (!reader.EndOfStream)
+                {
+                    var line = reader.ReadLine();
+                    var values = line.Split(';');
+                    result.Add(new TemperaturePoint { DateTime = Convert.ToDateTime(values[1]), Temperature = Convert.ToDouble(values[2]) });
+                }
+            }
+
+            return result;
+        }
+
         private void twoPointThermo()
         {
             mGraphPane.CurveList.Clear();
@@ -149,9 +168,59 @@ namespace ThermoSimulation
             mThermo.unRegisterListener();
         }
 
+        private void runDerivative()
+        {
+            List<TemperaturePoint> temperatures = readSimulationTemperatures(edtSimulationFile.Text);
+            Derivative derivative = new Derivative();
+
+            mGraphPane.CurveList.Clear();
+
+            PointPairList rawSimulationPoints = new PointPairList();
+            PointPairList simulationPoints = new PointPairList();
+            PointPairList firstDerivativePoints = new PointPairList();
+            PointPairList secondDerivativePoints = new PointPairList();
+
+            foreach (var temperature in temperatures)
+            {
+                double avgTemp = derivative.addTemperature(toUnix(temperature.DateTime), temperature.Temperature);
+                rawSimulationPoints.Add(new XDate(temperature.DateTime), temperature.Temperature);
+                simulationPoints.Add(new XDate(temperature.DateTime), avgTemp);
+
+                if (derivative.isStable())
+                {
+                    const int TH = 3;
+                    decimal first = derivative.firstDerivative() * 50000;
+                    decimal second = derivative.secondDerivative() * 100000000;
+                    firstDerivativePoints.Add(new XDate(temperature.DateTime), (double) first);
+                    secondDerivativePoints.Add(new XDate(temperature.DateTime), (double) second);
+                    //if (first >= TH) firstDerivativePoints.Add(new XDate(temperature.DateTime), 15);
+                    //if (first > -TH && first < TH) firstDerivativePoints.Add(new XDate(temperature.DateTime), 0);
+                    //if (first <= -TH) firstDerivativePoints.Add(new XDate(temperature.DateTime), -15);
+
+                    //if (second >= TH) secondDerivativePoints.Add(new XDate(temperature.DateTime), 10);
+                    //if (second > -TH && second < TH) secondDerivativePoints.Add(new XDate(temperature.DateTime), 0);
+                    //if (second <= -TH) secondDerivativePoints.Add(new XDate(temperature.DateTime), -10);
+
+                }
+            }
+
+            
+            mGraphPane.AddCurve("Avg Temperature", rawSimulationPoints, Color.Green, SymbolType.None);
+            mGraphPane.AddCurve("Avg Temperature", simulationPoints, Color.Blue, SymbolType.None);
+            mGraphPane.AddCurve("First", firstDerivativePoints, Color.Orange, SymbolType.None);
+            mGraphPane.AddCurve("Second", secondDerivativePoints, Color.Red, SymbolType.None);
+            zedGraph.AxisChange();
+            zedGraph.Refresh();
+        }
+
         private void btnRun_Click(object sender, EventArgs e)
         {
-            twoPointThermo();
+            runDerivative();
         }
+    }
+    public class TemperaturePoint
+    {
+        public DateTime DateTime { get; set; }
+        public double Temperature { get; set; }
     }
 }

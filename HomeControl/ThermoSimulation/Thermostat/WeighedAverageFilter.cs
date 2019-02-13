@@ -8,13 +8,13 @@ namespace ThermoSimulation.Thermostat
 {
     class WeigtedAverageFilter
     {
-        private List<double> mValues;
-        private List<double> mFactors;
+        private List<decimal> mValues;
+        private List<decimal> mFactors;
 
-        public WeigtedAverageFilter(List<double> factors)
+        public WeigtedAverageFilter(List<decimal> factors)
         {
             mFactors = factors;
-            mValues = new List<double>();
+            mValues = new List<decimal>();
             if (mFactors.Sum() > 1) throw new Exception("Sum of factors should not be bigger than 1");
         }
 
@@ -25,19 +25,19 @@ namespace ThermoSimulation.Thermostat
 
         public double AddValue(double value)
         {
-            mValues.Add(value);
+            mValues.Add((decimal)value);
             while (mValues.Count > mFactors.Count)
             {
                 mValues.RemoveAt(0);
             }
             if (mValues.Count == mFactors.Count)
             {
-                double mSum = 0;
+                decimal mSum = 0;
                 for(int i = 0; i < mValues.Count; ++i)
                 {
                     mSum += mValues[i] * mFactors[i];
                 }
-                return mSum;
+                return (double) mSum;
             }
             else
             {

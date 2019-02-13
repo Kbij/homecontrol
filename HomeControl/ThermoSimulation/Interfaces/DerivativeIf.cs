@@ -11,13 +11,13 @@ namespace ThermoSimulation.Interfaces
 
     public interface DerivativeIf
     {
-        void addTemperature(long time, double currentTemperature);
+        double addTemperature(long time, double currentTemperature);
         bool isStable();
 
         Trend temperatureTrend();
         Acceleration temperatureAccelaration();
 
-        double firstDerivative();
-        double secondDerivative();
+        decimal firstDerivative();
+        decimal secondDerivative();
     }
 }
