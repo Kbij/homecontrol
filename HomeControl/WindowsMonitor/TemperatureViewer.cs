@@ -1,7 +1,9 @@
-﻿using System;
+﻿using SharedSimulation;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 using WindowsMonitor.DAL;
 using ZedGraph;
@@ -165,7 +167,31 @@ namespace WindowsMonitor
             Debug.WriteLine(string.Format("Orig: {0}, Round: {1}", date, new DateTime(date.Ticks + delta, date.Kind)));
             return new DateTime(date.Ticks + delta, date.Kind);
         }
-
+        private long toUnix(DateTime date)
+        {
+            var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            return Convert.ToInt64((date - epoch).TotalSeconds);
+        }
+        private double toValue(Trend trend)
+        {
+            switch(trend)
+            {
+                case Trend.Rising: return 10;
+                case Trend.Stable: return 0;
+                case Trend.Falling: return -10;
+                default: return 0;
+            }
+        }
+        private double toValue(Acceleration acc)
+        {
+            switch (acc)
+            {
+                case Acceleration.Accelerating: return 9;
+                case Acceleration.Linear: return 0;
+                case Acceleration.Decelerating: return -9;
+                default: return 0;
+            }
+        }
         private void refreshGrids()
         {
             mGraphPane.CurveList.Clear();
@@ -178,13 +204,32 @@ namespace WindowsMonitor
                     PointPairList rawPoints = new PointPairList();
                     PointPairList statePoints = new PointPairList();
 
+                    PointPairList firstDerivativePoints = new PointPairList();
+                    PointPairList secondDerivativePoints = new PointPairList();
+
+                    PointPairList trendPoints = new PointPairList();
+                    PointPairList accelerationPoints = new PointPairList();
+
+                    DateTime prevTime = DateTime.Now;
+                    Derivative derivative = new Derivative();
+
                     foreach (HomeControlData.TemperatureRow temp in temperatues.Value)
                     {
                         rawPoints.Add(new XDate(temp.date.ToOADate()), (double)temp.temperature);
+                        double avgTemp = derivative.addTemperature(toUnix(temp.date), (double)temp.temperature);
+                        if (derivative.isStable())
+                        {
+                            decimal first = derivative.firstDerivative() * 50000;
+                            decimal second = derivative.secondDerivative() * 100000000;
+                            firstDerivativePoints.Add(new XDate(temp.date), (double)first);
+                            secondDerivativePoints.Add(new XDate(temp.date), (double)second);
+                            trendPoints.Add(new XDate(temp.date), toValue(derivative.temperatureTrend()));
+                            accelerationPoints.Add(new XDate(temp.date), toValue(derivative.temperatureAccelaration()));
+                        }
                     }
 
                     //Lookup the corresponding heaterstate list
-                    foreach(var states in mRoomHeaterState)
+                    foreach (var states in mRoomHeaterState)
                     {
                         if (states.Key == temperatues.Key)
                         {//Found it
@@ -203,7 +248,22 @@ namespace WindowsMonitor
                     }
                     Color graphColor = colorPos < GraphColors.Count ? GraphColors[colorPos++] : Color.Black;
                     mGraphPane.AddCurve(temperatues.Key, rawPoints, graphColor, SymbolType.None);
-                    mGraphPane.AddCurve(temperatues.Key, statePoints, graphColor, SymbolType.None);
+
+                    graphColor = colorPos < GraphColors.Count ? GraphColors[colorPos++] : Color.Black;
+                    mGraphPane.AddCurve(temperatues.Key + "ST", statePoints, graphColor, SymbolType.None);
+
+                    //graphColor = colorPos < GraphColors.Count ? GraphColors[colorPos++] : Color.Black;
+                    //mGraphPane.AddCurve(temperatues.Key + "'", firstDerivativePoints, graphColor, SymbolType.None);
+
+                    //graphColor = colorPos < GraphColors.Count ? GraphColors[colorPos++] : Color.Black;
+                    //mGraphPane.AddCurve(temperatues.Key + "''", secondDerivativePoints, graphColor, SymbolType.None);
+
+                    graphColor = colorPos < GraphColors.Count ? GraphColors[colorPos++] : Color.Black;
+                    mGraphPane.AddCurve(temperatues.Key + "TR", trendPoints, graphColor, SymbolType.None);
+
+                    graphColor = colorPos < GraphColors.Count ? GraphColors[colorPos++] : Color.Black;
+                    mGraphPane.AddCurve(temperatues.Key + "AC", accelerationPoints, graphColor, SymbolType.None);
+
                 }
             }
             else
@@ -233,5 +293,39 @@ namespace WindowsMonitor
         {
             refreshData();
         }
+
+        private void btnSaveRaw_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog fileDialog = new SaveFileDialog();
+            fileDialog.Filter = "csv files (*.csv)|*.csv";
+            if (fileDialog.ShowDialog() == DialogResult.OK)
+            {
+                using (StreamWriter outputFile = new StreamWriter(fileDialog.FileName))
+                {
+                    foreach (var temperatues in mTemperatures)
+                    {
+                        foreach (HomeControlData.TemperatureRow temp in temperatues.Value)
+                        {
+                            outputFile.WriteLine(string.Format("{0};{1};{2}", temperatues.Key, temp.date, temp.temperature));
+                        }
+                    }
+                }
+            }
+
+            if (fileDialog.ShowDialog() == DialogResult.OK)
+            {
+                using (StreamWriter outputFile = new StreamWriter(fileDialog.FileName))
+                {
+                    foreach (var states in mRoomHeaterState)
+                    {
+                        foreach (var state in states.Value)
+                        {
+                            outputFile.WriteLine(string.Format("{0};{1};{2}", states.Key, state.date, state.heater));
+                        }
+                    }
+                }
+            }
+        }
+
     }
 }

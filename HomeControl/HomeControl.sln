@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.136
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HomeControl", "HomeControl\HomeControl.csproj", "{CB44D247-9D76-478A-9B50-50E3CF22C8AE}"
 EndProject
@@ -10,6 +10,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LogHost", "..\LogHost\LogHost.csproj", "{57B8C547-E11E-4DE9-80E8-8F0D29D138D7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WindowsMonitor", "WindowsMonitor\WindowsMonitor.csproj", "{073FA558-402E-4A8E-817B-93A44DFA2706}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThermoSimulation", "ThermoSimulation\ThermoSimulation.csproj", "{8FA0AC58-E3BF-4032-82D8-0BD10C1505F8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedSimulation", "SharedSimulation\SharedSimulation.csproj", "{4EAB0190-A5A6-49E6-B2B4-D9521D3476F7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,8 +39,19 @@ Global
 		{073FA558-402E-4A8E-817B-93A44DFA2706}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{073FA558-402E-4A8E-817B-93A44DFA2706}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{073FA558-402E-4A8E-817B-93A44DFA2706}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8FA0AC58-E3BF-4032-82D8-0BD10C1505F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8FA0AC58-E3BF-4032-82D8-0BD10C1505F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8FA0AC58-E3BF-4032-82D8-0BD10C1505F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8FA0AC58-E3BF-4032-82D8-0BD10C1505F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4EAB0190-A5A6-49E6-B2B4-D9521D3476F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4EAB0190-A5A6-49E6-B2B4-D9521D3476F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4EAB0190-A5A6-49E6-B2B4-D9521D3476F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4EAB0190-A5A6-49E6-B2B4-D9521D3476F7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {96F37828-EC70-4CDE-A562-840B032A8E53}
 	EndGlobalSection
 EndGlobal

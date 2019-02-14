@@ -6,7 +6,9 @@ using System.IO;
 using System.Windows.Forms;
 using ThermoSimulation.Interfaces;
 using ThermoSimulation.Thermostat;
+using ThermoSimulation;
 using ZedGraph;
+using SharedSimulation;
 
 namespace ThermoSimulation
 {
@@ -188,7 +190,6 @@ namespace ThermoSimulation
 
                 if (derivative.isStable())
                 {
-                    const int TH = 3;
                     decimal first = derivative.firstDerivative() * 50000;
                     decimal second = derivative.secondDerivative() * 100000000;
                     firstDerivativePoints.Add(new XDate(temperature.DateTime), (double) first);

@@ -61,7 +61,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Interfaces\DerivativeIf.cs" />
     <Compile Include="Interfaces\PredictiveThermoDataIf.cs" />
     <Compile Include="Interfaces\Predictor.cs" />
     <Compile Include="Interfaces\ThermostatIf.cs" />
@@ -74,13 +73,11 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Thermostat\Derivative.cs" />
     <Compile Include="Thermostat\DigitalFilter.cs" />
     <Compile Include="Thermostat\PidController.cs" />
     <Compile Include="Thermostat\PIDThermostat.cs" />
     <Compile Include="Thermostat\PredictiveThermostat.cs" />
     <Compile Include="Thermostat\PredictiveTwoPoint.cs" />
-    <Compile Include="Thermostat\RunningAverageFilter.cs" />
     <Compile Include="Thermostat\TwoPointThermostat.cs" />
     <Compile Include="Thermostat\WeighedAverageFilter.cs" />
     <EmbeddedResource Include="MainForm.resx">
@@ -114,6 +111,12 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DAL\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SharedSimulation\SharedSimulation.csproj">
+      <Project>{4eab0190-a5a6-49e6-b2b4-d9521d3476f7}</Project>
+      <Name>SharedSimulation</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

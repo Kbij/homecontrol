@@ -76,6 +76,8 @@ namespace WindowsMonitor
 
         private void tmrRefresh_Tick(object sender, EventArgs e)
         {
+            if (!cbxLive.Checked) return;
+
             refresh();
             if (tmrRefresh.Interval < 1000)
             {

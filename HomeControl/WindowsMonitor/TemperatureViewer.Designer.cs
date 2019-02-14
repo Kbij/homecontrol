@@ -38,6 +38,7 @@
             this.btnRefreshGraph = new System.Windows.Forms.Button();
             this.chbQuality = new System.Windows.Forms.CheckBox();
             this.lstInterval = new System.Windows.Forms.ComboBox();
+            this.btnSaveRaw = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // zedGraph
@@ -132,11 +133,22 @@
             this.lstInterval.Size = new System.Drawing.Size(95, 21);
             this.lstInterval.TabIndex = 9;
             // 
+            // btnSaveRaw
+            // 
+            this.btnSaveRaw.Location = new System.Drawing.Point(544, 82);
+            this.btnSaveRaw.Name = "btnSaveRaw";
+            this.btnSaveRaw.Size = new System.Drawing.Size(75, 23);
+            this.btnSaveRaw.TabIndex = 10;
+            this.btnSaveRaw.Text = "Save Raw";
+            this.btnSaveRaw.UseVisualStyleBackColor = true;
+            this.btnSaveRaw.Click += new System.EventHandler(this.btnSaveRaw_Click);
+            // 
             // TemperatureViewer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(834, 471);
+            this.Controls.Add(this.btnSaveRaw);
             this.Controls.Add(this.lstInterval);
             this.Controls.Add(this.chbQuality);
             this.Controls.Add(this.btnRefreshGraph);
@@ -164,5 +176,6 @@
         private System.Windows.Forms.Button btnRefreshGraph;
         private System.Windows.Forms.CheckBox chbQuality;
         private System.Windows.Forms.ComboBox lstInterval;
+        private System.Windows.Forms.Button btnSaveRaw;
     }
 }

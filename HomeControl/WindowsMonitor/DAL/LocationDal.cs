@@ -25,13 +25,13 @@ namespace WindowsMonitor.DAL
                     {
                         sqlCmd = string.Format("SELECT clientName, lastMessage, locationInterval, batteryLevel, latitude, longitude, accuracy, timestamp FROM Client " +
                                                " INNER JOIN Location ON Client.idClient = Location.idClient " +
-                                               " WHERE TIMESTAMPDIFF(HOUR, timestamp, NOW()) < {0} ORDER BY timestamp", timeFrameHours);
+                                               " WHERE timestamp > DATE_ADD(NOW(), INTERVAL -{0} HOUR) ORDER BY timestamp", timeFrameHours);
                     }
                     else
                     {
                         sqlCmd = string.Format("SELECT clientName, lastMessage, locationInterval, batteryLevel, latitude, longitude, accuracy, timestamp FROM Client " +
                                                " INNER JOIN Location ON Client.idClient = Location.idClient " +
-                                               " WHERE TIMESTAMPDIFF(HOUR, timestamp, NOW()) < {0} and clientName = '{1}'  ORDER BY timestamp", timeFrameHours, clientName);
+                                               " WHERE timestamp > DATE_ADD(NOW(), INTERVAL -{0} HOUR) and clientName = '{1}'  ORDER BY timestamp", timeFrameHours, clientName);
                     }
                     MySqlDataAdapter adapter = new MySqlDataAdapter(sqlCmd, conn);
                     adapter.SelectCommand.CommandType = CommandType.Text;
@@ -104,9 +104,8 @@ namespace WindowsMonitor.DAL
                     cmd.ExecuteNonQuery();
                 }
             }
-            catch (Exception ex)
+            catch (Exception /*ex*/)
             {
-
             }
         }
     }

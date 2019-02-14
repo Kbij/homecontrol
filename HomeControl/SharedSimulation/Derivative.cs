@@ -1,23 +1,15 @@
 ﻿using System.Collections.Generic;
-using ThermoSimulation.Interfaces;
-using MathNet.Filtering;
 
-namespace ThermoSimulation.Thermostat
+namespace SharedSimulation
 {
     public class Derivative : DerivativeIf
     {
-        // private WeigtedAverageFilter mTemperatureAverage;
-        // private WeigtedAverageFilter mDxDtAverage;
-        // private WeigtedAverageFilter mDxDt2Average;
-        RunningAverageFilter mTemperatureAverage = new RunningAverageFilter(50);
-        RunningAverageFilter mDxDtAverage = new RunningAverageFilter(50);
-        RunningAverageFilter mDxDt2Average = new RunningAverageFilter(50);
+        RunningAverageFilter mTemperatureAverage = new RunningAverageFilter(10);
+        RunningAverageFilter mDxDtAverage = new RunningAverageFilter(10);
+        RunningAverageFilter mDxDt2Average = new RunningAverageFilter(10);
 
-       // DigitalFilter mTemperatureAverage = new DigitalFilter();
-        //DigitalFilter mDxDtAverage = new DigitalFilter();
-        //DigitalFilter mDxDt2Average = new DigitalFilter();
-        //OnlineFilter mTemperatureAverage;
-
+        private const decimal DXDT_HYSTERESIS = (decimal) (1.0 / 50000.0);
+        private const decimal DXDT2_HYSTERESIS = (decimal) (1.0 / 100000000.0);
         private long mPrevTime = 0;
         private decimal mPrevTemperature = 0;
         private decimal mPrevDxDt = 0;
@@ -59,12 +51,32 @@ namespace ThermoSimulation.Thermostat
 
         public Trend temperatureTrend()
         {
-            return Trend.Unknown;
+            if (mDxDt > DXDT_HYSTERESIS)
+            {
+                return Trend.Rising;
+            }else if(mDxDt < -DXDT_HYSTERESIS)
+            {
+                return Trend.Falling;
+            }else
+            {
+                return Trend.Stable;
+            }
         }
 
         public Acceleration temperatureAccelaration()
         {
-            return Acceleration.Unkown;
+            if (mDxDt2 > DXDT2_HYSTERESIS)
+            {
+                return Acceleration.Accelerating;
+            }
+            else if (mDxDt2 < -DXDT2_HYSTERESIS)
+            {
+                return Acceleration.Decelerating;
+            }
+            else
+            {
+                return Acceleration.Linear;
+            }
         }
 
         public decimal firstDerivative()
@@ -79,7 +91,7 @@ namespace ThermoSimulation.Thermostat
 
         public bool isStable()
         {
-            return /*mTemperatureAverage.isStable() && */mDxDtAverage.isStable() && mDxDt2Average.isStable();
+            return mTemperatureAverage.isStable() && mDxDtAverage.isStable() && mDxDt2Average.isStable();
         }
     }
 }

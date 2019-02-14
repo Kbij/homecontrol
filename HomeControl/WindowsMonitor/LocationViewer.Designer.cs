@@ -34,6 +34,7 @@
             this.tmrRefresh = new System.Windows.Forms.Timer(this.components);
             this.lstSource = new System.Windows.Forms.ComboBox();
             this.cmbHours = new System.Windows.Forms.ComboBox();
+            this.cbxLive = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // mapOverview
@@ -86,11 +87,24 @@
             this.cmbHours.TabIndex = 2;
             this.cmbHours.SelectedIndexChanged += new System.EventHandler(this.cmbHours_SelectedIndexChanged);
             // 
+            // cbxLive
+            // 
+            this.cbxLive.AutoSize = true;
+            this.cbxLive.Checked = true;
+            this.cbxLive.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.cbxLive.Location = new System.Drawing.Point(299, 3);
+            this.cbxLive.Name = "cbxLive";
+            this.cbxLive.Size = new System.Drawing.Size(46, 17);
+            this.cbxLive.TabIndex = 3;
+            this.cbxLive.Text = "Live";
+            this.cbxLive.UseVisualStyleBackColor = true;
+            // 
             // LocationViewer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(823, 503);
+            this.Controls.Add(this.cbxLive);
             this.Controls.Add(this.cmbHours);
             this.Controls.Add(this.lstSource);
             this.Controls.Add(this.mapOverview);
@@ -100,6 +114,7 @@
             this.Text = "LocationViewer";
             this.Load += new System.EventHandler(this.LocationViewer_Load);
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -109,5 +124,6 @@
         private System.Windows.Forms.Timer tmrRefresh;
         private System.Windows.Forms.ComboBox lstSource;
         private System.Windows.Forms.ComboBox cmbHours;
+        private System.Windows.Forms.CheckBox cbxLive;
     }
 }

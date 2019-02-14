@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ThermoSimulation.Interfaces
+namespace SharedSimulation
 {
     public enum Trend { Unknown, Rising, Stable, Falling };
-    public enum Acceleration { Unkown, Accelerating, Decelerating }
+    public enum Acceleration { Unkown, Accelerating, Linear, Decelerating }
 
     public interface DerivativeIf
     {
