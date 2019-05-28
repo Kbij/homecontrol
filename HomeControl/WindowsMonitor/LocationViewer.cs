@@ -65,6 +65,9 @@ namespace WindowsMonitor
                 cmbHours.Items.Add(new Item("240", 240));
                 cmbHours.Items.Add(new Item("1 Month", 24 * 31));
                 cmbHours.Items.Add(new Item("6 Months", 24 * 31 * 6));
+                cmbHours.Items.Add(new Item("1y", 24 * 31 * 12));
+                cmbHours.Items.Add(new Item("2y", 24 * 31 * 12 * 2));
+                cmbHours.Items.Add(new Item("5y", 24 * 31 * 12 * 5));
                 cmbHours.SelectedIndex = 0;
                 tmrRefresh.Enabled = true;
             }
