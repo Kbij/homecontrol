@@ -1,8 +1,9 @@
 #include <Arduino.h>
+#include <cstdarg>
 #define ENABLE_GxEPD2_GFX 0
 #include <OneWire.h>
 #include <DallasTemperature.h>
-#include <CapacitiveSensor.h>
+//#include <CapacitiveSensor.h>
 #include <XBee.h>
 #include <GxEPD2_BW.h>
 #include <GxEPD2_3C.h>
@@ -51,8 +52,8 @@ DallasTemperature sensors(&oneWire);
 //Software serial (debug)
 //NeoSWSerial debugSerial(8, 9); // RX, TX
 // Touch buttons
-CapacitiveSensor touchUp   = CapacitiveSensor(TOUCH_COMMON, TOUCH_UP);
-CapacitiveSensor touchDown = CapacitiveSensor(TOUCH_COMMON, TOUCH_DOWN);
+// CapacitiveSensor touchUp   = CapacitiveSensor(TOUCH_COMMON, TOUCH_UP);
+// CapacitiveSensor touchDown = CapacitiveSensor(TOUCH_COMMON, TOUCH_DOWN);
 // create the XBee object
 XBee xbee = XBee();
 
@@ -234,8 +235,8 @@ void setup()
   Serial.begin(38400);
   xbee.setSerial(Serial);
   
-  touchUp.set_CS_AutocaL_Millis(1000);
-  touchDown.set_CS_AutocaL_Millis(1000);
+  // touchUp.set_CS_AutocaL_Millis(1000);
+  // touchDown.set_CS_AutocaL_Millis(1000);
   
   //Set API mode  (with escape)
   atRequest.clearCommandValue();
@@ -302,26 +303,26 @@ void loop()
     tempRequested = false;
   }
   
-  if (touchUp.capacitiveSensor(40) > 100)
-  {
-    if (setTempReceived || ((currentTime - setSendStartTime) > 3000)) //If response received, or more than 3 sec ago send
-    {
-     // debugSerial.println("Up pressed");  
-      xbeeSend("[6:%s]", ADDR_STR);
-      setSendStartTime = millis();
-      setTempReceived = false;
-    }
-  }
-  if (touchDown.capacitiveSensor(40) > 100)
-  {
-    if (setTempReceived || ((currentTime - setSendStartTime) > 3000)) //If response received, or more than 3 sec ago send
-    {
-     // debugSerial.println("Down pressed");  
-      xbeeSend("[7:%s]", ADDR_STR); 
-      setSendStartTime = millis();
-      setTempReceived = false;
-    }
-  }
+  // if (touchUp.capacitiveSensor(40) > 100)
+  // {
+  //   if (setTempReceived || ((currentTime - setSendStartTime) > 3000)) //If response received, or more than 3 sec ago send
+  //   {
+  //    // debugSerial.println("Up pressed");  
+  //     xbeeSend("[6:%s]", ADDR_STR);
+  //     setSendStartTime = millis();
+  //     setTempReceived = false;
+  //   }
+  // }
+  // if (touchDown.capacitiveSensor(40) > 100)
+  // {
+  //   if (setTempReceived || ((currentTime - setSendStartTime) > 3000)) //If response received, or more than 3 sec ago send
+  //   {
+  //    // debugSerial.println("Down pressed");  
+  //     xbeeSend("[7:%s]", ADDR_STR); 
+  //     setSendStartTime = millis();
+  //     setTempReceived = false;
+  //   }
+  // }
   
   //Request measurement of the temperature
   if (!tempRequested && (((currentTime - tempStartTime) > TEMP_INTERVAL_SECONDS * 1000ul) || bootFlag))
