@@ -6,7 +6,7 @@ SensorNs::SensorDisplay display;
 void setup()
 {
   display.init();
-  display.roomName("Unknown");
+  display.roomName("Zolder");
   display.roomTemperature(22.3);
 }
 

@@ -64,8 +64,6 @@ void SensorDisplay::drawRoomName()
 {
     mDisplay.setFont(&FreeMonoBold18pt7b);
     writeMid(POS_ROOMNAME, mRoomName.c_str());
-    // mDisplay.setCursor(50, );
-    // mDisplay.print(mRoomName);
 }
 
 void SensorDisplay::drawTemperature()
@@ -74,9 +72,6 @@ void SensorDisplay::drawTemperature()
     dtostrf(mRoomTemperature,4, 1, tmpString);
     mDisplay.setFont(&FreeMonoBold24pt7b);
     writeMid(POS_TEMPERATURE, tmpString);
-    // mDisplay.setCursor(50, POS_TEMPERATURE);
-    // String temperature(tmpString);
-    // mDisplay.print(temperature);
 }
 
 void SensorDisplay::draw()
@@ -88,7 +83,6 @@ void SensorDisplay::draw()
         {
             drawRoomName();
             drawTemperature();
-        //draw();
         } while( mDisplay.nextPage());
     }
 
