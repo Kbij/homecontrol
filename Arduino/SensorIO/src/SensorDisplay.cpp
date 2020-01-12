@@ -1,5 +1,5 @@
 /*
-** EPITECH PROJECT, 2020
+** Sensor Project, 2020
 ** Sensor
 ** File description:
 ** SensorDisplay

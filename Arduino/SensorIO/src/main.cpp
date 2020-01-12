@@ -1,7 +1,9 @@
 #include <Arduino.h>
 #include "SensorDisplay.h"
+#include "FilteredTemperatureSensor.h"
 
 SensorNs::SensorDisplay display;
+SensorNs::FilteredTemperatureSensor tempSensor(1, 5);
 
 void setup()
 {
