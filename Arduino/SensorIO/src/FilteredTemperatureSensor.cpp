@@ -9,8 +9,6 @@
 
 namespace SensorNs
 {
-FilteredTemperatureSensor::FilteredTemperatureSensor(int sensorPin, int filterLength)
-{
-}
+
 
 }

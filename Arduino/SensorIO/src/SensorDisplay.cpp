@@ -42,7 +42,7 @@ void SensorDisplay::roomName(String name)
     mRoomName = name;
 }
 
-void SensorDisplay::roomTemperature(double temperature)
+void SensorDisplay::roomTemperature(float temperature)
 {
     if (abs(mRoomTemperature - temperature) > 0.1)
     {

@@ -27,7 +27,7 @@ public:
     
     void init();
     void roomName(String name);
-    void roomTemperature(double temperature);
+    void roomTemperature(float temperature);
     void draw();
 private:
     void writeMid(int vert, const char* str);
@@ -35,7 +35,7 @@ private:
     void drawTemperature();
     GxEPD2_BW<GxEPD2_154_D67, MAX_HEIGHT(GxEPD2_154_D67)> mDisplay;
     String mRoomName;
-    double mRoomTemperature;
+    float mRoomTemperature;
     bool mNeedsUpdate;
 }; 
 }
