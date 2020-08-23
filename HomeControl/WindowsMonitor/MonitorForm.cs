@@ -52,12 +52,12 @@ namespace WindowsMonitor
                         if (distance > 1000)
                         {
                             distance = Math.Round((distance / 1000), 2);
-                            distanceString = string.Format("{0}km", distance);
+                            distanceString = string.Format("{0:F1}km", distance);
                         }
                         else
                         {
                             distance = Math.Round(distance, 2);
-                            distanceString = string.Format("{0}m", distance);
+                            distanceString = string.Format("{0:F0}m", distance);
                         }
                         item.SubItems.Add(distanceString);
                         item.SubItems.Add(string.Format("{0}m", cell.Value.Locations.Last().Accuracy));
@@ -66,7 +66,7 @@ namespace WindowsMonitor
                         item.SubItems.Add(string.Format("{0}", cell.Value.LocationInterval));
                         item.SubItems.Add(string.Format("{0}%", cell.Value.BatteryLevel));
 
-                        if (cell.Key == "Moto G (5)")
+                        if (cell.Key == "moto g(8) plus")
                         {
                             this.Text = string.Format("{0}: {1}", distanceString, cell.Value.Locations.Last().TimeStamp.ToShortTimeString());
                         }

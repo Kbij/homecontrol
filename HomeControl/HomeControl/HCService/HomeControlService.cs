@@ -216,35 +216,40 @@ namespace HomeControl.HCService
         #region ICommReceiver
         public void receiveObject(object obj)
         {
-            LocationInterval interval = obj as Comm.LocationInterval;
-            if (interval != null)
-            {
-                if (mRequestedInterval != interval.interval)
-                {
-                    mRequestedInterval = interval.interval;
-                    int accuracy = LocationRequest.PriorityHighAccuracy;
-                    if (mRequestedInterval > 0)
-                    {
-                        mCurrentUpdateFreqSeconds = mRequestedInterval;
-                        accuracy = LocationRequest.PriorityHighAccuracy;
-                        mLog.SendToHost("HomeControlService", string.Format("Switch to requested update frequency: {0}", mCurrentUpdateFreqSeconds));
-                    }
-                    else
-                    {
-                        mCurrentUpdateFreqSeconds = HIGH_UPDATE_FREQ_SECONDS;
-                        accuracy = LocationRequest.PriorityBalancedPowerAccuracy;
-                        mLog.SendToHost("HomeControlService", string.Format("Switch default update frequency: {0}", mCurrentUpdateFreqSeconds));
-                    }
+            Handler handler = new Handler(this.MainLooper);
 
-                    Android.Gms.Location.LocationRequest locationRequest = new LocationRequest()
-                      .SetPriority(accuracy)
-                      .SetInterval(mCurrentUpdateFreqSeconds * 1000)
-                      .SetFastestInterval(10 * 1000); //Fasted inteval
-                    mFusedLocationProviderClient.RemoveLocationUpdates(mLocationCallBack);
-                    mFusedLocationProviderClient.RequestLocationUpdates(locationRequest, mLocationCallBack, null);
+            Action myAction = () =>
+            {
+                LocationInterval interval = obj as Comm.LocationInterval;
+                if (interval != null)
+                {
+                    if (mRequestedInterval != interval.interval)
+                    {
+                        mRequestedInterval = interval.interval;
+                        int accuracy = LocationRequest.PriorityHighAccuracy;
+                        if (mRequestedInterval > 0)
+                        {
+                            mCurrentUpdateFreqSeconds = mRequestedInterval;
+                            accuracy = LocationRequest.PriorityHighAccuracy;
+                            mLog.SendToHost("HomeControlService", string.Format("Switch to requested update frequency: {0}", mCurrentUpdateFreqSeconds));
+                        }
+                        else
+                        {
+                            mCurrentUpdateFreqSeconds = HIGH_UPDATE_FREQ_SECONDS;
+                            accuracy = LocationRequest.PriorityBalancedPowerAccuracy;
+                            mLog.SendToHost("HomeControlService", string.Format("Switch default update frequency: {0}", mCurrentUpdateFreqSeconds));
+                        }
+
+                        Android.Gms.Location.LocationRequest locationRequest = new LocationRequest()
+                          .SetPriority(accuracy)
+                          .SetInterval(mCurrentUpdateFreqSeconds * 1000)
+                          .SetFastestInterval(10 * 1000); //Fasted inteval
+                        mFusedLocationProviderClient.RemoveLocationUpdates(mLocationCallBack);
+                        mFusedLocationProviderClient.RequestLocationUpdates(locationRequest, mLocationCallBack, null);
+                    }
                 }
-                    
-            }
+            };
+            handler.Post(myAction);
         }
 
         public void connected()
