@@ -10,7 +10,7 @@ namespace WindowsMonitor.DAL
 {
     public class TemperatureDal
     {
-        private const string DB_CONN_STR = "Server=192.168.10.7;Uid=hc;Pwd=bugs bunny;Database=HC_DB;";
+        private const string DB_CONN_STR = "Server=mysql.lan;Uid=hc;Pwd=bugs bunny;Database=HC_DB;";
         public void fillTemperatures(HomeControlData.TemperatureDataTable dt, DateTime start, DateTime end, string roomId)
         {
             try

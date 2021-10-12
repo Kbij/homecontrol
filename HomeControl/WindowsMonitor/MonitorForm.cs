@@ -294,6 +294,10 @@ namespace WindowsMonitor
             }
         }
 
-
+        private void btnCleanup_Click(object sender, EventArgs e)
+        {
+            DataCleanup cleanup = new DataCleanup();
+            cleanup.Show();
+        }
     }
 }

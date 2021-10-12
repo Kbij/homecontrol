@@ -9,13 +9,24 @@ namespace WindowsMonitor.DAL
 {
     public class GpsLocation
     {
+        public int Id { get; set; }
         public double Latitude { get; set; }
         public double Longitude { get; set; }
         public double Accuracy { get; set; }
         public DateTime TimeStamp { get; set; }
 
+        public GpsLocation(int idClient, double latitude, double longitude, double accuracy, DateTime timeStamp)
+        {
+            Id = idClient;
+            Latitude = latitude;
+            Longitude = longitude;
+            Accuracy = accuracy;
+            TimeStamp = timeStamp;
+        }
+
         public GpsLocation(double latitude, double longitude, double accuracy, DateTime timeStamp)
         {
+            Id = -1;
             Latitude = latitude;
             Longitude = longitude;
             Accuracy = accuracy;

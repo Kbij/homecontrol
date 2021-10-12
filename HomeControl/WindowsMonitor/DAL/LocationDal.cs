@@ -6,12 +6,13 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data.SqlClient;
 using MySql.Data.MySqlClient;
+using System.Diagnostics;
 
 namespace WindowsMonitor.DAL
 {
     public class LocationDal
     {
-        const string DB_CONN_STR = "Server=192.168.10.7;Uid=hc;Pwd=bugs bunny;Database=HC_DB;";
+        const string DB_CONN_STR = "Server=mysql.lan;Uid=hc;Pwd=bugs bunny;Database=HC_DB;";
         public Dictionary<string, GpsClient> fillLastLocation(int timeFrameHours, string clientName)
         {
             Dictionary<string, GpsClient> result = new Dictionary<string, GpsClient>();
@@ -23,13 +24,13 @@ namespace WindowsMonitor.DAL
                     string sqlCmd;
                     if (string.IsNullOrEmpty(clientName))
                     {
-                        sqlCmd = string.Format("SELECT clientName, lastMessage, locationInterval, batteryLevel, latitude, longitude, accuracy, timestamp FROM Client " +
+                        sqlCmd = string.Format("SELECT Client.idClient, clientName, lastMessage, locationInterval, batteryLevel, latitude, longitude, accuracy, timestamp FROM Client " +
                                                " INNER JOIN Location ON Client.idClient = Location.idClient " +
                                                " WHERE timestamp > DATE_ADD(NOW(), INTERVAL -{0} HOUR) ORDER BY timestamp", timeFrameHours);
                     }
                     else
                     {
-                        sqlCmd = string.Format("SELECT clientName, lastMessage, locationInterval, batteryLevel, latitude, longitude, accuracy, timestamp FROM Client " +
+                        sqlCmd = string.Format("SELECT Client.idClient, clientName, lastMessage, locationInterval, batteryLevel, latitude, longitude, accuracy, timestamp FROM Client " +
                                                " INNER JOIN Location ON Client.idClient = Location.idClient " +
                                                " WHERE timestamp > DATE_ADD(NOW(), INTERVAL -{0} HOUR) and clientName = '{1}'  ORDER BY timestamp", timeFrameHours, clientName);
                     }
@@ -40,12 +41,13 @@ namespace WindowsMonitor.DAL
 
                     foreach (DataRow dr in dt.Rows)
                     {
+                        int idClient = dr.Field<int>("idClient");
                         double latitude = (double)dr.Field<decimal>("latitude");
                         double longitude = (double)dr.Field<decimal>("longitude");
                         double accuracy = dr.Field<int>("accuracy");
                         DateTime time = dr.Field<DateTime>("timestamp");
                         string name = dr.Field<string>("clientName");
-                        GpsLocation location = new GpsLocation(latitude, longitude, accuracy, time);
+                        GpsLocation location = new GpsLocation(idClient, latitude, longitude, accuracy, time);
 
                         if (!result.ContainsKey(name))
                         {
@@ -57,11 +59,55 @@ namespace WindowsMonitor.DAL
                     }
                 }
             }
-            catch (Exception /*ex*/)
+            catch (Exception ex)
             {
-
+                Console.WriteLine(ex.Message);
             }
             return result;
+        }
+
+        public List<GpsLocation> GetGpsLocations(string clientName, DateTime start, DateTime end)
+        {
+            List<GpsLocation> result = new List<GpsLocation>();
+            try
+            {
+                using (MySqlConnection conn = new MySqlConnection(DB_CONN_STR))
+                {
+                    conn.Open();
+                    MySqlCommand cmd = new MySqlCommand("SELECT clientName, latitude, longitude, accuracy, timestamp FROM Client " +
+                                                        " INNER JOIN Location ON Client.idClient = Location.idClient " +
+                                                        " WHERE timestamp > @start and timestamp < @end and clientName = @client  ORDER BY timestamp", conn);
+                    cmd.Parameters.AddWithValue("@start", start);
+                    cmd.Parameters.AddWithValue("@end", end);
+                    cmd.Parameters.AddWithValue("@client", clientName);
+                    MySqlDataAdapter adapter = new MySqlDataAdapter();
+                    adapter.SelectCommand = cmd;
+                    DataTable dt = new DataTable();
+                    adapter.Fill(dt); //opens and closes the DB connection automatically !! (fetches from pool)
+
+                    foreach (DataRow dr in dt.Rows)
+                    {
+                        double latitude = (double)dr.Field<decimal>("latitude");
+                        double longitude = (double)dr.Field<decimal>("longitude");
+                        double accuracy = dr.Field<int>("accuracy");
+                        DateTime time = dr.Field<DateTime>("timestamp");
+                        GpsLocation location = new GpsLocation(latitude, longitude, accuracy, time);
+
+                        result.Add(location);
+
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+            }
+            return result;
+        }
+
+        public void deleteLocations(List<int> locations)
+        {
+
         }
 
         public List<string> fillSources()
