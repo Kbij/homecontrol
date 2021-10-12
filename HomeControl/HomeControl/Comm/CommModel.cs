@@ -25,7 +25,7 @@ namespace HomeControl.Comm
         const int OBJ_LOCATION_INTERVAL = 30;
 
         const int KEEPALIVE_INTERVAL_SECONDS = 30;
-        const int RECONNECT_SECONDS = 10;
+        const int RECONNECT_SECONDS = 15;
         const int MAX_LOST_KEEPALIVE = 4;
         AsyncCloudSocket mCloudSocket;
         Thread mThread;
@@ -277,6 +277,7 @@ namespace HomeControl.Comm
         {
             if (mLog != null) mLog.SendToHost("CommModel", "startConnect");
             mOutstandingKeepAlives = 0;
+            mConnectTimeoutSeconds = RECONNECT_SECONDS;
 
             changeState(CommState.Connecting);
             lock (mLock)
@@ -411,7 +412,7 @@ namespace HomeControl.Comm
                         mLog.SendToHost("CommModel", string.Format("[{0}] Maintenance thread, connection state: {1}, cloudsocket: {2}, keepaliveSeconds: {3}",
                                                                     Id(), mCommState.ToString(), mCloudSocket != null ? mCloudSocket.Id() : "null", keepAliveSendSecondsAgo));
                     }
-                    if (mCommState == CommState.Disconnected)
+                    if (mCommState != CommState.Connected)
                     {
                         mConnectTimeoutSeconds -= THREAD_INTERVAL_SECONDS;
                         if (mConnectTimeoutSeconds <= 0)

@@ -19,8 +19,6 @@ namespace HomeControl.Comm
         {
             mPort = port;
             mHostName = ipAddress;
-            //string path = Environment.GetFolderPath(Environment.SpecialFolder.);
-            //mFileName = string.Format("/sdcard/Android/data/HomeControl.HomeControl/files/{0}", fileName);//Path.Combine(path, "HomeControl.log");
             string path = Android.OS.Environment.ExternalStorageDirectory.AbsolutePath;
             mFileName = Path.Combine(path, fileName);
 
@@ -41,7 +39,7 @@ namespace HomeControl.Comm
             //Log to Studio
             Log.Debug(category, "HCLog:" + message);
 
-            // log to file
+/*            // log to file
             try
             {
                 lock (mLock)
@@ -63,7 +61,7 @@ namespace HomeControl.Comm
             catch (Exception ex)
             {
                 Log.Debug(category, "HCLog send Exception:" + ex.Message);
-            }
+            }*/
         }
     }
 }
