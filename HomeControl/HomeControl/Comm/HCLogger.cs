@@ -51,7 +51,7 @@ namespace HomeControl.Comm
                 }
             }
             catch (Exception) { }
-
+*/
             //Log to network
             try
             {
@@ -61,7 +61,7 @@ namespace HomeControl.Comm
             catch (Exception ex)
             {
                 Log.Debug(category, "HCLog send Exception:" + ex.Message);
-            }*/
+            }
         }
     }
 }

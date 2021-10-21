@@ -82,6 +82,7 @@ namespace HomeControl.Comm
                     sendFrame.AddRange(frame);
                     mSendBuffer = sendFrame.ToArray();
 
+                    if (mLog != null) mLog.SendToHost("CloudSocket", string.Format("[{0}] sendFrame: objectId: {1}, size: {2}", Id(), objectId, mSendBuffer.Count()));
                     // Begin sending the data to the remote device.  
                     mSocket.BeginSend(mSendBuffer, 0, sendFrame.Count, 0, new AsyncCallback(SendCallback), null);
                     return true;
@@ -130,7 +131,7 @@ namespace HomeControl.Comm
             try
             {
                 int bytesRead = mSocket.EndReceive(ar);
-
+                if (mLog != null) mLog.SendToHost("CloudSocket", string.Format("[{0}] bytesRead: {1}", Id(), bytesRead));
                 if (bytesRead > 0)
                 {
                     mBuffer.AddRange(mReceiveBuffer.Take(bytesRead).ToArray());

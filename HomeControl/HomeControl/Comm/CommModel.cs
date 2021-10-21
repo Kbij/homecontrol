@@ -323,10 +323,16 @@ namespace HomeControl.Comm
         {
             lock (mLock)
             {
-              //  mLastObjectSendSeconds = 0;
-                string json = obj.serialise();
-                return mCloudSocket.sendFrame(obj.objectId(), System.Text.Encoding.ASCII.GetBytes(json).ToList());
+                if (mLog != null) mLog.SendToHost("CommModel", string.Format("[{0}] Sendobject: {1}", Id(), obj.objectId()));
+
+                if (mCloudSocket != null)
+                {
+                    //  mLastObjectSendSeconds = 0;
+                    string json = obj.serialise();
+                    return mCloudSocket.sendFrame(obj.objectId(), System.Text.Encoding.ASCII.GetBytes(json).ToList());
+                }
             }
+            return false;
         }
 
         private void sendKeepAlive()

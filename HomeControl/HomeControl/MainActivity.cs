@@ -41,7 +41,7 @@ namespace HomeControl
         protected override void OnCreate(Bundle bundle)
         {
             base.OnCreate(bundle);
-            mLog = new HCLogger("192.168.10.10", 8001, "MainService.log");
+            mLog = new HCLogger("192.168.10.11", 8001, "MainService.log");
             mLog.SendToHost("MainService", "OnCreate");
             AppDomain currentDomain = AppDomain.CurrentDomain;
             currentDomain.UnhandledException += HandleExceptions;

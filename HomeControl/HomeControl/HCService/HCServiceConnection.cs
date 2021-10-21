@@ -20,7 +20,7 @@ namespace HomeControl.HCService
         public HCServiceConnection(MainActivity activity)
         {
             this.mActivity = activity;
-            mLog = new HCLogger("192.168.10.10", 8001, "ServiceConnection.log");
+            mLog = new HCLogger("192.168.10.11", 8001, "ServiceConnection.log");
             mLog.SendToHost("HCServiceConnection", "HCServiceConnection constructor");
         }
 

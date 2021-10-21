@@ -77,7 +77,7 @@ namespace HomeControl.HCService
 
             StartForeground(SERVICE_RUNNING_NOTIFICATION_ID, notification);
             mRequestedInterval = 0;
-            mLog = new HCLogger("192.168.10.10", 8001, "Service.log");
+            mLog = new HCLogger("192.168.10.11", 8001, "Service.log");
             mLog.SendToHost("HomeControlService", "HomeControlService started");
 
             //Make sure it exists

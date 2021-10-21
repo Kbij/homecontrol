@@ -42,7 +42,7 @@ namespace HomeControl.HCService
             if (result.Locations.Any())
             {
                 var location = result.Locations.First();
-               // mLog.SendToHost("HomeControlService", string.Format("lat: {0:f6}, lon: {1:f6}, acc:{2}, time:{3}, provider:{4}", location.Latitude, location.Longitude, location.Accuracy, location.Time, location.Provider));
+                mLog.SendToHost("HomeControlService", string.Format("OnLocationResult: lat: {0:f6}, lon: {1:f6}, acc:{2}, time:{3}, provider:{4}", location.Latitude, location.Longitude, location.Accuracy, location.Time, location.Provider));
                 try
                 {
                     using (var streamWriter = new StreamWriter(mLocationLogFileName, true))
