@@ -1,0 +1,237 @@
+#!/bin/bash
+[ -z $BASH ] || shopt -s expand_aliases
+alias BEGINCOMMENT="if [ ]; then"
+alias ENDCOMMENT="fi"
+
+
+echo "Building HomeControl Server libraries"
+cwd=$(pwd)
+toplevel=$(git rev-parse --show-toplevel)
+
+args=("$@")
+#echo arguments to the shell
+
+component=${args[1]}
+
+if [ -z ${args[0]+x} ]; then
+	echo "Please specify one of the plaforms";
+	echo "arm";
+	echo "x86";
+	echo "x64";
+	exit 1
+fi
+
+if [ "${args[0]}" == "arm" ]; then
+	platform=arm
+fi
+if [ "${args[0]}" == "x86" ]; then
+	platform=x86
+fi
+if [ "${args[0]}" == "x64" ]; then
+	platform=x64
+fi
+if [ "$platform" == "" ]; then
+	echo "Unknown platform: " ${args[0]}
+	exit 1
+fi
+
+if [ "$component" == "" ]; then
+	component="all"
+fi
+
+echo "Building for platform: "$platform
+echo "Component: "$component
+
+export PKG_CONFIG_PATH=$cwd/sysroot-$platform/lib/pkgconfig
+export LD_LIBRARY_PATH=$cwd/sysroot-$platform/lib
+
+mkdir -p ./sysroot-$platform
+sysroot=`cd ./sysroot-$platform/; pwd`
+
+echo "Sysroot: " $sysroot
+mkdir -p $sysroot
+
+#delete cmake packages
+rm -r -f ~/.cmake
+
+export PATH=$cwd/../toolchain/gcc-linaro-arm-linux-gnueabihf-4.9-2014.09_linux/bin:$PATH
+echo "Path: " $PATH
+
+
+if [ "$platform" == "arm" ]; then
+	export CC=arm-linux-gnueabihf-gcc
+	export CXX=arm-linux-gnueabihf-g++
+	export AR=arm-linux-gnueabihf-ar
+	export AS=arm-linux-gnueabihf-as
+	export LD=arm-linux-gnueabihf-ld
+fi
+
+
+if [[ "$component" == "gflags" || "$component" == "all" ]]; then
+
+	cd $cwd
+	#Need -fPIC for libNativeSdk.so (Ubie Sdk)
+	#Check for gflags
+	if [ ! -f ./buildlibs/gflags/CMakeLists.txt ]; then
+		echo "Unpacking gflags"
+		git clone -b v2.2.2 --single-branch -c advice.detachedHead=false https://github.com/gflags/gflags.git ./buildlibs/gflags
+	fi
+
+	mkdir -p ./buildlibs/libgflags-$platform
+	cd ./buildlibs/libgflags-$platform/
+	if [ "$platform" == "arm" ]; then
+		cp ../toolchain-arm.cmake .
+		cmake ../gflags -DCMAKE_CXX_FLAGS="-fPIC" -DCMAKE_TOOLCHAIN_FILE=toolchain-arm.cmake -DCMAKE_INSTALL_PREFIX:PATH=$sysroot
+	fi
+	if [ "$platform" == "x86" ]; then
+		cmake ../gflags -DCMAKE_CXX_FLAGS="-m32" -DCMAKE_INSTALL_PREFIX:PATH=$sysroot
+	fi
+	if [ "$platform" == "x64" ]; then
+		cmake ../gflags  -DCMAKE_CXX_FLAGS="-fPIC" -DCMAKE_INSTALL_PREFIX:PATH=$sysroot
+	fi
+	make
+	make install
+fi
+
+if [[ "$component" == "glog" || "$component" == "all" ]]; then
+	cd $cwd
+	#Need -fPIC for libNativeSdk.so (Ubie Sdk)
+	#Check for glog
+	if [ ! -f ./buildlibs/glog/CMakeLists.txt ]; then
+		echo "Unpacking glog"
+		git clone -b v0.6.0 --single-branch -c advice.detachedHead=false https://github.com/google/glog.git ./buildlibs/glog
+	fi
+	echo "sysroot: "$sysroot
+
+	mkdir -p ./buildlibs/libglog-$platform
+	cd ./buildlibs/libglog-$platform/
+	if [ "$platform" == "arm" ]; then
+		cp ../toolchain-arm.cmake .
+		cmake ../glog -DCMAKE_CXX_FLAGS="-fPIC" -DCMAKE_TOOLCHAIN_FILE=toolchain-arm.cmake -DCMAKE_INSTALL_PREFIX:PATH=$sysroot -DBUILD_TESTING=false -DBUILD_SHARED_LIBS=false
+	fi
+	if [ "$platform" == "x86" ]; then
+		cmake ../glog -DCMAKE_CXX_FLAGS="-m32" -DCMAKE_INSTALL_PREFIX:PATH=$sysroot -DBUILD_TESTING=false -DBUILD_SHARED_LIBS=false
+	fi
+	if [ "$platform" == "x64" ]; then
+		cmake ../glog -DCMAKE_CXX_FLAGS="-fPIC" -DCMAKE_INSTALL_PREFIX:PATH=$sysroot -DBUILD_TESTING=false -DBUILD_SHARED_LIBS=false
+	fi
+	
+	make VERBOSE=1
+	make install
+fi
+
+
+if [[ "$component" == "gtest" || "$component" == "all" ]]; then
+	cd $cwd
+	#Check for gtest
+	if [ ! -f ./buildlibs/gtest/CMakeLists.txt ]; then
+		echo "Unpacking gtest"
+		git clone -b release-1.10.0 --single-branch -c advice.detachedHead=false https://github.com/google/googletest.git ./buildlibs/gtest
+	fi
+
+	mkdir -p ./buildlibs/libgtest-$platform
+	cd ./buildlibs/libgtest-$platform/
+	if [ "$platform" == "arm" ]; then
+		cp ../toolchain-arm.cmake .
+		cmake ../gtest/ -DCMAKE_TOOLCHAIN_FILE=toolchain-arm.cmake -DCMAKE_INSTALL_PREFIX:PATH=$sysroot
+	fi
+	if [ "$platform" == "x86" ]; then
+		cmake ../gtest/ -DCMAKE_CXX_FLAGS="-m32" -DCMAKE_INSTALL_PREFIX:PATH=$sysroot
+	fi
+	if [ "$platform" == "x64" ]; then
+		cmake ../gtest/ -DCMAKE_INSTALL_PREFIX:PATH=$sysroot
+	fi
+	make
+	make install
+fi
+
+
+if [[ "$component" == "boost" || "$component" == "all" ]]; then
+	#Check for boost
+	cd $cwd
+	#rm -r -f ./buildlibs/boost
+	if [ ! -f ./buildlibs/boost_1_79_0/INSTALL ]; then
+		echo "Unpacking boost"
+		tar -xf  boost_1_79_0.tar.gz -C ./buildlibs
+	fi
+
+	if [ ! -f ./buildlibs/bzip2/README ]; then
+		echo "unpacking bz2"
+		git clone --single-branch -c advice.detachedHead=false  https://github.com/enthought/bzip2-1.0.6.git ./buildlibs/bzip2
+	fi
+
+	export BZIP2_SOURCE=$cwd/buildlibs/bzip2
+
+	#cd ./buildlibs/boost
+	cd ./buildlibs/boost_1_79_0
+	#echo "Updating submodules"
+	#git submodule update --init --recursive --remote --no-fetch --depth=1
+	#git submodule update --i
+	#git submodule update --recursive --remote --depth=1
+	if [ "$platform" == "win32" ]; then
+		./bootstrap.sh --without-libraries=python
+	else
+		./bootstrap.sh
+	fi
+
+	#Need -fPIC for libNativeSdk.so (Ubie Sdk)
+	if [ "$platform" == "arm" ]; then
+		cp ../user-config-arm.jam .
+		./b2 --user-config=user-config-arm.jam cxxflags=-fPIC cflags=-fPIC toolset=gcc-arm include=$sysroot/include install --prefix=$sysroot
+	fi
+	if [ "$platform" == "x86" ]; then
+		./b2 address-model=32 include=$sysroot/include install --prefix=$sysroot
+	fi
+	if [ "$platform" == "x64" ]; then
+		./b2  include=$sysroot/include cxxflags=-fPIC cflags=-fPIC install --prefix=$sysroot
+	fi
+	cd $cwd
+fi
+cd $cwd
+
+if [[ "$component" == "openssl" || "$component" == "all" ]]; then
+	#Check for openssl
+	rm -r -f ./buildlibs/openssl-1.0.2e
+
+	echo "Unpacking openssl"
+	tar -xf ./buildlibs/openssl-1.0.2e.tar.gz -C ./buildlibs
+
+	cd ./buildlibs/openssl-1.0.2e/
+	if [ "$platform" == "arm" ]; then
+		cp ../arm.cache .
+		./config -fPIC no-shared --prefix=$sysroot os/compiler:arm-none-linux-gnueabi- -O3
+	else
+		#x86 and x64 are identical
+		./config -fPIC no-shared --prefix=$sysroot
+	fi
+
+	make
+	make install
+
+fi
+cd $cwd
+
+if [[ "$component" == "mysqldriver" || "$component" == "all" ]]; then
+	if [ ! -f ./buildlibs/mysql/README.md ]; then	
+		git clone https://github.com/mysql/mysql-connector-cpp.git ./buildlibs/mysql
+		cd mysql-connector-cpp/
+		git checkout 8.0.29
+	fi		
+	cd $cwd
+
+	mkdir -p ./buildlibs/libmysql-$platform
+	cd ./buildlibs/libmysql-$platform/
+
+	if [ "$platform" == "arm" ]; then
+		cp ../toolchain-arm.cmake .
+		cmake ../mysql/ -DCMAKE_TOOLCHAIN_FILE=toolchain-arm.cmake -DCMAKE_INSTALL_PREFIX:PATH=$sysroot
+	fi
+	if [ "$platform" == "x86" ]; then
+		cmake ../mysql/ -DCMAKE_CXX_FLAGS="-m32" -DCMAKE_INSTALL_PREFIX:PATH=$sysroot -DWITH_TESTS=OFF -DBUILD_SHARED_LIBS=false
+	fi
+	if [ "$platform" == "x64" ]; then
+		cmake ../mysql/ -DCMAKE_INSTALL_PREFIX:PATH=$sysroot -DWITH_TESTS=OFF -DBUILD_SHARED_LIBS=false
+	fi
+	make
+	make install
+fi

@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.8.11)
 
 project (HCM)
-#message(STATUS "CMAKE platform: " ${HCB_PLATFORM})
+message(STATUS "CMAKE platform: " ${HOMECONTROL_PLATFORM})
  
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
@@ -20,7 +20,7 @@ endif()
 
  
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
-set (SYSROOT ${CMAKE_CURRENT_SOURCE_DIR}/libraries/sysroot)
+set (SYSROOT ${CMAKE_CURRENT_SOURCE_DIR}/libraries/sysroot-${HOMECONTROL_PLATFORM})
 message(STATUS "Sysroot: " ${SYSROOT})
 
 #set (gflags_BUILD_STATIC_LIBS ON)

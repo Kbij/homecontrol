@@ -1,0 +1,3 @@
+set( HOMECONTROL_PLATFORM "x64")
+
+
