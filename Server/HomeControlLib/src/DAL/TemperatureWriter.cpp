@@ -6,10 +6,10 @@
  */
 
 #include <DAL/TemperatureWriter.h>
-#include <cppconn/driver.h>
-#include <cppconn/exception.h>
-#include <cppconn/resultset.h>
-#include <cppconn/statement.h>
+// #include <cppconn/driver.h>
+// #include <cppconn/exception.h>
+// #include <cppconn/resultset.h>
+// #include <cppconn/statement.h>
 #include <Comm/TemperatureSourceIf.h>
 #include <iostream>
 #include <sstream>
@@ -38,73 +38,73 @@ TemperatureWriter::~TemperatureWriter()
 
 void TemperatureWriter::sensorStarted(const std::string& sensorId)
 {
-	try
-	{
-		VLOG(1) << "Received sensor start for: " << sensorId;
-		std::stringstream insert;
-		insert << "INSERT IGNORE INTO TemperatureSensor (sensorAddress)";
-		insert << " VALUES ('" << sensorId << "'); ";
+	// try
+	// {
+	// 	VLOG(1) << "Received sensor start for: " << sensorId;
+	// 	std::stringstream insert;
+	// 	insert << "INSERT IGNORE INTO TemperatureSensor (sensorAddress)";
+	// 	insert << " VALUES ('" << sensorId << "'); ";
 
-		sql::Driver *driver;
-		sql::Connection *con;
-		sql::Statement *stmt;
+	// 	sql::Driver *driver;
+	// 	sql::Connection *con;
+	// 	sql::Statement *stmt;
 
-		/* Create a connection */
-		driver = get_driver_instance();
-		driver->threadInit();
+	// 	/* Create a connection */
+	// 	driver = get_driver_instance();
+	// 	driver->threadInit();
 
-		con = driver->connect("tcp://127.0.0.1:3306", "hc", "bugs bunny");
+	// 	con = driver->connect("tcp://127.0.0.1:3306", "hc", "bugs bunny");
 
-		con->setSchema("HC_DB");
+	// 	con->setSchema("HC_DB");
 
-		stmt = con->createStatement();
-		stmt->execute(insert.str());
-		delete stmt;
+	// 	stmt = con->createStatement();
+	// 	stmt->execute(insert.str());
+	// 	delete stmt;
 
-		con->close();
-		delete con;
-		driver->threadEnd();
-	}
-	catch (sql::SQLException &ex)
-	{
-		LOG(ERROR) << "clientConnected, SQLExceptin: " << ex.what() << ", MySQL error code: " << ex.getErrorCode() << ", SQLState: " << ex.getSQLState();
-	}
+	// 	con->close();
+	// 	delete con;
+	// 	driver->threadEnd();
+	// }
+	// catch (sql::SQLException &ex)
+	// {
+	// 	LOG(ERROR) << "clientConnected, SQLExceptin: " << ex.what() << ", MySQL error code: " << ex.getErrorCode() << ", SQLState: " << ex.getSQLState();
+	// }
 }
 
 void TemperatureWriter::sensorTemperature(const std::string& sensorId, double temperature)
 {
-	try
-	{
-		VLOG(1) << "Received temperature: " << temperature << ", from sensor: " << sensorId;
+	// try
+	// {
+	// 	VLOG(1) << "Received temperature: " << temperature << ", from sensor: " << sensorId;
 
-		std::stringstream insert;
-		insert << "INSERT INTO Temperature (idSensor, temperature, date) ";
-		insert << " SELECT TemperatureSensor.idTemperatureSensor, " << temperature << ", NOW() ";
-		insert << " FROM TemperatureSensor where sensorAddress = '" << sensorId << "'";
+	// 	std::stringstream insert;
+	// 	insert << "INSERT INTO Temperature (idSensor, temperature, date) ";
+	// 	insert << " SELECT TemperatureSensor.idTemperatureSensor, " << temperature << ", NOW() ";
+	// 	insert << " FROM TemperatureSensor where sensorAddress = '" << sensorId << "'";
 
-		sql::Driver *driver;
-		sql::Connection *con;
-		sql::Statement *stmt;
+	// 	sql::Driver *driver;
+	// 	sql::Connection *con;
+	// 	sql::Statement *stmt;
 
-		/* Create a connection */
-		driver = get_driver_instance();
-		driver->threadInit();
-		con = driver->connect("tcp://127.0.0.1:3306", "hc", "bugs bunny");
+	// 	/* Create a connection */
+	// 	driver = get_driver_instance();
+	// 	driver->threadInit();
+	// 	con = driver->connect("tcp://127.0.0.1:3306", "hc", "bugs bunny");
 
-		con->setSchema("HC_DB");
+	// 	con->setSchema("HC_DB");
 
-		stmt = con->createStatement();
-		stmt->execute(insert.str());
-		delete stmt;
+	// 	stmt = con->createStatement();
+	// 	stmt->execute(insert.str());
+	// 	delete stmt;
 
-		con->close();
-		delete con;
-		driver->threadEnd();
-	}
-	catch (sql::SQLException &ex)
-	{
-		LOG(ERROR) << "clientConnected, SQLExceptin: " << ex.what() << ", MySQL error code: " << ex.getErrorCode() << ", SQLState: " << ex.getSQLState();
-	}
+	// 	con->close();
+	// 	delete con;
+	// 	driver->threadEnd();
+	// }
+	// catch (sql::SQLException &ex)
+	// {
+	// 	LOG(ERROR) << "clientConnected, SQLExceptin: " << ex.what() << ", MySQL error code: " << ex.getErrorCode() << ", SQLState: " << ex.getSQLState();
+	// }
 }
 
 void TemperatureWriter::sensorSetTemperatureUp(const std::string& sensorId)

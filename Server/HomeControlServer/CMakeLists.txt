@@ -21,7 +21,6 @@ target_link_libraries (HCServer HCServerLib)
 target_link_libraries (HCServer libglog.a)
 target_link_libraries (HCServer libgflags.a)
 target_link_libraries (HCServer libboost_system.a)
-target_link_libraries (HCServer mysqlcppconn)
 target_link_libraries (HCServer pthread)
 target_link_libraries (HCServer rt)
 

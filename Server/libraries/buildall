@@ -214,7 +214,7 @@ cd $cwd
 if [[ "$component" == "mysqldriver" || "$component" == "all" ]]; then
 	if [ ! -f ./buildlibs/mysql/README.md ]; then	
 		git clone https://github.com/mysql/mysql-connector-cpp.git ./buildlibs/mysql
-		cd mysql-connector-cpp/
+		cd ./buildlibs/mysql
 		git checkout 8.0.29
 	fi		
 	cd $cwd
@@ -227,11 +227,11 @@ if [[ "$component" == "mysqldriver" || "$component" == "all" ]]; then
 		cmake ../mysql/ -DCMAKE_TOOLCHAIN_FILE=toolchain-arm.cmake -DCMAKE_INSTALL_PREFIX:PATH=$sysroot
 	fi
 	if [ "$platform" == "x86" ]; then
-		cmake ../mysql/ -DCMAKE_CXX_FLAGS="-m32" -DCMAKE_INSTALL_PREFIX:PATH=$sysroot -DWITH_TESTS=OFF -DBUILD_SHARED_LIBS=false
+		cmake ../mysql/ -DCMAKE_CXX_FLAGS="-m32" -DCMAKE_INSTALL_PREFIX:PATH=$sysroot -DBUILD_STATIC=ON
 	fi
 	if [ "$platform" == "x64" ]; then
-		cmake ../mysql/ -DCMAKE_INSTALL_PREFIX:PATH=$sysroot -DWITH_TESTS=OFF -DBUILD_SHARED_LIBS=false
+		cmake ../mysql/ -DCMAKE_INSTALL_PREFIX:PATH=$sysroot -DBUILD_STATIC=ON
 	fi
-	make
+	make -j8
 	make install
 fi

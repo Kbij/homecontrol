@@ -10,10 +10,7 @@
 #include "CommObjects/GpsLocation.h"
 #include "CommObjects/MessageObject.h"
 #include "CommObjects/KeepAlive.h"
-#include <cppconn/driver.h>
-#include <cppconn/exception.h>
-#include <cppconn/resultset.h>
-#include <cppconn/statement.h>
+#include <mysqlx/xdevapi.h>
 #include <iostream>
 #include <sstream>
 #include <iomanip>
@@ -22,8 +19,10 @@
 
 namespace DalNs {
 
-ObjectWriter::ObjectWriter(const std::string& server, const std::string& user, const std::string& pwd):
+ObjectWriter::ObjectWriter(const std::string& server, int port, const std::string& db, const std::string& user, const std::string& pwd):
 	mServer(server),
+	mPort(port),
+	mDb(db),
 	mUser(user),
 	mPwd(pwd)
 {
@@ -38,39 +37,22 @@ void ObjectWriter::clientConnected(const std::string& name)
 	LOG(INFO) << "Client connected: " << name;
 	try
 	{
+		mysqlx::Session sess(mServer, mPort, mUser, mPwd, mDb);
+
 		std::stringstream insert;
 		insert << "INSERT IGNORE INTO Client (clientName)";
 		insert << " VALUES ('" << name << "'); ";
-		sql::Driver *driver;
-		sql::Connection *con;
-		sql::Statement *stmt;
 
-		/* Create a connection */
-		driver = get_driver_instance();
-		driver->threadInit();
-
-		con = driver->connect(mServer, mUser, mPwd);
-		/* Connect to the MySQL test database */
-		con->setSchema("HC_DB");
-
-		stmt = con->createStatement();
-		stmt->execute(insert.str());
-		delete stmt;
+		sess.sql(insert.str()).execute();
 
 		std::stringstream update;
 		update << "UPDATE Client SET lastMessage = NOW() WHERE clientName = '" << name << "';";
-
-		stmt = con->createStatement();
-		stmt->execute(update.str());
-		delete stmt;
-
-		con->close();
-		delete con;
-		driver->threadEnd();
+		
+		sess.sql(update.str()).execute();
 	}
-	catch (sql::SQLException &ex)
+	catch(const std::exception& ex)
 	{
-		LOG(ERROR) << "clientConnected, SQLExceptin: " << ex.what() << ", MySQL error code: " << ex.getErrorCode() << ", SQLState: " << ex.getSQLState();
+		LOG(ERROR) << "Exception on ClientConnected, Exception: " << ex.what();
 	}
 }
 
@@ -122,23 +104,11 @@ void ObjectWriter::receiveObject(const std::string name, const CommNs::CommObjec
 			}
 		}
 
-		sql::Driver *driver;
-		sql::Connection *con;
-		sql::Statement *stmt;
-
-		/* Create a connection */
-		driver = get_driver_instance();
-		driver->threadInit();
-
-		con = driver->connect(mServer, mUser, mPwd);
-		/* Connect to the MySQL test database */
-		con->setSchema("HC_DB");
+		mysqlx::Session sess(mServer, mPort, mUser, mPwd, mDb);
 
 		if  (insertCmd != "")
 		{
-			stmt = con->createStatement();
-			stmt->execute(insertCmd);
-			delete stmt;
+			sess.sql(insertCmd).execute();
 		}
 		std::stringstream update;
 		update << "UPDATE Client SET lastMessage = NOW()";
@@ -147,19 +117,13 @@ void ObjectWriter::receiveObject(const std::string name, const CommNs::CommObjec
 			update << ", batteryLevel = " << batteryLevel;
 		}
 		update << " WHERE clientName = '" << name << "';";
-		stmt = con->createStatement();
-		stmt->execute(update.str());
-		delete stmt;
 
-
-		con->close();
-		delete con;
-		driver->threadEnd();
+		sess.sql(update.str()).execute();
 
 	}
-	catch (sql::SQLException &ex)
+	catch (std::exception &ex)
 	{
-		LOG(ERROR) << "receiveObject, SQLExceptin: " << ex.what() << ", MySQL error code: " << ex.getErrorCode() << ", SQLState: " << ex.getSQLState();
+		LOG(ERROR) << "receiveObject, SQLException: " << ex.what();
 	}
 
 }

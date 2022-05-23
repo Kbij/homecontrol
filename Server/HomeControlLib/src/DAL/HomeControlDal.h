@@ -16,7 +16,7 @@ namespace DalNs {
 class HomeControlDal: public HomeControlDalIf
 {
 public:
-	HomeControlDal(const std::string& server, const std::string& user, const std::string& pwd);
+	HomeControlDal(const std::string& server, int port, const std::string& db, const std::string& user, const std::string& pwd);
 	virtual ~HomeControlDal();
 
 	RoomConfig* findRoomByRoomId(const std::string& roomId);
@@ -30,6 +30,8 @@ public:
 private:
 	void writeHeaterState(const std::string& roomId, bool state);
 	const std::string mServer;
+	const int mPort;
+	const std::string mDb;
 	const std::string mUser;
 	const std::string mPwd;
 	std::map<std::string, bool> mHeaterState;

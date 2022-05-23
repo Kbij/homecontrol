@@ -200,10 +200,9 @@ int main (int argc, char* argv[])
 		LOG(INFO) << "Home Control ServerApp";
 		LOG(INFO) << "======================";
 		LOG(INFO) << "Build on: " << __DATE__ << ", " << __TIME__;
-		std::stringstream connectString;
-		connectString << "tcp://" << FLAGS_dbserver << ":3306";
-		DalNs::ObjectWriter* writer = new DalNs::ObjectWriter(connectString.str(), "hc", "bugs bunny");
-		DalNs::HomeControlDal* dal = new DalNs::HomeControlDal(connectString.str(), "hc", "bugs bunny");
+
+		DalNs::ObjectWriter* writer = new DalNs::ObjectWriter(FLAGS_dbserver, 33060, "HC_DB", "hc", "bugs bunny");
+		DalNs::HomeControlDal* dal = new DalNs::HomeControlDal(FLAGS_dbserver, 33060, "HC_DB", "hc", "bugs bunny");
 
 		CommNs::SocketFactory* factory = new CommNs::SocketFactory;
 		CommNs::Server* server = new CommNs::Server(factory, 5678, dal);

@@ -26,6 +26,10 @@ file(GLOB lib_SRC
 )
 
 add_library (HCServerLib ${lib_SRC})
+target_link_libraries (HCServerLib libmysqlcppconn8-static.a)
+target_link_libraries (HCServerLib dl)
+target_link_libraries (HCServerLib resolv)
+
 #target_link_libraries (HCServerLib glog)
 
 
