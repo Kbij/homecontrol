@@ -8,7 +8,7 @@
 #ifndef COMM_SOCKETFACTORY_H_
 #define COMM_SOCKETFACTORY_H_
 #include "SocketFactoryIf.h"
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace CommNs
 {
@@ -20,7 +20,7 @@ public:
 	virtual ~SocketFactory();
 
 	ServerSocketIf* createServerSocket(Server* server, int port);
-	boost::shared_ptr<ClientSocketIf> createClientSocket();
+	std::shared_ptr<ClientSocketIf> createClientSocket();
 private:
 	boost::asio::io_service mIoService;
 };

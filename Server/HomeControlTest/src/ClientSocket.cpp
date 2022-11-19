@@ -14,6 +14,7 @@
 #include <string>
 #include <thread>
 #include <stdint.h>
+#include <memory>
 
 class SocketListener: public CommNs::SocketListenerIf
 {
@@ -38,10 +39,9 @@ TEST(ClientSocket, Receive1FrameOnePart)
 {
 	SocketListener listener;
 	boost::asio::io_service ioService;
-	CommNs::ClientSocket* clientSocket = new CommNs::ClientSocket(ioService);
+	std::shared_ptr<CommNs::ClientSocket> clientSocket = std::make_shared<CommNs::ClientSocket>(ioService);
 	clientSocket->registerSocketListener(&listener);
 	boost::asio::ip::tcp::acceptor acceptor(ioService, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), 3000));
-
 	//cloudSocket->connect("localhost", 3000);
 	boost::asio::ip::tcp::socket sendSoc(ioService);
 	boost::asio::ip::tcp::resolver resolver(ioService);
@@ -54,6 +54,7 @@ TEST(ClientSocket, Receive1FrameOnePart)
 
 	acceptor.accept(clientSocket->socket());
 	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
 	clientSocket->start();
 
 	//Data length = 4
@@ -70,13 +71,14 @@ TEST(ClientSocket, Receive1FrameOnePart)
 	ASSERT_EQ(expected, listener.mLastReceivedFrame);
 	ASSERT_EQ(0, listener.mLastObjectId);
 
-	delete clientSocket;
+	clientSocket->close();
 }
+
 TEST(ClientSocket, ReceiveKeepalive)
 {
 	SocketListener listener;
 	boost::asio::io_service ioService;
-	CommNs::ClientSocket* clientSocket = new CommNs::ClientSocket(ioService);
+	auto clientSocket = std::make_shared<CommNs::ClientSocket>(ioService);
 	clientSocket->registerSocketListener(&listener);
 	boost::asio::ip::tcp::acceptor acceptor(ioService, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), 3000));
 
@@ -108,13 +110,14 @@ TEST(ClientSocket, ReceiveKeepalive)
 	ASSERT_EQ(expected, listener.mLastReceivedFrame);
 	ASSERT_EQ(0, listener.mLastObjectId);
 
-	delete clientSocket;
+	clientSocket->close();
 }
+
 TEST(ClientSocket, Receive1FrameTwoParts)
 {
 	SocketListener listener;
 	boost::asio::io_service ioService;
-	CommNs::ClientSocket* clientSocket = new CommNs::ClientSocket(ioService);
+	auto clientSocket = std::make_shared<CommNs::ClientSocket>(ioService);
 	clientSocket->registerSocketListener(&listener);
 	boost::asio::ip::tcp::acceptor acceptor(ioService, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), 3000));
 
@@ -154,5 +157,5 @@ TEST(ClientSocket, Receive1FrameTwoParts)
 	ASSERT_EQ(expected, listener.mLastReceivedFrame);
 	ASSERT_EQ(0, listener.mLastObjectId);
 
-	delete clientSocket;
+	clientSocket->close();
 }

@@ -9,7 +9,8 @@
 #define COMM_CLIENT_H_
 #include "SocketListenerIf.h"
 #include <boost/asio.hpp>
-#include <boost/shared_ptr.hpp>
+#include <memory>
+#include <mutex>
 
 namespace CommNs
 {
@@ -21,7 +22,7 @@ class Client: public SocketListenerIf
 {
 public:
 	// Client becomes owner of clientSocket
-	Client(boost::shared_ptr<ClientSocketIf> clientSocket, ClientListenerIf* clientListener);
+	Client(std::shared_ptr<ClientSocketIf> clientSocket, ClientListenerIf* clientListener);
 	virtual ~Client();
 
 	boost::asio::ip::tcp::tcp::socket& socket();
@@ -37,13 +38,14 @@ public:
 	void socketClosed();
 
 private:
-	boost::shared_ptr<ClientSocketIf> mClientSocket;
+	std::shared_ptr<ClientSocketIf> mClientSocket;
 	ClientListenerIf* mClientListener;
 	std::string mName;
 	ConnectionState mConnectionState;
 	int mConnectingTime;
 	int mLastFrameTime;
 	int mLocationInterval;
+	std::mutex mDataMutex;
 };
 
 } /* namespace CommNs */

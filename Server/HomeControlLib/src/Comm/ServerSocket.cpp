@@ -9,8 +9,10 @@
 #include "Server.h"
 #include "Client.h"
 #include <glog/logging.h>
-#include "boost/bind.hpp"
 #include "ClientSocket.h"
+#include <boost/bind/bind.hpp>
+
+using namespace boost::placeholders;
 
 namespace CommNs
 {
@@ -69,7 +71,15 @@ void ServerSocket::stopServerThread()
 
 void ServerSocket::serverThread()
 {
-	mIoService.run();
+	try
+	{
+		mIoService.run();
+	}
+	catch(const std::exception& ex)
+	{
+		LOG(ERROR) << "Exception in ServerThread: " << ex.what();
+	}
+
 	LOG(INFO) << "Server socket thread exiting";
 }
 } /* namespace CommNs */

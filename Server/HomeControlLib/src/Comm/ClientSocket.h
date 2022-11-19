@@ -12,17 +12,23 @@
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
 #include <boost/system/system_error.hpp>
-#include <boost/enable_shared_from_this.hpp>
 #include <cstddef>
 #include <string>
 #include <vector>
 #include <stdint.h>
+#include <mutex>
+#include <memory>
 
-namespace CommNs {
+namespace CommNs
+{
+struct ReceivedFrame
+{
+	ReceivedFrame(): ObjectId(), Frame() {};
+	uint8_t ObjectId;
+	std::vector<uint8_t> Frame;
+};
 
-//Need shared_from_this: closing the socket does not imediately cancel all outstanding async calls.
-//This causes problems while destructing the object: you close the socket, and some async calls remain open
-class ClientSocket: public ClientSocketIf, public boost::enable_shared_from_this<ClientSocket>
+class ClientSocket: public ClientSocketIf, public std::enable_shared_from_this<ClientSocket>
 {
 public:
 	ClientSocket(boost::asio::io_service& ioService);
@@ -30,6 +36,7 @@ public:
 
 	boost::asio::ip::tcp::tcp::socket& socket();
 	void start();
+	void close();
 	std::string name() {return mName;}
 
 	void registerSocketListener(SocketListenerIf* socketListener);
@@ -44,9 +51,10 @@ private:
 	SocketListenerIf* mSocketListener;
 	std::string mName;
 	unsigned short mLocalPort;
+	std::mutex mDataMutex;
 	void handleRead(const boost::system::error_code& error, size_t bytesTransferred);
 	void handleWrite(const boost::system::error_code& error, std::size_t bytesTransferred);
-	void processBuffer();
+	std::vector<ReceivedFrame> processBuffer();
 };
 
 } /* namespace CommNs */

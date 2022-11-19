@@ -83,7 +83,7 @@ public:
 
 TEST(Client, Constructor)
 {
-	boost::shared_ptr<ClientSocketStub> socketStub = boost::shared_ptr<ClientSocketStub>(new ClientSocketStub);
+	std::shared_ptr<ClientSocketStub> socketStub = std::make_shared<ClientSocketStub>();
 	ClientListenerStub* clientListenerStub = new ClientListenerStub;
 
 	// Client becomes owner of socketStub !!
@@ -94,7 +94,7 @@ TEST(Client, Constructor)
 
 TEST(Client, StartConnection)
 {
-	boost::shared_ptr<ClientSocketStub> socketStub = boost::shared_ptr<ClientSocketStub>(new ClientSocketStub);
+	std::shared_ptr<ClientSocketStub> socketStub = std::make_shared<ClientSocketStub>();
 	ClientListenerStub* clientListenerStub = new ClientListenerStub;
 	CommNs::Client* client = new CommNs::Client(socketStub, clientListenerStub);
 	client->start();
@@ -121,7 +121,7 @@ TEST(Client, StartConnection)
 
 TEST(Client, ReceiveObject)
 {
-	boost::shared_ptr<ClientSocketStub> socketStub = boost::shared_ptr<ClientSocketStub>(new ClientSocketStub);
+	std::shared_ptr<ClientSocketStub> socketStub = std::make_shared<ClientSocketStub>();
 	ClientListenerStub* clientListenerStub = new ClientListenerStub;
 	CommNs::Client* client = new CommNs::Client(socketStub, clientListenerStub);
 	client->start();
@@ -156,7 +156,7 @@ TEST(Client, ReceiveObject)
 
 TEST(Client, TimeOuts)
 {
-	boost::shared_ptr<ClientSocketStub> socketStub = boost::shared_ptr<ClientSocketStub>(new ClientSocketStub);
+	std::shared_ptr<ClientSocketStub> socketStub = std::make_shared<ClientSocketStub>();
 	ClientListenerStub* clientListenerStub = new ClientListenerStub;
 	CommNs::Client* client = new CommNs::Client(socketStub, clientListenerStub);
 	client->start();
@@ -175,9 +175,9 @@ TEST(Client, TimeOuts)
 	EXPECT_EQ(clientNameString, client->name());
 	//EXPECT_TRUE(client->connected());
 
-	//Connected timeout is 2 min
+	//Connected timeout is 5 min
 	EXPECT_FALSE(client->isInactive(100)); // Inactive after 100 ms ?
-	EXPECT_FALSE(client->isInactive(2*60*1000-200)); // Inactive after additional 2 min (-200 ms) ?
+	EXPECT_FALSE(client->isInactive(5*60*1000-200)); // Inactive after additional 5 min (-200 ms) ?
 
 	EXPECT_TRUE(client->isInactive(150)); // Inactive after additional 150 ms
 

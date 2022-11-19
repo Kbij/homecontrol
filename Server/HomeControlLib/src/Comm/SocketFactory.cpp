@@ -8,6 +8,7 @@
 #include "SocketFactory.h"
 #include "ServerSocket.h"
 #include "ClientSocket.h"
+#include <memory>
 
 namespace CommNs {
 
@@ -25,9 +26,9 @@ ServerSocketIf* SocketFactory::createServerSocket(Server* server, int port)
 	return new ServerSocket(mIoService, server, port);
 }
 
-boost::shared_ptr<ClientSocketIf> SocketFactory::createClientSocket()
+std::shared_ptr<ClientSocketIf> SocketFactory::createClientSocket()
 {
-	return boost::shared_ptr<ClientSocketIf>(new ClientSocket(mIoService));
+	return std::make_shared<ClientSocket>(mIoService);
 }
 
 } /* namespace CommNs */

@@ -1,8 +1,9 @@
 build-x64
 build-x86
 build-arm
+build-code
 bin-x64
 bin-x86
 bin-arm
 libraries
-
+.vscode

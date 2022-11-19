@@ -18,18 +18,20 @@ namespace
 const std::string SERVER = "tcp://localhost:3306";
 const std::string USER = "hc";
 const std::string PWD = "bugs bunny";
+const int PORT = 3306;
+const std::string DB = "hc";
 }
 
 TEST(HomeControlDal, Constructor)
 {
-	DalNs::HomeControlDal* dal = new DalNs::HomeControlDal(SERVER, USER, PWD);
+	DalNs::HomeControlDal* dal = new DalNs::HomeControlDal(SERVER, PORT, DB, USER, PWD);
 
 	delete dal;
 }
 
 TEST(HomeControlDal, FindSensor)
 {
-	DalNs::HomeControlDal* dal = new DalNs::HomeControlDal(SERVER, USER, PWD);
+	DalNs::HomeControlDal* dal = new DalNs::HomeControlDal(SERVER, PORT, DB, USER, PWD);
 	DalNs::RoomConfig* roomConfig = dal->findRoomBySensorId("sensor1");
 
 	EXPECT_NE(nullptr, roomConfig);
@@ -45,7 +47,7 @@ TEST(HomeControlDal, FindSensor)
 
 TEST(HomeControlDal, FindSensorNoResult)
 {
-	DalNs::HomeControlDal* dal = new DalNs::HomeControlDal(SERVER, USER, PWD);
+	DalNs::HomeControlDal* dal = new DalNs::HomeControlDal(SERVER, PORT, DB, USER, PWD);
 	DalNs::RoomConfig* roomConfig = dal->findRoomBySensorId("nonexistentsensor");
 
 	EXPECT_EQ(nullptr, roomConfig);
@@ -55,7 +57,7 @@ TEST(HomeControlDal, FindSensorNoResult)
 
 TEST(HomeControlDal, FindRoom)
 {
-	DalNs::HomeControlDal* dal = new DalNs::HomeControlDal(SERVER, USER, PWD);;
+	DalNs::HomeControlDal* dal = new DalNs::HomeControlDal(SERVER, PORT, DB, USER, PWD);
 	DalNs::RoomConfig* roomConfig = dal->findRoomByRoomId("K1");
 
 	EXPECT_NE(nullptr, roomConfig);
@@ -71,7 +73,7 @@ TEST(HomeControlDal, FindRoom)
 
 TEST(HomeControlDal, NonExistentRoom)
 {
-	DalNs::HomeControlDal* dal = new DalNs::HomeControlDal(SERVER, USER, PWD);;
+	DalNs::HomeControlDal* dal = new DalNs::HomeControlDal(SERVER, PORT, DB, USER, PWD);
 	DalNs::RoomConfig* roomConfig = dal->findRoomByRoomId("nonexistentroom");
 
 	EXPECT_EQ(nullptr, roomConfig);
@@ -80,7 +82,7 @@ TEST(HomeControlDal, NonExistentRoom)
 }
 TEST(HomeControlDal, FindCalibration)
 {
-	DalNs::HomeControlDal* dal = new DalNs::HomeControlDal(SERVER, USER, PWD);;
+	DalNs::HomeControlDal* dal = new DalNs::HomeControlDal(SERVER, PORT, DB, USER, PWD);
 
 	EXPECT_EQ(1, dal->getSensorCalibration("sensor1"));
 	EXPECT_EQ(1.1, dal->getSensorCalibration("sensor1.1"));
