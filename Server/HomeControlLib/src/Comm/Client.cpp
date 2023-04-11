@@ -43,6 +43,7 @@ Client::Client(std::shared_ptr<ClientSocketIf> clientSocket, ClientListenerIf* c
 Client::~Client()
 {
 	mClientSocket->unRegisterSocketListener();
+	mClientSocket->close();
 }
 
 boost::asio::ip::tcp::tcp::socket& Client::socket()

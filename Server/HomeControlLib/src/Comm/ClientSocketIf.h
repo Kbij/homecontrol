@@ -20,6 +20,7 @@ public:
 
 	virtual boost::asio::ip::tcp::tcp::socket& socket() = 0;
 	virtual void start() = 0;
+	virtual void close() = 0;
 	virtual std::string name() = 0;
 
 	virtual void registerSocketListener(SocketListenerIf* socketListener) = 0;
