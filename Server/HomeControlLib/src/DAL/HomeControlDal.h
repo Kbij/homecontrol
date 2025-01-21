@@ -27,6 +27,9 @@ public:
 	void writeHeaterOn(const std::string& roomId);
 	void writeHeaterOff(const std::string& roomId);
 
+	int findDevice(const std::string& device);
+	void logLocation(int deviceId, double lat, double lon, double accuracy, double batteryLevel, time_t timestamp);
+
 private:
 	void writeHeaterState(const std::string& roomId, bool state);
 	const std::string mServer;

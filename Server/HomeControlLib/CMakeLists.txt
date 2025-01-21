@@ -10,29 +10,21 @@ INCLUDE_DIRECTORIES(${SYSROOT}/include)
 
 INCLUDE_DIRECTORIES( ./src )
 file(GLOB lib_SRC
-    "./src/*.h"
     "./src/*.cpp"
-    "./src/Comm/*.h"
     "./src/Comm/*.cpp"
-    "./src/CommObjects/*.h"
     "./src/CommObjects/*.cpp"
-    "./src/DAL/*.h"
     "./src/DAL/*.cpp"
-    "./src/Hw/*.h"
     "./src/Hw/*.cpp"
-    "./src/Logic/*.h"
     "./src/Logic/*.cpp"
-
+    "./src/Rest/*.cpp"
 )
 
 add_library (HCServerLib ${lib_SRC})
 target_link_libraries (HCServerLib libmysqlcppconn8-static.a)
+target_link_libraries (HCServerLib cpprest)
+target_link_libraries (HCServerLib libssl.a)
+target_link_libraries (HCServerLib libcrypto.a)
 target_link_libraries (HCServerLib dl)
 target_link_libraries (HCServerLib resolv)
 
 #target_link_libraries (HCServerLib glog)
-
-
-
-
-

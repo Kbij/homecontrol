@@ -41,6 +41,9 @@ public:
 	virtual void writeHeaterOn(const std::string& roomId) = 0;
 	virtual void writeHeaterOff(const std::string& roomId) = 0;
 
+	virtual int findDevice(const std::string& device) = 0;
+	virtual void logLocation(int deviceId, double lat, double lon, double accuracy, double batteryLevel, time_t timestamp) = 0;
+
 };
 
 } /* namespace DalNs */

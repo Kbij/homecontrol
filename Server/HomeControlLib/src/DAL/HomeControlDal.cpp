@@ -309,4 +309,65 @@ void HomeControlDal::writeHeaterState(const std::string& roomId, bool state)
 	// }
 
 }
+
+int HomeControlDal::findDevice(const std::string& deviceName)
+{
+	VLOG(1) << "Find device:: " << deviceName;
+	int result = -1;
+	try
+	{
+		mysqlx::Session sess(mServer, mPort, mUser, mPwd, mDb);
+
+		std::stringstream insert;
+		insert << "INSERT IGNORE INTO HC_DB.Client (clientName, locationInterval)";
+		insert << " VALUES ('" << deviceName << "', 0); ";
+
+		sess.sql(insert.str()).execute();
+
+	    std::stringstream select;
+		select << "SELECT idClient  FROM HC_DB.Client ";
+		select << " WHERE clientName = '" << deviceName << "'";
+
+		auto deviceSelect = sess.sql(select.str()).execute();
+
+		mysqlx::Row row = deviceSelect.fetchOne();
+		result = row[0];
+	}
+	catch (std::exception &ex)
+	{
+		LOG(ERROR) << "clientConnected, SQLException: " << ex.what();
+	}
+
+	VLOG(1) << "DeviceId for client: " << deviceName << ": " << result;
+	return result;
+}
+
+void HomeControlDal::logLocation(int deviceId, double lat, double lon, double accuracy, double batteryLevel, time_t timestamp)
+{
+	VLOG(1) << "Log location: " << deviceId;
+	try
+	{
+		std::stringstream insertCmd;
+		std::tm *tm = std::localtime(&timestamp);
+		char buffer[32];
+		std::strftime(buffer, 32, "%Y-%m-%d %H:%M:%S",tm);
+		insertCmd << "INSERT INTO Location (idClient,  latitude, longitude, accuracy, timestamp) ";
+		insertCmd << " Values (" << deviceId << ", " << lat << ", " << lon << ", " << accuracy << ", '" << buffer << "')";
+		VLOG(1) << "insertCmd: " << insertCmd.str();
+
+		mysqlx::Session sess(mServer, mPort, mUser, mPwd, mDb);
+
+		sess.sql(insertCmd.str()).execute();
+
+		std::stringstream update;
+		update << "UPDATE Client SET lastMessage = NOW(), batteryLevel = " << batteryLevel << " Where idClient = " << deviceId;
+		VLOG(1) << "update: " << update.str();
+		sess.sql(update.str()).execute();
+	}
+	catch (std::exception &ex)
+	{
+		LOG(ERROR) << "logLocation, SQLException: " << ex.what();
+	}
+}
+
 } /* namespace DalNs */

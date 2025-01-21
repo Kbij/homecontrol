@@ -43,6 +43,8 @@ public:
 	int locationInterval(const std::string& clientId) {return 0;};
 	void writeHeaterOn(const std::string& roomId) {};
 	void writeHeaterOff(const std::string& roomId) {};
+	int findDevice(const std::string& device) {return 0;}
+	void logLocation(int deviceId, double lat, double lon, double accuracy, time_t timestamp) {};
 	DalNs::RoomConfig* mRoomConfig;
 	double mSensorCalibration;
 };

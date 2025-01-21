@@ -23,7 +23,7 @@ GTEST_API_ int main(int argc, char **argv)
 
 
 //	testing::GTEST_FLAG(filter) = "CommRouter.SendTemperatureToCommServer";
-	testing::GTEST_FLAG(filter) = "Client.*";
+	testing::GTEST_FLAG(filter) = "QueryDecodeTest.*";
 
 
 	if (FLAGS_server)

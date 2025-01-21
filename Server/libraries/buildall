@@ -54,11 +54,9 @@ mkdir -p $sysroot
 #delete cmake packages
 rm -r -f ~/.cmake
 
-export PATH=$cwd/../toolchain/gcc-linaro-arm-linux-gnueabihf-4.9-2014.09_linux/bin:$PATH
-echo "Path: " $PATH
-
 
 if [ "$platform" == "arm" ]; then
+
 	export CC=arm-linux-gnueabihf-gcc
 	export CXX=arm-linux-gnueabihf-g++
 	export AR=arm-linux-gnueabihf-ar
@@ -80,7 +78,7 @@ if [[ "$component" == "gflags" || "$component" == "all" ]]; then
 	mkdir -p ./buildlibs/libgflags-$platform
 	cd ./buildlibs/libgflags-$platform/
 	if [ "$platform" == "arm" ]; then
-		cp ../toolchain-arm.cmake .
+		cp $cwd/../build-arm/toolchain-arm.cmake .
 		cmake ../gflags -DCMAKE_CXX_FLAGS="-fPIC" -DCMAKE_TOOLCHAIN_FILE=toolchain-arm.cmake -DCMAKE_INSTALL_PREFIX:PATH=$sysroot
 	fi
 	if [ "$platform" == "x86" ]; then
@@ -106,7 +104,7 @@ if [[ "$component" == "glog" || "$component" == "all" ]]; then
 	mkdir -p ./buildlibs/libglog-$platform
 	cd ./buildlibs/libglog-$platform/
 	if [ "$platform" == "arm" ]; then
-		cp ../toolchain-arm.cmake .
+		cp $cwd/../build-arm/toolchain-arm.cmake .
 		cmake ../glog -DCMAKE_CXX_FLAGS="-fPIC" -DCMAKE_TOOLCHAIN_FILE=toolchain-arm.cmake -DCMAKE_INSTALL_PREFIX:PATH=$sysroot -DBUILD_TESTING=false -DBUILD_SHARED_LIBS=false
 	fi
 	if [ "$platform" == "x86" ]; then
@@ -115,7 +113,7 @@ if [[ "$component" == "glog" || "$component" == "all" ]]; then
 	if [ "$platform" == "x64" ]; then
 		cmake ../glog -DCMAKE_CXX_FLAGS="-fPIC" -DCMAKE_INSTALL_PREFIX:PATH=$sysroot -DBUILD_TESTING=false -DBUILD_SHARED_LIBS=false
 	fi
-	
+
 	make VERBOSE=1
 	make install
 fi
@@ -132,7 +130,7 @@ if [[ "$component" == "gtest" || "$component" == "all" ]]; then
 	mkdir -p ./buildlibs/libgtest-$platform
 	cd ./buildlibs/libgtest-$platform/
 	if [ "$platform" == "arm" ]; then
-		cp ../toolchain-arm.cmake .
+		cp $cwd/../build-arm/toolchain-arm.cmake .
 		cmake ../gtest/ -DCMAKE_TOOLCHAIN_FILE=toolchain-arm.cmake -DCMAKE_INSTALL_PREFIX:PATH=$sysroot
 	fi
 	if [ "$platform" == "x86" ]; then
@@ -176,7 +174,7 @@ if [[ "$component" == "boost" || "$component" == "all" ]]; then
 
 	#Need -fPIC for libNativeSdk.so (Ubie Sdk)
 	if [ "$platform" == "arm" ]; then
-		cp ../user-config-arm.jam .
+		cp $cwd/user-config-arm.jam .
 		./b2 --user-config=user-config-arm.jam cxxflags=-fPIC cflags=-fPIC toolset=gcc-arm include=$sysroot/include install --prefix=$sysroot
 	fi
 	if [ "$platform" == "x86" ]; then
@@ -212,25 +210,71 @@ fi
 cd $cwd
 
 if [[ "$component" == "mysqldriver" || "$component" == "all" ]]; then
-	if [ ! -f ./buildlibs/mysql/README.md ]; then	
+	if [ ! -f ./buildlibs/mysql/README.md ]; then
 		git clone https://github.com/mysql/mysql-connector-cpp.git ./buildlibs/mysql
 		cd ./buildlibs/mysql
 		git checkout 8.0.29
-	fi		
+	fi
 	cd $cwd
 
 	mkdir -p ./buildlibs/libmysql-$platform
 	cd ./buildlibs/libmysql-$platform/
 
 	if [ "$platform" == "arm" ]; then
-		cp ../toolchain-arm.cmake .
-		cmake ../mysql/ -DCMAKE_TOOLCHAIN_FILE=toolchain-arm.cmake -DCMAKE_INSTALL_PREFIX:PATH=$sysroot
+		cp $cwd/../build-arm/toolchain-arm.cmake .
+		cmake ../mysql/ -DCMAKE_TOOLCHAIN_FILE=toolchain-arm.cmake -DWITH_BOOST=$sysroot  -DBUILD_STATIC=ON -DCMAKE_INSTALL_PREFIX:PATH=$sysroot
 	fi
 	if [ "$platform" == "x86" ]; then
 		cmake ../mysql/ -DCMAKE_CXX_FLAGS="-m32" -DCMAKE_INSTALL_PREFIX:PATH=$sysroot -DBUILD_STATIC=ON
 	fi
 	if [ "$platform" == "x64" ]; then
 		cmake ../mysql/ -DCMAKE_INSTALL_PREFIX:PATH=$sysroot -DBUILD_STATIC=ON
+	fi
+	make -j8
+	make install
+fi
+
+if [[ "$component" == "cpprest" || "$component" == "all" ]]; then
+	if [ "$clean" = true ] ; then
+		rm -r -f $cwd/buildlibs/cpprestsdk-$platform
+	fi
+	cd $cwd
+
+	if [ ! -f ./buildlibs/cpprestsdk/CMakeLists.txt ]; then
+		echo "Checkout CppRest"
+		git clone https://github.com/Microsoft/cpprestsdk.git ./buildlibs/cpprestsdk
+		cd $cwd/buildlibs/cpprestsdk
+
+		#Checkout release 2.10.10
+		git -c advice.detachedHead=false checkout tags/v2.10.10
+	fi
+
+	cd $cwd
+
+	mkdir -p ./buildlibs/cpprestsdk-$platform
+	cd ./buildlibs/cpprestsdk-$platform/
+
+
+	if [ "$platform" == "arm" ]; then
+		cp ../toolchain-arm.cmake .
+		cmake ../cpprestsdk/Release -DCMAKE_CXX_FLAGS="-fPIC" -DCMAKE_TOOLCHAIN_FILE=toolchain-arm.cmake -DCMAKE_INSTALL_PREFIX:PATH=$sysroot -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTS=OFF -DBUILD_SAMPLES=OFF -DCPPREST_EXCLUDE_WEBSOCKETS=ON -DCPPREST_EXCLUDE_COMPRESSION=ON
+	fi
+	if [ "$platform" == "arm64" ]; then
+		cmake ../cpprestsdk/Release -DCMAKE_CXX_FLAGS="-fPIC" -DCMAKE_TOOLCHAIN_FILE=$sdktoolchaincmake -DCMAKE_INSTALL_PREFIX:PATH=$sysroot -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTS=OFF -DBUILD_SAMPLES=OFF -DCPPREST_EXCLUDE_WEBSOCKETS=ON -DCPPREST_EXCLUDE_COMPRESSION=ON
+	fi
+	if [ "$platform" == "x86" ]; then
+		cmake ../cpprestsdk/Release -DCMAKE_CXX_FLAGS="-m32" -DCMAKE_INSTALL_PREFIX:PATH=$sysroot -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTS=OFF -DBUILD_SAMPLES=OFF -DCPPREST_EXCLUDE_WEBSOCKETS=ON -DCPPREST_EXCLUDE_COMPRESSION=ON
+	fi
+	if [ "$platform" == "x64" ]; then
+		cmake ../cpprestsdk/Release -DCMAKE_INSTALL_PREFIX:PATH=$sysroot -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTS=OFF -DBUILD_SAMPLES=OFF -DCPPREST_EXCLUDE_WEBSOCKETS=ON -DCPPREST_EXCLUDE_COMPRESSION=ON
+	fi
+	if [ "$platform" == "x64-aws" ]; then
+		cmake ../cpprestsdk/Release -DCMAKE_CXX_FLAGS="-fPIC -march=$aws_arch" -DCMAKE_INSTALL_PREFIX:PATH=$sysroot -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTS=OFF -DBUILD_SAMPLES=OFF -DCPPREST_EXCLUDE_WEBSOCKETS=ON -DCPPREST_EXCLUDE_COMPRESSION=ON
+	fi
+	if [ "$platform" == "win32" ]; then
+	#Building CPPRest does not work (2022/04/09)
+		cp $toplevel/build-win32/toolchain-win32.cmake .
+		cmake ../cpprestsdk/Release -DCMAKE_CXX_FLAGS="-fPIC" -DCMAKE_TOOLCHAIN_FILE=toolchain-win32.cmake -DCMAKE_INSTALL_PREFIX:PATH=$sysroot -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTS=OFF -DBUILD_SAMPLES=OFF -DCPPREST_EXCLUDE_WEBSOCKETS=ON -DCPPREST_EXCLUDE_COMPRESSION=ON
 	fi
 	make -j8
 	make install

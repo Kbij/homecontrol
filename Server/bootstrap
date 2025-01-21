@@ -6,3 +6,6 @@ cd $cwd/build-x86
 cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=toolchain-x86.cmake ..;
 cd $cwd/build-x64
 cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=toolchain-x64.cmake ..;
+
+cd $cwd/build-arm
+cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=toolchain-arm.cmake ..;
