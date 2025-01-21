@@ -260,6 +260,7 @@ int main (int argc, char* argv[])
         if (tempWriter) delete tempWriter;
         if (filter) delete filter;
         if (timer) delete timer;
+
         if (serial != nullptr)
         {
         	delete sensors;
