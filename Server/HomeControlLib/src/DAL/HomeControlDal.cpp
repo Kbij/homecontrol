@@ -213,8 +213,8 @@ int HomeControlDal::locationInterval(const std::string& clientId)
 		std::stringstream select;
 		select << "SELECT locationInterval  FROM HC_DB.Client ";
 		select << " WHERE clientName = '" << clientId << "'";
-
-		auto locationInterval = mSession.sql(select.str()).execute();
+		mysqlx::Session session(mServer, mPort, mUser, mPwd, mDb);
+		auto locationInterval = session.sql(select.str()).execute();
 
 		mysqlx::Row row = locationInterval.fetchOne();
 		result = row[0];
