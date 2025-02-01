@@ -20,7 +20,8 @@ HomeControlDal::HomeControlDal(const std::string& server, int port, const std::s
 	mDb(db),
 	mUser(user),
 	mPwd(pwd),
-	mHeaterState()
+	mHeaterState(),
+	mSession(mServer, mPort, mUser, mPwd, mDb)
 {
 	LOG(INFO) << "SQL Server: " << server;
 }
@@ -213,10 +214,7 @@ int HomeControlDal::locationInterval(const std::string& clientId)
 		select << "SELECT locationInterval  FROM HC_DB.Client ";
 		select << " WHERE clientName = '" << clientId << "'";
 
-		mysqlx::Session sess(mServer, mPort, mUser, mPwd, mDb);
-
-
-		auto locationInterval = sess.sql(select.str()).execute();
+		auto locationInterval = mSession.sql(select.str()).execute();
 
 		mysqlx::Row row = locationInterval.fetchOne();
 		result = row[0];
@@ -316,19 +314,19 @@ int HomeControlDal::findDevice(const std::string& deviceName)
 	int result = -1;
 	try
 	{
-		mysqlx::Session sess(mServer, mPort, mUser, mPwd, mDb);
 
 		std::stringstream insert;
 		insert << "INSERT IGNORE INTO HC_DB.Client (clientName, locationInterval)";
 		insert << " VALUES ('" << deviceName << "', 0); ";
 
-		sess.sql(insert.str()).execute();
+		mSession.sql(insert.str()).execute();
+		mSession.commit();
 
 	    std::stringstream select;
 		select << "SELECT idClient  FROM HC_DB.Client ";
 		select << " WHERE clientName = '" << deviceName << "'";
 
-		auto deviceSelect = sess.sql(select.str()).execute();
+		auto deviceSelect = mSession.sql(select.str()).execute();
 
 		mysqlx::Row row = deviceSelect.fetchOne();
 		result = row[0];
@@ -355,14 +353,14 @@ void HomeControlDal::logLocation(int deviceId, double lat, double lon, double ac
 		insertCmd << " Values (" << deviceId << ", " << lat << ", " << lon << ", " << accuracy << ", '" << buffer << "')";
 		VLOG(1) << "insertCmd: " << insertCmd.str();
 
-		mysqlx::Session sess(mServer, mPort, mUser, mPwd, mDb);
-
-		sess.sql(insertCmd.str()).execute();
+		mSession.sql(insertCmd.str()).execute();
+		mSession.commit();
 
 		std::stringstream update;
 		update << "UPDATE Client SET lastMessage = NOW(), batteryLevel = " << batteryLevel << " Where idClient = " << deviceId;
 		VLOG(1) << "update: " << update.str();
-		sess.sql(update.str()).execute();
+		mSession.sql(update.str()).execute();
+		mSession.commit();
 	}
 	catch (std::exception &ex)
 	{

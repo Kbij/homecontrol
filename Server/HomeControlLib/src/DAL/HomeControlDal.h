@@ -8,6 +8,7 @@
 #ifndef DAL_HOMECONTROLDAL_H_
 #define DAL_HOMECONTROLDAL_H_
 #include "HomeControlDalIf.h"
+#include <mysqlx/xdevapi.h>
 #include <string>
 #include <map>
 
@@ -38,6 +39,7 @@ private:
 	const std::string mUser;
 	const std::string mPwd;
 	std::map<std::string, bool> mHeaterState;
+	mysqlx::Session mSession;
 
 };
 
