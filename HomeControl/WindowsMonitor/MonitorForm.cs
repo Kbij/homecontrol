@@ -21,13 +21,13 @@ namespace WindowsMonitor
             mLocations = new Dictionary<string, GpsClient>();
             mHome = new GpsLocation(51.0536, 3.64393, 0, DateTime.Now);
             mDal = new LocationDal();
-            cmbHours.Items.Add(new Item("6", 6));
-            cmbHours.Items.Add(new Item("12", 12));
-            cmbHours.Items.Add(new Item("24", 24));
-            cmbHours.Items.Add(new Item("48", 48));
-            cmbHours.Items.Add(new Item("240", 240));
-            cmbHours.Items.Add(new Item("1 Month", 24 * 31));
-            cmbHours.Items.Add(new Item("6 Months", 24 * 31 * 6));
+            cmbHours.Items.Add(new Item("6", 6 * 60));
+            cmbHours.Items.Add(new Item("12", 12 * 60));
+            cmbHours.Items.Add(new Item("24", 24 * 60));
+            cmbHours.Items.Add(new Item("48", 48 * 60));
+            cmbHours.Items.Add(new Item("240", 240 * 60));
+            cmbHours.Items.Add(new Item("1 Month", 24 * 31 * 60));
+            cmbHours.Items.Add(new Item("6 Months", 24 * 31 * 6 * 60));
             cmbHours.SelectedIndex = 0;
         }
 

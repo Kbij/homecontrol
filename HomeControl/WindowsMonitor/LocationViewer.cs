@@ -56,18 +56,20 @@ namespace WindowsMonitor
                 {
                     lstSource.Items.Add(client);
                 }
-                cmbHours.Items.Add(new Item("1", 1));
-                cmbHours.Items.Add(new Item("2", 2));
-                cmbHours.Items.Add(new Item("6", 6));
-                cmbHours.Items.Add(new Item("12", 12));
-                cmbHours.Items.Add(new Item("24", 24));
-                cmbHours.Items.Add(new Item("48", 48));
-                cmbHours.Items.Add(new Item("240", 240));
-                cmbHours.Items.Add(new Item("1 Month", 24 * 31));
-                cmbHours.Items.Add(new Item("6 Months", 24 * 31 * 6));
-                cmbHours.Items.Add(new Item("1y", 24 * 31 * 12));
-                cmbHours.Items.Add(new Item("2y", 24 * 31 * 12 * 2));
-                cmbHours.Items.Add(new Item("5y", 24 * 31 * 12 * 5));
+                cmbHours.Items.Add(new Item("15 min", 15));
+                cmbHours.Items.Add(new Item("30 min", 30));
+                cmbHours.Items.Add(new Item("1", 1 * 60));
+                cmbHours.Items.Add(new Item("2", 2 * 60));
+                cmbHours.Items.Add(new Item("6", 6 * 60));
+                cmbHours.Items.Add(new Item("12", 12 * 60));
+                cmbHours.Items.Add(new Item("24", 24 * 60));
+                cmbHours.Items.Add(new Item("48", 48 * 60));
+                cmbHours.Items.Add(new Item("240", 240 * 60));
+                cmbHours.Items.Add(new Item("1 Month", 24 * 31 * 60));
+                cmbHours.Items.Add(new Item("6 Months", 24 * 31 * 6 * 60));
+                cmbHours.Items.Add(new Item("1y", 24 * 31 * 12 * 60));
+                cmbHours.Items.Add(new Item("2y", 24 * 31 * 12 * 2 * 60));
+                cmbHours.Items.Add(new Item("5y", 24 * 31 * 12 * 5 * 60));
                 cmbHours.SelectedIndex = 0;
                 tmrRefresh.Enabled = true;
             }
