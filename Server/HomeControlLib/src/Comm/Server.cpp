@@ -158,7 +158,6 @@ void Server::maintenanceThread()
 
 		{
 			std::lock_guard<std::mutex> lock(mDataMutex);
-			VLOG(3) << "Server maintenance, clients: " << mClients.size();
 
 			std::vector<Client*> deletedClients;
 			auto clientIt = mClients.begin();
@@ -167,10 +166,17 @@ void Server::maintenanceThread()
 				if ((*clientIt)->isInactive(MAINTENANCE_INTERVAL_MS))
 				{
 					LOG(INFO) << "Deleting client [" << (*clientIt) << "]: " << (*clientIt)->name() << " because it is inactive";
-					if ((*clientIt)->name() != "")
-					{
-						deletedClients.push_back(*clientIt);
-					}
+					// Always queue for deletion, regardless of name: the old
+					// `name() != ""` guard here compared against the wrong
+					// sentinel (the never-authenticated default name is
+					// "Unknown", never ""), so a client that somehow ended up
+					// with an empty name was erased from mClients but never
+					// pushed to deletedClients - meaning it was never deleted,
+					// its destructor (which closes the socket) never ran, and
+					// the TCP connection leaked forever. Every inactive client
+					// must be deleted; whether we *notify* listeners is a
+					// separate decision, handled below.
+					deletedClients.push_back(*clientIt);
 
 					clientIt = mClients.erase(clientIt);
 
@@ -210,7 +216,14 @@ void Server::maintenanceThread()
 					}
 				}
 
-				if (!clientStillConnected)
+				// Only notify listeners for clients that actually completed the
+				// handshake and got a real name (clientConnected() was only ever
+				// fired for those, in clientAuthenticated()) - a client still
+				// stuck on "Unknown" (handshake timeout) or "" never authenticated,
+				// so it should not generate a clientDisConnected either.
+				bool wasAuthenticated = deletedClient->name() != "Unknown" && !deletedClient->name().empty();
+
+				if (!clientStillConnected && wasAuthenticated)
 				{
 					for(const auto& listener: mCommListeners)
 					{

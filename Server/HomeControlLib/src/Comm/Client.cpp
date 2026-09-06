@@ -22,7 +22,14 @@ const int OBJ_HCNAME = 1;
 const int OBJ_SERVERNAME = 2;
 
 const int CONNECTING_TIMEOUT_MS = 1000;
-const int RECEIVE_TIMEOUT_MS = 5 * 60 * 1000; // 5 Minutes
+// Clients send a keepalive every 30s (see the Android/legacy client's
+// KEEPALIVE_INTERVAL_SECONDS). A half-open connection (e.g. the phone's
+// network interface disappears without a clean FIN/RST - wifi/mobile
+// handover, doze mode, tunnel) produces no socket error, so this silence
+// timeout is the only way the server ever notices. 90s allows for ~3 missed
+// keepalives before the connection is reaped; it used to be 5 minutes, which
+// left stale/"ghost" connections lingering for far too long.
+const int RECEIVE_TIMEOUT_MS = 90 * 1000; // 90 seconds
 }
 
 namespace CommNs {

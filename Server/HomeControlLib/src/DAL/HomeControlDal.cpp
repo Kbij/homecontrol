@@ -210,7 +210,11 @@ int HomeControlDal::locationInterval(const std::string& clientId)
 	try
 	{
 		std::stringstream select;
-		select << "SELECT locationInterval  FROM HC_DB.Client ";
+		// IFNULL: a freshly-inserted Client row (see ObjectWriter::clientConnected) has no
+		// locationInterval yet, so the column is NULL until someone configures one for this
+		// client - coalesce that to 0 here instead of letting the NULL->int conversion below
+		// throw on every maintenance tick for a brand new client.
+		select << "SELECT IFNULL(locationInterval, 0) FROM HC_DB.Client ";
 		select << " WHERE clientName = '" << clientId << "'";
 
 		mysqlx::Session sess(mServer, mPort, mUser, mPwd, mDb);
@@ -219,11 +223,14 @@ int HomeControlDal::locationInterval(const std::string& clientId)
 		auto locationInterval = sess.sql(select.str()).execute();
 
 		mysqlx::Row row = locationInterval.fetchOne();
-		result = row[0];
+		if (row)
+		{
+			result = row[0];
+		}
 	}
 	catch (std::exception &ex)
 	{
-		LOG(ERROR) << "clientConnected, SQLException: " << ex.what();
+		LOG(ERROR) << "locationInterval, SQLException: " << ex.what();
 	}
 
 	VLOG(1) << "Location interval for client: " << clientId << ": " << result;
