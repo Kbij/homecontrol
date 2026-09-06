@@ -7,6 +7,7 @@
 
 #include <DAL/HomeControlDal.h>
 #include <mysqlx/xdevapi.h>
+
 #include <sstream>
 #include <iomanip>
 #include <glog/logging.h>
@@ -216,11 +217,8 @@ int HomeControlDal::locationInterval(const std::string& clientId)
 		// throw on every maintenance tick for a brand new client.
 		select << "SELECT IFNULL(locationInterval, 0) FROM HC_DB.Client ";
 		select << " WHERE clientName = '" << clientId << "'";
-
-		mysqlx::Session sess(mServer, mPort, mUser, mPwd, mDb);
-
-
-		auto locationInterval = sess.sql(select.str()).execute();
+		mysqlx::Session session(mServer, mPort, mUser, mPwd, mDb);
+		auto locationInterval = session.sql(select.str()).execute();
 
 		mysqlx::Row row = locationInterval.fetchOne();
 		if (row)
@@ -323,19 +321,20 @@ int HomeControlDal::findDevice(const std::string& deviceName)
 	int result = -1;
 	try
 	{
-		mysqlx::Session sess(mServer, mPort, mUser, mPwd, mDb);
 
 		std::stringstream insert;
 		insert << "INSERT IGNORE INTO HC_DB.Client (clientName, locationInterval)";
 		insert << " VALUES ('" << deviceName << "', 0); ";
+		mysqlx::Session session(mServer, mPort, mUser, mPwd, mDb);
 
-		sess.sql(insert.str()).execute();
+		session.sql(insert.str()).execute();
+		session.commit();
 
 	    std::stringstream select;
 		select << "SELECT idClient  FROM HC_DB.Client ";
 		select << " WHERE clientName = '" << deviceName << "'";
 
-		auto deviceSelect = sess.sql(select.str()).execute();
+		auto deviceSelect = session.sql(select.str()).execute();
 
 		mysqlx::Row row = deviceSelect.fetchOne();
 		result = row[0];
@@ -352,6 +351,7 @@ int HomeControlDal::findDevice(const std::string& deviceName)
 void HomeControlDal::logLocation(int deviceId, double lat, double lon, double accuracy, double batteryLevel, time_t timestamp)
 {
 	VLOG(1) << "Log location: " << deviceId;
+
 	try
 	{
 		std::stringstream insertCmd;
@@ -362,14 +362,16 @@ void HomeControlDal::logLocation(int deviceId, double lat, double lon, double ac
 		insertCmd << " Values (" << deviceId << ", " << lat << ", " << lon << ", " << accuracy << ", '" << buffer << "')";
 		VLOG(1) << "insertCmd: " << insertCmd.str();
 
-		mysqlx::Session sess(mServer, mPort, mUser, mPwd, mDb);
+		mysqlx::Session session(mServer, mPort, mUser, mPwd, mDb);
 
-		sess.sql(insertCmd.str()).execute();
+		session.sql(insertCmd.str()).execute();
+		session.commit();
 
 		std::stringstream update;
 		update << "UPDATE Client SET lastMessage = NOW(), batteryLevel = " << batteryLevel << " Where idClient = " << deviceId;
 		VLOG(1) << "update: " << update.str();
-		sess.sql(update.str()).execute();
+		session.sql(update.str()).execute();
+		session.commit();
 	}
 	catch (std::exception &ex)
 	{

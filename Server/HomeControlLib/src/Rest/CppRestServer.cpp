@@ -24,7 +24,6 @@ CppRestServer::CppRestServer(int listeningPort, RestServiceIf* service):
 	LOG(INFO) << "Starting rest server on : " << address.str();
 	mListener = new http_listener(address.str());
 	startListener();
-
 }
 
 CppRestServer::~CppRestServer()
@@ -52,6 +51,10 @@ void CppRestServer::stopListener()
 void CppRestServer::handleGet(http_request message)
 {
     VLOG(3) <<  message.to_string();
+
+	//http://x.x.x.x:5836/log?lat=%LAT&lon=%LON&time=%TIME&AID=%AID&BATT=%BATT&ACC=%ACC
+
+
 
     std::vector<utility::string_t> paths = http::uri::split_path(http::uri::decode(message.relative_uri().path()));
     auto params = queryDecode(message.request_uri().query());

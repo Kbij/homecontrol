@@ -213,7 +213,7 @@ if [[ "$component" == "mysqldriver" || "$component" == "all" ]]; then
 	if [ ! -f ./buildlibs/mysql/README.md ]; then
 		git clone https://github.com/mysql/mysql-connector-cpp.git ./buildlibs/mysql
 		cd ./buildlibs/mysql
-		git checkout 8.0.29
+		git checkout 9.2.0
 	fi
 	cd $cwd
 
