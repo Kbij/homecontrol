@@ -39,8 +39,6 @@ private:
 	const std::string mUser;
 	const std::string mPwd;
 	std::map<std::string, bool> mHeaterState;
-	mysqlx::Session mSession;
-
 };
 
 } /* namespace DalNs */

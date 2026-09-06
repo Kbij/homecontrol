@@ -55,11 +55,8 @@ void RestService::logPosition(const std::string& device, const std::string& time
             double batt = std::stod(battStr);
             double accuracy = std::stod(accuracyStr);
             time_t time = iso8601ToEpoch(timestampStr);
-        //2025-01-21T20:37:17.386Z
-//timestampStr
 
             mHomeControlDal->logLocation(mDevices[device], lat, lon, accuracy, batt, time);
-
         }
     }
 }

@@ -7,6 +7,7 @@
 
 #include <DAL/HomeControlDal.h>
 #include <mysqlx/xdevapi.h>
+
 #include <sstream>
 #include <iomanip>
 #include <glog/logging.h>
@@ -20,8 +21,7 @@ HomeControlDal::HomeControlDal(const std::string& server, int port, const std::s
 	mDb(db),
 	mUser(user),
 	mPwd(pwd),
-	mHeaterState(),
-	mSession(mServer, mPort, mUser, mPwd, mDb)
+	mHeaterState()
 {
 	LOG(INFO) << "SQL Server: " << server;
 }
@@ -318,15 +318,16 @@ int HomeControlDal::findDevice(const std::string& deviceName)
 		std::stringstream insert;
 		insert << "INSERT IGNORE INTO HC_DB.Client (clientName, locationInterval)";
 		insert << " VALUES ('" << deviceName << "', 0); ";
+		mysqlx::Session session(mServer, mPort, mUser, mPwd, mDb);
 
-		mSession.sql(insert.str()).execute();
-		mSession.commit();
+		session.sql(insert.str()).execute();
+		session.commit();
 
 	    std::stringstream select;
 		select << "SELECT idClient  FROM HC_DB.Client ";
 		select << " WHERE clientName = '" << deviceName << "'";
 
-		auto deviceSelect = mSession.sql(select.str()).execute();
+		auto deviceSelect = session.sql(select.str()).execute();
 
 		mysqlx::Row row = deviceSelect.fetchOne();
 		result = row[0];
@@ -343,6 +344,7 @@ int HomeControlDal::findDevice(const std::string& deviceName)
 void HomeControlDal::logLocation(int deviceId, double lat, double lon, double accuracy, double batteryLevel, time_t timestamp)
 {
 	VLOG(1) << "Log location: " << deviceId;
+
 	try
 	{
 		std::stringstream insertCmd;
@@ -353,14 +355,16 @@ void HomeControlDal::logLocation(int deviceId, double lat, double lon, double ac
 		insertCmd << " Values (" << deviceId << ", " << lat << ", " << lon << ", " << accuracy << ", '" << buffer << "')";
 		VLOG(1) << "insertCmd: " << insertCmd.str();
 
-		mSession.sql(insertCmd.str()).execute();
-		mSession.commit();
+		mysqlx::Session session(mServer, mPort, mUser, mPwd, mDb);
+
+		session.sql(insertCmd.str()).execute();
+		session.commit();
 
 		std::stringstream update;
 		update << "UPDATE Client SET lastMessage = NOW(), batteryLevel = " << batteryLevel << " Where idClient = " << deviceId;
 		VLOG(1) << "update: " << update.str();
-		mSession.sql(update.str()).execute();
-		mSession.commit();
+		session.sql(update.str()).execute();
+		session.commit();
 	}
 	catch (std::exception &ex)
 	{

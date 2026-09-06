@@ -205,8 +205,8 @@ int main (int argc, char* argv[])
 
 		DalNs::ObjectWriter* writer = new DalNs::ObjectWriter(FLAGS_dbserver, 33060, "HC_DB", "hc", "bugs bunny");
 		DalNs::HomeControlDal* dal = new DalNs::HomeControlDal(FLAGS_dbserver, 33060, "HC_DB", "hc", "bugs bunny");
-        RestServerNs::RestService* restService = new RestServerNs::RestService(dal);
-        RestServerNs::CppRestServer* cppRestServer = new RestServerNs::CppRestServer(5836, restService);
+		RestServerNs::RestService* restService = new RestServerNs::RestService(dal);
+		RestServerNs::CppRestServer* cppRestServer = new RestServerNs::CppRestServer(5836, restService);
 
 		CommNs::SocketFactory* factory = new CommNs::SocketFactory;
 		CommNs::Server* server = new CommNs::Server(factory, 5678, dal);
