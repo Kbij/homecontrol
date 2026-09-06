@@ -14,6 +14,8 @@
 #include "TemperatureMonitoring.h"
 #include "TemperatureUp.h"
 #include "TemperatureDown.h"
+#include "AdminAuthRequest.h"
+#include "LocationHistoryRequest.h"
 
 namespace CommNs {
 
@@ -41,6 +43,9 @@ CommObjectIf* ObjectFactory::createObject(uint8_t objectId, const std::string& j
 
 		case 30: return new TemperatureUp(json);
 		case 31: return new TemperatureDown(json);
+
+		case 40: return new AdminAuthRequest(json);
+		case 43: return new LocationHistoryRequest(json);
 		default: return nullptr;
 	}
 

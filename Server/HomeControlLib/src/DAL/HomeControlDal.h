@@ -8,7 +8,6 @@
 #ifndef DAL_HOMECONTROLDAL_H_
 #define DAL_HOMECONTROLDAL_H_
 #include "HomeControlDalIf.h"
-#include <mysqlx/xdevapi.h>
 #include <string>
 #include <map>
 
@@ -31,6 +30,10 @@ public:
 	int findDevice(const std::string& device);
 	void logLocation(int deviceId, double lat, double lon, double accuracy, double batteryLevel, time_t timestamp);
 
+	std::string adminCode(const std::string& clientId);
+	std::vector<std::string> allClientNames();
+	std::vector<LocationPoint> locationHistory(const std::string& clientId, int minutes);
+
 private:
 	void writeHeaterState(const std::string& roomId, bool state);
 	const std::string mServer;
@@ -39,6 +42,7 @@ private:
 	const std::string mUser;
 	const std::string mPwd;
 	std::map<std::string, bool> mHeaterState;
+
 };
 
 } /* namespace DalNs */

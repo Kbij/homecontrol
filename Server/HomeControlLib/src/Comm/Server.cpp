@@ -14,6 +14,7 @@
 #include "CommListenerIf.h"
 #include "CommObjects/CommObjectIf.h"
 #include "CommObjects/LocationInterval.h"
+#include "CommObjects/AdminCapability.h"
 #include "DAL/HomeControlDalIf.h"
 #include <glog/logging.h>
 
@@ -196,6 +197,24 @@ void Server::maintenanceThread()
 							std::string json = locationInterval.json();
 							std::vector<uint8_t> jsonFrame(json.begin(),json.end());
 							(*clientIt)->sendFrame(locationInterval.objectId(), jsonFrame);
+						}
+
+						// Same poll-and-push pattern as locationInterval above: adminCode is
+						// only ever read here to decide whether to *notify* the client that
+						// admin mode is available - it is not itself a security check. Every
+						// actual privileged request re-checks adminCode live against the
+						// database (see AdminController), so a stale/racy read of this flag
+						// can never grant access, only affect whether the UI offers it.
+						bool isAdmin = !mDal->adminCode((*clientIt)->name()).empty();
+						if (isAdmin != (*clientIt)->isAdmin())
+						{
+							LOG(INFO) << "Admin capability change for client: " << (*clientIt)->name() << ", isAdmin: " << isAdmin;
+							(*clientIt)->isAdmin(isAdmin);
+
+							AdminCapability adminCapability(isAdmin);
+							std::string adminJson = adminCapability.json();
+							std::vector<uint8_t> adminJsonFrame(adminJson.begin(),adminJson.end());
+							(*clientIt)->sendFrame(adminCapability.objectId(), adminJsonFrame);
 						}
 					}
 

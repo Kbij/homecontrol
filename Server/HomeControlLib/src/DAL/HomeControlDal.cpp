@@ -7,7 +7,6 @@
 
 #include <DAL/HomeControlDal.h>
 #include <mysqlx/xdevapi.h>
-
 #include <sstream>
 #include <iomanip>
 #include <glog/logging.h>
@@ -217,8 +216,11 @@ int HomeControlDal::locationInterval(const std::string& clientId)
 		// throw on every maintenance tick for a brand new client.
 		select << "SELECT IFNULL(locationInterval, 0) FROM HC_DB.Client ";
 		select << " WHERE clientName = '" << clientId << "'";
-		mysqlx::Session session(mServer, mPort, mUser, mPwd, mDb);
-		auto locationInterval = session.sql(select.str()).execute();
+
+		mysqlx::Session sess(mServer, mPort, mUser, mPwd, mDb);
+
+
+		auto locationInterval = sess.sql(select.str()).execute();
 
 		mysqlx::Row row = locationInterval.fetchOne();
 		if (row)
@@ -321,20 +323,19 @@ int HomeControlDal::findDevice(const std::string& deviceName)
 	int result = -1;
 	try
 	{
+		mysqlx::Session sess(mServer, mPort, mUser, mPwd, mDb);
 
 		std::stringstream insert;
 		insert << "INSERT IGNORE INTO HC_DB.Client (clientName, locationInterval)";
 		insert << " VALUES ('" << deviceName << "', 0); ";
-		mysqlx::Session session(mServer, mPort, mUser, mPwd, mDb);
 
-		session.sql(insert.str()).execute();
-		session.commit();
+		sess.sql(insert.str()).execute();
 
 	    std::stringstream select;
 		select << "SELECT idClient  FROM HC_DB.Client ";
 		select << " WHERE clientName = '" << deviceName << "'";
 
-		auto deviceSelect = session.sql(select.str()).execute();
+		auto deviceSelect = sess.sql(select.str()).execute();
 
 		mysqlx::Row row = deviceSelect.fetchOne();
 		result = row[0];
@@ -351,7 +352,6 @@ int HomeControlDal::findDevice(const std::string& deviceName)
 void HomeControlDal::logLocation(int deviceId, double lat, double lon, double accuracy, double batteryLevel, time_t timestamp)
 {
 	VLOG(1) << "Log location: " << deviceId;
-
 	try
 	{
 		std::stringstream insertCmd;
@@ -362,21 +362,109 @@ void HomeControlDal::logLocation(int deviceId, double lat, double lon, double ac
 		insertCmd << " Values (" << deviceId << ", " << lat << ", " << lon << ", " << accuracy << ", '" << buffer << "')";
 		VLOG(1) << "insertCmd: " << insertCmd.str();
 
-		mysqlx::Session session(mServer, mPort, mUser, mPwd, mDb);
+		mysqlx::Session sess(mServer, mPort, mUser, mPwd, mDb);
 
-		session.sql(insertCmd.str()).execute();
-		session.commit();
+		sess.sql(insertCmd.str()).execute();
 
 		std::stringstream update;
 		update << "UPDATE Client SET lastMessage = NOW(), batteryLevel = " << batteryLevel << " Where idClient = " << deviceId;
 		VLOG(1) << "update: " << update.str();
-		session.sql(update.str()).execute();
-		session.commit();
+		sess.sql(update.str()).execute();
 	}
 	catch (std::exception &ex)
 	{
 		LOG(ERROR) << "logLocation, SQLException: " << ex.what();
 	}
+}
+
+std::string HomeControlDal::adminCode(const std::string& clientId)
+{
+	VLOG(1) << "Find admin code for client: " << clientId;
+	std::string result;
+	try
+	{
+		std::stringstream select;
+		// IFNULL: a client with no admin PIN configured has a NULL adminCode column;
+		// coalesce that to "" so the string<->NULL conversion doesn't throw, same as
+		// locationInterval() does above for its own nullable column.
+		select << "SELECT IFNULL(adminCode, '') FROM HC_DB.Client ";
+		select << " WHERE clientName = '" << clientId << "'";
+
+		mysqlx::Session sess(mServer, mPort, mUser, mPwd, mDb);
+
+		auto adminCodeResult = sess.sql(select.str()).execute();
+
+		mysqlx::Row row = adminCodeResult.fetchOne();
+		if (row)
+		{
+			result = (std::string) row[0];
+		}
+	}
+	catch (std::exception &ex)
+	{
+		LOG(ERROR) << "adminCode, SQLException: " << ex.what();
+	}
+
+	return result;
+}
+
+std::vector<std::string> HomeControlDal::allClientNames()
+{
+	VLOG(1) << "Find all client names";
+	std::vector<std::string> result;
+	try
+	{
+		std::stringstream select;
+		select << "SELECT clientName FROM HC_DB.Client ORDER BY clientName";
+
+		mysqlx::Session sess(mServer, mPort, mUser, mPwd, mDb);
+
+		auto clientResult = sess.sql(select.str()).execute();
+		for (mysqlx::Row row : clientResult.fetchAll())
+		{
+			result.push_back((std::string) row[0]);
+		}
+	}
+	catch (std::exception &ex)
+	{
+		LOG(ERROR) << "allClientNames, SQLException: " << ex.what();
+	}
+
+	return result;
+}
+
+std::vector<LocationPoint> HomeControlDal::locationHistory(const std::string& clientId, int minutes)
+{
+	VLOG(1) << "Location history for client: " << clientId << ", minutes: " << minutes;
+	std::vector<LocationPoint> result;
+	try
+	{
+		std::stringstream select;
+		select << "SELECT latitude, longitude, UNIX_TIMESTAMP(timestamp) FROM Location ";
+		select << " INNER JOIN Client ON Location.idClient = Client.idClient ";
+		select << " WHERE Client.clientName = '" << clientId << "' ";
+		select << " AND timestamp >= NOW() - INTERVAL " << minutes << " MINUTE ";
+		select << " ORDER BY timestamp ASC";
+
+		mysqlx::Session sess(mServer, mPort, mUser, mPwd, mDb);
+
+		auto historyResult = sess.sql(select.str()).execute();
+		for (mysqlx::Row row : historyResult.fetchAll())
+		{
+			LocationPoint point;
+			point.Latitude = row[0];
+			point.Longitude = row[1];
+			point.Timestamp = (time_t)(int64_t) row[2];
+			result.push_back(point);
+		}
+	}
+	catch (std::exception &ex)
+	{
+		LOG(ERROR) << "locationHistory, SQLException: " << ex.what();
+	}
+
+	VLOG(1) << "Location history for client: " << clientId << ": " << result.size() << " points";
+	return result;
 }
 
 } /* namespace DalNs */

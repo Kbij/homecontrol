@@ -31,6 +31,8 @@ public:
 	void sendFrame(uint8_t objectId, const std::vector<uint8_t>& frame);
 	int locationInterval();
 	void locationInterval(int interval);
+	bool isAdmin();
+	void isAdmin(bool isAdmin);
 
 	//SocketListenerIf
 	std::string name() const {return mName;};
@@ -45,6 +47,7 @@ private:
 	int mConnectingTime;
 	int mLastFrameTime;
 	int mLocationInterval;
+	bool mIsAdmin;
 	std::mutex mDataMutex;
 };
 

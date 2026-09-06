@@ -20,6 +20,7 @@
 #include "Logic/ObjectPrinter.h"
 #include "Logic/TemperatureFilter.h"
 #include "Logic/CommRouter.h"
+#include "Logic/AdminController.h"
 #include "Logic/SystemClock.h"
 #include "Logic/Timer.h"
 #include "Logic/HeaterControl.h"
@@ -205,13 +206,19 @@ int main (int argc, char* argv[])
 
 		DalNs::ObjectWriter* writer = new DalNs::ObjectWriter(FLAGS_dbserver, 33060, "HC_DB", "hc", "bugs bunny");
 		DalNs::HomeControlDal* dal = new DalNs::HomeControlDal(FLAGS_dbserver, 33060, "HC_DB", "hc", "bugs bunny");
-		RestServerNs::RestService* restService = new RestServerNs::RestService(dal);
-		RestServerNs::CppRestServer* cppRestServer = new RestServerNs::CppRestServer(5836, restService);
+        RestServerNs::RestService* restService = new RestServerNs::RestService(dal);
+        RestServerNs::CppRestServer* cppRestServer = new RestServerNs::CppRestServer(5836, restService);
 
 		CommNs::SocketFactory* factory = new CommNs::SocketFactory;
 		CommNs::Server* server = new CommNs::Server(factory, 5678, dal);
 
 		server->registerCommListener(writer);
+
+		// Admin mode (swipe-left live-location screen in HARemote): independent of the
+		// temperature/heater hardware below, so - unlike CommRouter - it's constructed
+		// unconditionally rather than only when FLAGS_serial/FLAGS_simulate is set.
+		LogicNs::AdminController* adminController = new LogicNs::AdminController(dal, server);
+
 		HwNs::I2C* i2c = nullptr;
 		HwNs::RelaisDriver* relais = nullptr;
 		LogicNs::HeaterControl* heaterControl = nullptr;
@@ -255,6 +262,8 @@ int main (int argc, char* argv[])
     	// Wait until application stopped by a signal handler
         std::unique_lock<std::mutex> lk(exitMutex);
         exitCv.wait(lk, []{return exitMain;});
+
+        delete adminController;
 
         if (commRouter) delete commRouter;
         if (tempWriter) delete tempWriter;

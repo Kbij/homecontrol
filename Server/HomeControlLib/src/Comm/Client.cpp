@@ -42,6 +42,7 @@ Client::Client(std::shared_ptr<ClientSocketIf> clientSocket, ClientListenerIf* c
 	mConnectingTime(0),
 	mLastFrameTime(0),
 	mLocationInterval(0),
+	mIsAdmin(false),
 	mDataMutex()
 {
 	mClientSocket->registerSocketListener(this);
@@ -122,6 +123,16 @@ int Client::locationInterval()
 void Client::locationInterval(int interval)
 {
 	mLocationInterval = interval;
+}
+
+bool Client::isAdmin()
+{
+	return mIsAdmin;
+}
+
+void Client::isAdmin(bool isAdmin)
+{
+	mIsAdmin = isAdmin;
 }
 
 void Client::receiveFrame(uint8_t objectId, const std::vector<uint8_t>& frame)

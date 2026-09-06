@@ -11,6 +11,7 @@
 #include <vector>
 #include <stdint.h>
 #include <sstream>
+#include <ctime>
 
 namespace DalNs {
 struct RoomConfig
@@ -25,6 +26,16 @@ struct RoomConfig
 		ss << "RoomId: " << RoomId << ", RoomName: " << RoomName << ", HeaterOutput: " << (int) HeaterOutput;
 		return ss.str();
 	}
+};
+
+// Kept separate from CommNs::LocationPoint (see CommObjects/LocationHistoryResponse.h) -
+// same shape, but the DAL and protocol layers deliberately don't share types here (compare
+// RoomConfig above vs. CommNs::Room).
+struct LocationPoint
+{
+	double Latitude;
+	double Longitude;
+	time_t Timestamp;
 };
 
 class HomeControlDalIf
@@ -43,6 +54,12 @@ public:
 
 	virtual int findDevice(const std::string& device) = 0;
 	virtual void logLocation(int deviceId, double lat, double lon, double accuracy, double batteryLevel, time_t timestamp) = 0;
+
+	// Admin mode (see Logic/AdminController): empty string means the client has no admin
+	// PIN configured, i.e. admin mode is unavailable for it.
+	virtual std::string adminCode(const std::string& clientId) = 0;
+	virtual std::vector<std::string> allClientNames() = 0;
+	virtual std::vector<LocationPoint> locationHistory(const std::string& clientId, int minutes) = 0;
 
 };
 
