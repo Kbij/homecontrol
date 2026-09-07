@@ -33,6 +33,7 @@ public:
 	std::string adminCode(const std::string& clientId);
 	std::vector<std::string> allClientNames();
 	std::vector<LocationPoint> locationHistory(const std::string& clientId, int minutes);
+	time_t lastMessage(const std::string& clientId);
 
 	void updateGeofence(const std::string& clientId, double lat, double lon, double radiusMeters);
 	void clearGeofence(const std::string& clientId);

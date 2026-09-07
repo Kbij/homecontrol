@@ -49,6 +49,11 @@ public:
 	 *  from json() - the admin map only draws a circle when this was set with active=true. */
 	void setGeofence(bool active, double lat, double lon, double radiusMeters, time_t createdAt, time_t updatedAt);
 
+	/** Sets Client.lastMessage - when the server last heard *anything* from this client
+	 *  (including keepalives), as opposed to the timestamp of its last *location* point above.
+	 *  Always included in json() (0 = unknown), unlike the geofence field which is conditional. */
+	void setLastConnection(time_t lastConnection);
+
 private:
 	std::string mClientName;
 	std::vector<LocationPoint> mPoints;
@@ -58,6 +63,7 @@ private:
 	double mGeofenceRadiusMeters;
 	time_t mGeofenceCreatedAt;
 	time_t mGeofenceUpdatedAt;
+	time_t mLastConnection;
 };
 
 } /* namespace CommNs */

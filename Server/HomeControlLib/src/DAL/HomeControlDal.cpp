@@ -513,6 +513,35 @@ void HomeControlDal::clearGeofence(const std::string& clientId)
 	}
 }
 
+time_t HomeControlDal::lastMessage(const std::string& clientId)
+{
+	VLOG(1) << "Find last message time for client: " << clientId;
+	time_t result = 0;
+	try
+	{
+		std::stringstream select;
+		// IFNULL, same reasoning as locationInterval()/adminCode() above.
+		select << "SELECT IFNULL(UNIX_TIMESTAMP(lastMessage), 0) FROM HC_DB.Client ";
+		select << " WHERE clientName = '" << clientId << "'";
+
+		mysqlx::Session sess(mServer, mPort, mUser, mPwd, mDb);
+
+		auto lastMessageResult = sess.sql(select.str()).execute();
+
+		mysqlx::Row row = lastMessageResult.fetchOne();
+		if (row)
+		{
+			result = (time_t)(int64_t) row[0];
+		}
+	}
+	catch (std::exception &ex)
+	{
+		LOG(ERROR) << "lastMessage, SQLException: " << ex.what();
+	}
+
+	return result;
+}
+
 GeofenceInfo HomeControlDal::geofence(const std::string& clientId)
 {
 	GeofenceInfo result{false, 0.0, 0.0, 0.0, 0, 0};

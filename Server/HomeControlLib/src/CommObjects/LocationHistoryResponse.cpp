@@ -17,7 +17,8 @@ LocationHistoryResponse::LocationHistoryResponse(const std::string& clientName):
 	mGeofenceLon(0.0),
 	mGeofenceRadiusMeters(0.0),
 	mGeofenceCreatedAt(0),
-	mGeofenceUpdatedAt(0)
+	mGeofenceUpdatedAt(0),
+	mLastConnection(0)
 {
 }
 
@@ -56,6 +57,10 @@ std::string LocationHistoryResponse::json() const
 	}
 	root["points"] = pointArray;
 
+	// Always included (0 = unknown), unlike "geofence" below which is conditional - the admin
+	// map always has *some* connection-freshness to show, even for a client with no geofence.
+	root["lastConnection"] = static_cast<Json::Int64>(mLastConnection) * 1000;
+
 	if (mGeofenceActive)
 	{
 		Json::Value geofence;
@@ -84,5 +89,10 @@ void LocationHistoryResponse::setGeofence(bool active, double lat, double lon, d
 	mGeofenceRadiusMeters = radiusMeters;
 	mGeofenceCreatedAt = createdAt;
 	mGeofenceUpdatedAt = updatedAt;
+}
+
+void LocationHistoryResponse::setLastConnection(time_t lastConnection)
+{
+	mLastConnection = lastConnection;
 }
 } /* namespace CommNs */

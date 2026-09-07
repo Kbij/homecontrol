@@ -69,6 +69,15 @@ void AdminController::receiveObject(const std::string name, const CommNs::CommOb
 			notifyLocationWatchers(name, location);
 		}
 	}
+	if (object->objectId() == 0)
+	{
+		// KeepAlive: no location/geofence data changed, but Client.lastMessage just did (see
+		// ObjectWriter::receiveObject, which updates it on every message) - push so "laatste
+		// connectie" on the admin map stays live even while the client is stationary and not
+		// otherwise triggering a push (no fresh GpsLocation to hand notifyLocationWatchers here,
+		// same as the GeofenceStatus case - a few ms of staleness on this field is harmless).
+		notifyLocationWatchers(name, nullptr);
+	}
 }
 
 bool AdminController::isAdmin(const std::string& clientName)
@@ -197,6 +206,8 @@ void AdminController::sendLocationHistoryResponse(const std::string& requester, 
 		response->setGeofence(true, geofence.Latitude, geofence.Longitude, geofence.RadiusMeters,
 			geofence.CreatedAt, geofence.UpdatedAt);
 	}
+
+	response->setLastConnection(mDal->lastMessage(clientName));
 
 	//CommServer takes ownership of the object (and free's the object)
 	mCommServer->sendObject(requester, response);

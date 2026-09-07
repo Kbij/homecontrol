@@ -73,6 +73,12 @@ public:
 	virtual std::vector<std::string> allClientNames() = 0;
 	virtual std::vector<LocationPoint> locationHistory(const std::string& clientId, int minutes) = 0;
 
+	// Client.lastMessage - updated (see ObjectWriter::receiveObject) on *every* message from
+	// this client, including keepalives, not just GpsLocation - i.e. "last time this client was
+	// heard from at all", shown on the admin map alongside (and distinct from) the last GPS fix
+	// timestamp. 0 means unknown (client never connected).
+	virtual time_t lastMessage(const std::string& clientId) = 0;
+
 	// Geofencing (see Logic/AdminController, CommObjects/GeofenceStatus). The client always
 	// reports its *current* fence unconditionally; updateGeofence() itself decides create vs.
 	// renew (whether CreatedAt already has a value), so there's no separate "create" call.
