@@ -44,9 +44,20 @@ public:
 
 	void addPoint(const LocationPoint& point);
 
+	/** Attaches the client's current geofence (see DalNs::GeofenceInfo), if any. Not called
+	 *  at all (or called with active=false) means the "geofence" field is simply omitted
+	 *  from json() - the admin map only draws a circle when this was set with active=true. */
+	void setGeofence(bool active, double lat, double lon, double radiusMeters, time_t createdAt, time_t updatedAt);
+
 private:
 	std::string mClientName;
 	std::vector<LocationPoint> mPoints;
+	bool mGeofenceActive;
+	double mGeofenceLat;
+	double mGeofenceLon;
+	double mGeofenceRadiusMeters;
+	time_t mGeofenceCreatedAt;
+	time_t mGeofenceUpdatedAt;
 };
 
 } /* namespace CommNs */

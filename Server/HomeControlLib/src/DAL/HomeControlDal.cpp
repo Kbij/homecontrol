@@ -467,4 +467,86 @@ std::vector<LocationPoint> HomeControlDal::locationHistory(const std::string& cl
 	return result;
 }
 
+void HomeControlDal::updateGeofence(const std::string& clientId, double lat, double lon, double radiusMeters)
+{
+	VLOG(1) << "Update geofence for client: " << clientId << ", lat: " << lat << ", lon: " << lon << ", radius: " << radiusMeters;
+	try
+	{
+		std::stringstream update;
+		// geofenceCreatedAt is only set the *first* time this fires for a fresh geofence
+		// (i.e. while it's still NULL) - every later call (a 30-min renewal, or a repeated
+		// report of the same fence) only touches geofenceUpdatedAt, leaving the original
+		// creation time and center/radius alone. That's what makes CreatedAt vs. UpdatedAt
+		// meaningful to show separately on the admin map (see AdminController).
+		update << "UPDATE HC_DB.Client SET ";
+		update << " geofenceLat = " << lat << ", geofenceLon = " << lon << ", geofenceRadius = " << radiusMeters << ", ";
+		update << " geofenceCreatedAt = IF(geofenceCreatedAt IS NULL, NOW(), geofenceCreatedAt), ";
+		update << " geofenceUpdatedAt = NOW() ";
+		update << " WHERE clientName = '" << clientId << "'";
+
+		mysqlx::Session sess(mServer, mPort, mUser, mPwd, mDb);
+		sess.sql(update.str()).execute();
+	}
+	catch (std::exception &ex)
+	{
+		LOG(ERROR) << "updateGeofence, SQLException: " << ex.what();
+	}
+}
+
+void HomeControlDal::clearGeofence(const std::string& clientId)
+{
+	VLOG(1) << "Clear geofence for client: " << clientId;
+	try
+	{
+		std::stringstream update;
+		update << "UPDATE HC_DB.Client SET ";
+		update << " geofenceLat = NULL, geofenceLon = NULL, geofenceRadius = NULL, ";
+		update << " geofenceCreatedAt = NULL, geofenceUpdatedAt = NULL ";
+		update << " WHERE clientName = '" << clientId << "'";
+
+		mysqlx::Session sess(mServer, mPort, mUser, mPwd, mDb);
+		sess.sql(update.str()).execute();
+	}
+	catch (std::exception &ex)
+	{
+		LOG(ERROR) << "clearGeofence, SQLException: " << ex.what();
+	}
+}
+
+GeofenceInfo HomeControlDal::geofence(const std::string& clientId)
+{
+	GeofenceInfo result{false, 0.0, 0.0, 0.0, 0, 0};
+	try
+	{
+		std::stringstream select;
+		// IFNULL throughout, same reasoning as locationInterval()/adminCode() above; the
+		// explicit "geofenceCreatedAt IS NOT NULL" column is the one field that actually
+		// distinguishes "no active geofence" from "one exists with (unlikely) zero values".
+		select << "SELECT IFNULL(geofenceLat, 0), IFNULL(geofenceLon, 0), IFNULL(geofenceRadius, 0), ";
+		select << " IFNULL(UNIX_TIMESTAMP(geofenceCreatedAt), 0), IFNULL(UNIX_TIMESTAMP(geofenceUpdatedAt), 0), ";
+		select << " (geofenceCreatedAt IS NOT NULL) ";
+		select << " FROM HC_DB.Client WHERE clientName = '" << clientId << "'";
+
+		mysqlx::Session sess(mServer, mPort, mUser, mPwd, mDb);
+		auto geofenceResult = sess.sql(select.str()).execute();
+
+		mysqlx::Row row = geofenceResult.fetchOne();
+		if (row)
+		{
+			result.Latitude = row[0];
+			result.Longitude = row[1];
+			result.RadiusMeters = row[2];
+			result.CreatedAt = (time_t)(int64_t) row[3];
+			result.UpdatedAt = (time_t)(int64_t) row[4];
+			result.Active = ((int) row[5]) != 0;
+		}
+	}
+	catch (std::exception &ex)
+	{
+		LOG(ERROR) << "geofence, SQLException: " << ex.what();
+	}
+
+	return result;
+}
+
 } /* namespace DalNs */

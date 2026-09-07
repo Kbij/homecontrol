@@ -34,6 +34,10 @@ public:
 	std::vector<std::string> allClientNames();
 	std::vector<LocationPoint> locationHistory(const std::string& clientId, int minutes);
 
+	void updateGeofence(const std::string& clientId, double lat, double lon, double radiusMeters);
+	void clearGeofence(const std::string& clientId);
+	GeofenceInfo geofence(const std::string& clientId);
+
 private:
 	void writeHeaterState(const std::string& roomId, bool state);
 	const std::string mServer;

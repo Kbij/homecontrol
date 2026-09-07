@@ -16,6 +16,7 @@
 #include "TemperatureDown.h"
 #include "AdminAuthRequest.h"
 #include "LocationHistoryRequest.h"
+#include "GeofenceStatus.h"
 
 namespace CommNs {
 
@@ -46,6 +47,7 @@ CommObjectIf* ObjectFactory::createObject(uint8_t objectId, const std::string& j
 
 		case 40: return new AdminAuthRequest(json);
 		case 43: return new LocationHistoryRequest(json);
+		case 45: return new GeofenceStatus(json);
 		default: return nullptr;
 	}
 

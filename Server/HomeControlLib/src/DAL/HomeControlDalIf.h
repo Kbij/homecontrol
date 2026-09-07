@@ -38,6 +38,18 @@ struct LocationPoint
 	time_t Timestamp;
 };
 
+// Kept separate from CommNs::GeofenceStatus/LocationHistoryResponse's own geofence fields,
+// same convention as LocationPoint above. CreatedAt/UpdatedAt are both 0 when !Active.
+struct GeofenceInfo
+{
+	bool Active;
+	double Latitude;
+	double Longitude;
+	double RadiusMeters;
+	time_t CreatedAt;
+	time_t UpdatedAt;
+};
+
 class HomeControlDalIf
 {
 public:
@@ -60,6 +72,13 @@ public:
 	virtual std::string adminCode(const std::string& clientId) = 0;
 	virtual std::vector<std::string> allClientNames() = 0;
 	virtual std::vector<LocationPoint> locationHistory(const std::string& clientId, int minutes) = 0;
+
+	// Geofencing (see Logic/AdminController, CommObjects/GeofenceStatus). The client always
+	// reports its *current* fence unconditionally; updateGeofence() itself decides create vs.
+	// renew (whether CreatedAt already has a value), so there's no separate "create" call.
+	virtual void updateGeofence(const std::string& clientId, double lat, double lon, double radiusMeters) = 0;
+	virtual void clearGeofence(const std::string& clientId) = 0;
+	virtual GeofenceInfo geofence(const std::string& clientId) = 0;
 
 };
 

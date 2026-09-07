@@ -13,6 +13,7 @@
 #include "CommObjects/ClientList.h"
 #include "CommObjects/LocationHistoryRequest.h"
 #include "CommObjects/LocationHistoryResponse.h"
+#include "CommObjects/GeofenceStatus.h"
 #include <glog/logging.h>
 
 namespace LogicNs {
@@ -48,6 +49,10 @@ void AdminController::receiveObject(const std::string name, const CommNs::CommOb
 	if (object->objectId() == 43)
 	{
 		handleLocationHistoryRequest(name, object);
+	}
+	if (object->objectId() == 45)
+	{
+		handleGeofenceStatus(name, object);
 	}
 }
 
@@ -117,8 +122,35 @@ void AdminController::handleLocationHistoryRequest(const std::string& requester,
 			response->addPoint(commPoint);
 		}
 
+		DalNs::GeofenceInfo geofence = mDal->geofence(request->clientName());
+		if (geofence.Active)
+		{
+			response->setGeofence(true, geofence.Latitude, geofence.Longitude, geofence.RadiusMeters,
+				geofence.CreatedAt, geofence.UpdatedAt);
+		}
+
 		//CommServer takes ownership of the object (and free's the object)
 		mCommServer->sendObject(requester, response);
+	}
+}
+
+void AdminController::handleGeofenceStatus(const std::string& requester, const CommNs::CommObjectIf* object)
+{
+	if (const CommNs::GeofenceStatus* status = dynamic_cast<const CommNs::GeofenceStatus*>(object))
+	{
+		if (!mDal) return;
+
+		if (status->active())
+		{
+			LOG(INFO) << "Geofence reported for client: " << requester << ", lat: " << status->lat()
+				<< ", lon: " << status->lon() << ", radius: " << status->radius();
+			mDal->updateGeofence(requester, status->lat(), status->lon(), status->radius());
+		}
+		else
+		{
+			LOG(INFO) << "Geofence cleared for client: " << requester;
+			mDal->clearGeofence(requester);
+		}
 	}
 }
 
