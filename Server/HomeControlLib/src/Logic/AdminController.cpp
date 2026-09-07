@@ -14,6 +14,7 @@
 #include "CommObjects/LocationHistoryRequest.h"
 #include "CommObjects/LocationHistoryResponse.h"
 #include "CommObjects/GeofenceStatus.h"
+#include "CommObjects/GpsLocation.h"
 #include <glog/logging.h>
 
 namespace LogicNs {
@@ -37,7 +38,11 @@ void AdminController::clientConnected(const std::string& name)
 
 void AdminController::clientDisConnected(const std::string& name)
 {
-	// Nothing to clean up - see clientConnected().
+	// Stop pushing to a watcher that's gone - also covers an admin connection that dropped
+	// without a clean LocationHistoryRequest-based handoff (e.g. app backgrounded/killed);
+	// Server::maintenanceThread calls this once the connection is reaped as inactive.
+	std::lock_guard<std::mutex> lg(mWatchersMutex);
+	mWatchers.erase(name);
 }
 
 void AdminController::receiveObject(const std::string name, const CommNs::CommObjectIf* object)
@@ -53,6 +58,16 @@ void AdminController::receiveObject(const std::string name, const CommNs::CommOb
 	if (object->objectId() == 45)
 	{
 		handleGeofenceStatus(name, object);
+		// DB write already happened synchronously just above, no race - see
+		// notifyLocationWatchers()'s doc comment.
+		notifyLocationWatchers(name, nullptr);
+	}
+	if (object->objectId() == 10)
+	{
+		if (const CommNs::GpsLocation* location = dynamic_cast<const CommNs::GpsLocation*>(object))
+		{
+			notifyLocationWatchers(name, location);
+		}
 	}
 }
 
@@ -104,6 +119,10 @@ void AdminController::handleLocationHistoryRequest(const std::string& requester,
 		if (!isAdmin(requester))
 		{
 			LOG(WARNING) << "LocationHistoryRequest from non-admin client: " << requester << ", denying";
+			{
+				std::lock_guard<std::mutex> lg(mWatchersMutex);
+				mWatchers.erase(requester);
+			}
 			//CommServer takes ownership of the object (and free's the object)
 			mCommServer->sendObject(requester, new CommNs::AdminAuthResult(false));
 			return;
@@ -112,25 +131,12 @@ void AdminController::handleLocationHistoryRequest(const std::string& requester,
 		int minutes = request->minutes() > 0 ? request->minutes() : 60;
 		LOG(INFO) << "Location history requested by: " << requester << ", for client: " << request->clientName() << ", minutes: " << minutes;
 
-		CommNs::LocationHistoryResponse* response = new CommNs::LocationHistoryResponse(request->clientName());
-		for (const auto& point: mDal->locationHistory(request->clientName(), minutes))
 		{
-			CommNs::LocationPoint commPoint;
-			commPoint.Latitude = point.Latitude;
-			commPoint.Longitude = point.Longitude;
-			commPoint.Timestamp = point.Timestamp;
-			response->addPoint(commPoint);
+			std::lock_guard<std::mutex> lg(mWatchersMutex);
+			mWatchers[requester] = Watch{request->clientName(), minutes};
 		}
 
-		DalNs::GeofenceInfo geofence = mDal->geofence(request->clientName());
-		if (geofence.Active)
-		{
-			response->setGeofence(true, geofence.Latitude, geofence.Longitude, geofence.RadiusMeters,
-				geofence.CreatedAt, geofence.UpdatedAt);
-		}
-
-		//CommServer takes ownership of the object (and free's the object)
-		mCommServer->sendObject(requester, response);
+		sendLocationHistoryResponse(requester, request->clientName(), minutes, nullptr);
 	}
 }
 
@@ -151,6 +157,68 @@ void AdminController::handleGeofenceStatus(const std::string& requester, const C
 			LOG(INFO) << "Geofence cleared for client: " << requester;
 			mDal->clearGeofence(requester);
 		}
+	}
+}
+
+void AdminController::sendLocationHistoryResponse(const std::string& requester, const std::string& clientName,
+	int minutes, const CommNs::GpsLocation* freshLocation)
+{
+	if (!mDal || !mCommServer) return;
+
+	CommNs::LocationHistoryResponse* response = new CommNs::LocationHistoryResponse(clientName);
+	for (const auto& point: mDal->locationHistory(clientName, minutes))
+	{
+		CommNs::LocationPoint commPoint;
+		commPoint.Latitude = point.Latitude;
+		commPoint.Longitude = point.Longitude;
+		commPoint.Timestamp = point.Timestamp;
+		response->addPoint(commPoint);
+	}
+
+	if (freshLocation)
+	{
+		// The fix that triggered this push may not be committed to the Location table yet -
+		// ObjectWriter (which does that INSERT) and AdminController are both plain
+		// CommListenerIf's on the same Server::receiveObject broadcast, and Server iterates
+		// them via a std::set<CommListenerIf*> - ordered by pointer value, not registration
+		// order, so there's no guarantee ObjectWriter runs first. Appending it explicitly here,
+		// straight from the object already in hand, sidesteps that race entirely instead of
+		// hoping the DB write landed first.
+		CommNs::LocationPoint freshPoint;
+		freshPoint.Latitude = freshLocation->latitude();
+		freshPoint.Longitude = freshLocation->longitude();
+		freshPoint.Timestamp = freshLocation->timeStamp();
+		response->addPoint(freshPoint);
+	}
+
+	DalNs::GeofenceInfo geofence = mDal->geofence(clientName);
+	if (geofence.Active)
+	{
+		response->setGeofence(true, geofence.Latitude, geofence.Longitude, geofence.RadiusMeters,
+			geofence.CreatedAt, geofence.UpdatedAt);
+	}
+
+	//CommServer takes ownership of the object (and free's the object)
+	mCommServer->sendObject(requester, response);
+}
+
+void AdminController::notifyLocationWatchers(const std::string& clientName, const CommNs::GpsLocation* freshLocation)
+{
+	std::vector<std::pair<std::string, int>> watchers;
+	{
+		std::lock_guard<std::mutex> lg(mWatchersMutex);
+		for (const auto& entry: mWatchers)
+		{
+			if (entry.second.clientName == clientName)
+			{
+				watchers.push_back({entry.first, entry.second.minutes});
+			}
+		}
+	}
+
+	for (const auto& watcher: watchers)
+	{
+		sendLocationHistoryResponse(watcher.first, clientName, watcher.second, freshLocation);
 	}
 }
 
