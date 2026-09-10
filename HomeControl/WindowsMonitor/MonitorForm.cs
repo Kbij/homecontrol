@@ -238,6 +238,16 @@ namespace WindowsMonitor
 
         private void MonitorForm_KeyDown(object sender, KeyEventArgs e)
         {
+            // Ctrl+F11 opens the TCP-based admin live-view (see AdminMapViewer) - checked before
+            // the switch below so it doesn't fall through to F11's own (unrelated) CSV-load
+            // behavior, which is kept as-is on plain F11.
+            if (e.KeyCode == Keys.F11 && e.Control)
+            {
+                AdminMapViewer adminViewer = new AdminMapViewer();
+                adminViewer.Show();
+                return;
+            }
+
             switch (e.KeyCode)
             {
                 case Keys.F11:

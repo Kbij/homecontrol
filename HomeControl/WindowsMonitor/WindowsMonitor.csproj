@@ -90,6 +90,7 @@
       <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.5.0.0\lib\net45\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
     </Reference>
     <Reference Include="System.Transactions" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -111,6 +112,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AdminMapViewer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AdminMapViewer.Designer.cs">
+      <DependentUpon>AdminMapViewer.cs</DependentUpon>
+    </Compile>
+    <Compile Include="AdminTcpClient.cs" />
     <Compile Include="DAL\ExponentialWeightedAverage.cs" />
     <Compile Include="DAL\GpsClient.cs" />
     <Compile Include="DAL\GpsLocation.cs" />
