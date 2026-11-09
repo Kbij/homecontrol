@@ -18,7 +18,7 @@ using RoomTemperature = HomeControl.Logic.RoomTemperature;
 
 namespace HomeControl
 {
-    [Activity(Label = "Home Control", MainLauncher = true, LaunchMode = LaunchMode.SingleInstance, Icon = "@drawable/icon")]
+    [Activity(Label = "Home Control", MainLauncher = true, LaunchMode = LaunchMode.SingleInstance, Icon = "@drawable/icon", Exported = true)]
     public class MainActivity : Activity, ICommReceiver
     {
         private HCServiceBinder mBinder;
@@ -175,10 +175,9 @@ namespace HomeControl
 
         void startHomeControlService()
         {
-            StartForegroundService(new Intent(this, typeof(HomeControlService)));
-
             mLog.SendToHost("MainService", "OnStart");
             Intent hcServiceIntent = new Intent(this, typeof(HomeControlService));
+            StartForegroundService(hcServiceIntent);
 
             mServiceConnection = new HCServiceConnection(this);
             if (BindService(hcServiceIntent, mServiceConnection, Bind.AutoCreate))

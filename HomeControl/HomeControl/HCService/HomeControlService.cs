@@ -17,6 +17,8 @@ using Android.Gms.Location;
 using Android.Gms.Tasks;
 using Android.Gms.Common.Apis;
 using Java.Lang;
+using LocationRequest = Android.Gms.Location.LocationRequest;
+using Android.Content.PM;
 
 namespace HomeControl.HCService
 {
@@ -60,11 +62,9 @@ namespace HomeControl.HCService
         #region lifetime
         public override StartCommandResult OnStartCommand(Android.Content.Intent intent, StartCommandFlags flags, int startId)
         {
-            var channelName = "HCChannel";
-            var channelDescription = "Home Controller Updates";
-            var channel = new NotificationChannel("HCChannelId", channelName, NotificationImportance.Default)
+            var channel = new NotificationChannel("HCChannelId", "HCChannel", NotificationImportance.Default)
             {
-                Description = channelDescription
+                Description = "Home Controller Updates"
             };
 
             var notificationManager = (NotificationManager)GetSystemService(NotificationService);
@@ -75,7 +75,7 @@ namespace HomeControl.HCService
             .SetOngoing(true)
             .Build();
 
-            StartForeground(SERVICE_RUNNING_NOTIFICATION_ID, notification);
+            StartForeground(SERVICE_RUNNING_NOTIFICATION_ID, notification, ForegroundService.TypeLocation);
             mRequestedInterval = 0;
             mLog = new HCLogger("192.168.10.11", 8001, "Service.log");
             mLog.SendToHost("HomeControlService", "HomeControlService started");
