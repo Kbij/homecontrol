@@ -37,13 +37,26 @@ ServerSocket::~ServerSocket()
 
 void ServerSocket::handleAccept(Client* client, const boost::system::error_code& error)
 {
+	if (error == boost::asio::error::operation_aborted)
+	{
+		return; // Shutting down
+	}
+
 	if (!error)
 	{
 		VLOG(1) << "Connection accepted, staring listener";
 		client->start();
-		Client* client = mServer->newClient();
-		mAcceptor.async_accept(client->socket(), boost::bind(&ServerSocket::handleAccept, this, client,boost::asio::placeholders::error));
+		client = mServer->newClient();
 	}
+	else
+	{
+		// Always keep an accept pending: without one, no new client can ever connect again.
+		// Errors like EMFILE fail immediately on retry, so don't spin at full speed.
+		LOG(ERROR) << "Accept failed: " << error.message();
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	}
+
+	mAcceptor.async_accept(client->socket(), boost::bind(&ServerSocket::handleAccept, this, client,boost::asio::placeholders::error));
 }
 
 void ServerSocket::startServerThread()
@@ -71,13 +84,19 @@ void ServerSocket::stopServerThread()
 
 void ServerSocket::serverThread()
 {
-	try
+	// An exception from a handler leaves run(), but the io_service stays usable: resume it,
+	// otherwise a single bad event silently ends all TCP communication.
+	while (mServerThreadRunning)
 	{
-		mIoService.run();
-	}
-	catch(const std::exception& ex)
-	{
-		LOG(ERROR) << "Exception in ServerThread: " << ex.what();
+		try
+		{
+			mIoService.run();
+			break;
+		}
+		catch(const std::exception& ex)
+		{
+			LOG(ERROR) << "Exception in ServerThread, resuming: " << ex.what();
+		}
 	}
 
 	LOG(INFO) << "Server socket thread exiting";

@@ -58,7 +58,18 @@ void ClientSocket::start()
 	mSocket.async_read_some(boost::asio::buffer(mSocketBuffer), boost::bind(&ClientSocket::handleRead, shared_from_this(),
 							boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
 
-	mLocalPort = mSocket.remote_endpoint().port();
+	// The peer can already be gone by the time the accept handler runs. Use the non-throwing
+	// overload: the read queued above then fails and the client is reaped as usual.
+	boost::system::error_code endpointError;
+	auto endpoint = mSocket.remote_endpoint(endpointError);
+	if (!endpointError)
+	{
+		mLocalPort = endpoint.port();
+	}
+	else
+	{
+		LOG(WARNING) << "Client disconnected during accept: " << endpointError.message();
+	}
 }
 
 void ClientSocket::close()
