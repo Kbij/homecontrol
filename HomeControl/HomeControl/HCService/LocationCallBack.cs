@@ -39,6 +39,8 @@ namespace HomeControl.HCService
 
         public override void OnLocationResult(LocationResult result)
         {
+            mLog.SendToHost("HomeControlService", $"OnLocationResult, locations: {result.Locations.Count}");
+
             if (result.Locations.Any())
             {
                 var location = result.Locations.First();
@@ -64,7 +66,7 @@ namespace HomeControl.HCService
                             double distanceTraveled = 0;
                             if (mLastLocation != null)
                             {
-                                distance(mLastLocation, location);
+                                distanceTraveled = distance(mLastLocation, location);
                             }
                             mLastLocation = location;
                             if (mListener != null) mListener.NewLocation(location, distanceTraveled);
