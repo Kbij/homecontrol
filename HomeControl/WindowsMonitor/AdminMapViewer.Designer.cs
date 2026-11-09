@@ -36,6 +36,20 @@ namespace WindowsMonitor
             this.lblLastLocation = new System.Windows.Forms.Label();
             this.lblLastConnection = new System.Windows.Forms.Label();
             this.lblGeofence = new System.Windows.Forms.Label();
+            this.chkAlarmArmed = new System.Windows.Forms.CheckBox();
+            this.nudAlarmDistance = new System.Windows.Forms.NumericUpDown();
+            this.lblAlarmMeters = new System.Windows.Forms.Label();
+            this.btnAlarmAck = new System.Windows.Forms.Button();
+            this.btnAlarmTest = new System.Windows.Forms.Button();
+            this.lblAlarmState = new System.Windows.Forms.Label();
+            this.lblAlarmVolume = new System.Windows.Forms.Label();
+            this.nudAlarmVolume = new System.Windows.Forms.NumericUpDown();
+            this.chkFollow = new System.Windows.Forms.CheckBox();
+            this.lblSpeed = new System.Windows.Forms.Label();
+            this.tmrRefresh = new System.Windows.Forms.Timer(this.components);
+            this.tmrAlarmRepeat = new System.Windows.Forms.Timer(this.components);
+            ((System.ComponentModel.ISupportInitialize)(this.nudAlarmDistance)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudAlarmVolume)).BeginInit();
             this.SuspendLayout();
             //
             // cmbClient
@@ -94,6 +108,118 @@ namespace WindowsMonitor
             this.lblGeofence.TabIndex = 6;
             this.lblGeofence.Text = "Geofence:";
             //
+            // chkAlarmArmed
+            //
+            this.chkAlarmArmed.AutoSize = true;
+            this.chkAlarmArmed.Location = new System.Drawing.Point(420, 2);
+            this.chkAlarmArmed.Name = "chkAlarmArmed";
+            this.chkAlarmArmed.Size = new System.Drawing.Size(84, 17);
+            this.chkAlarmArmed.TabIndex = 8;
+            this.chkAlarmArmed.Text = "Alarm actief";
+            this.chkAlarmArmed.UseVisualStyleBackColor = true;
+            this.chkAlarmArmed.CheckedChanged += new System.EventHandler(this.chkAlarmArmed_CheckedChanged);
+            //
+            // nudAlarmDistance
+            //
+            this.nudAlarmDistance.Increment = new decimal(new int[] { 50, 0, 0, 0 });
+            this.nudAlarmDistance.Location = new System.Drawing.Point(508, 1);
+            this.nudAlarmDistance.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
+            this.nudAlarmDistance.Minimum = new decimal(new int[] { 10, 0, 0, 0 });
+            this.nudAlarmDistance.Name = "nudAlarmDistance";
+            this.nudAlarmDistance.Size = new System.Drawing.Size(60, 20);
+            this.nudAlarmDistance.TabIndex = 9;
+            this.nudAlarmDistance.Value = new decimal(new int[] { 200, 0, 0, 0 });
+            //
+            // lblAlarmMeters
+            //
+            this.lblAlarmMeters.AutoSize = true;
+            this.lblAlarmMeters.Location = new System.Drawing.Point(570, 4);
+            this.lblAlarmMeters.Name = "lblAlarmMeters";
+            this.lblAlarmMeters.Size = new System.Drawing.Size(15, 13);
+            this.lblAlarmMeters.TabIndex = 10;
+            this.lblAlarmMeters.Text = "m";
+            //
+            // btnAlarmAck
+            //
+            this.btnAlarmAck.Enabled = false;
+            this.btnAlarmAck.Location = new System.Drawing.Point(592, 0);
+            this.btnAlarmAck.Name = "btnAlarmAck";
+            this.btnAlarmAck.Size = new System.Drawing.Size(80, 22);
+            this.btnAlarmAck.TabIndex = 11;
+            this.btnAlarmAck.Text = "Acknowledge";
+            this.btnAlarmAck.UseVisualStyleBackColor = true;
+            this.btnAlarmAck.Click += new System.EventHandler(this.btnAlarmAck_Click);
+            //
+            // btnAlarmTest
+            //
+            this.btnAlarmTest.Location = new System.Drawing.Point(676, 0);
+            this.btnAlarmTest.Name = "btnAlarmTest";
+            this.btnAlarmTest.Size = new System.Drawing.Size(70, 22);
+            this.btnAlarmTest.TabIndex = 12;
+            this.btnAlarmTest.Text = "Test alarm";
+            this.btnAlarmTest.UseVisualStyleBackColor = true;
+            this.btnAlarmTest.Click += new System.EventHandler(this.btnAlarmTest_Click);
+            //
+            // lblAlarmState
+            //
+            this.lblAlarmState.AutoSize = true;
+            this.lblAlarmState.Location = new System.Drawing.Point(900, 4);
+            this.lblAlarmState.Name = "lblAlarmState";
+            this.lblAlarmState.Size = new System.Drawing.Size(0, 13);
+            this.lblAlarmState.TabIndex = 13;
+            //
+            // lblAlarmVolume
+            //
+            this.lblAlarmVolume.AutoSize = true;
+            this.lblAlarmVolume.Location = new System.Drawing.Point(750, 4);
+            this.lblAlarmVolume.Name = "lblAlarmVolume";
+            this.lblAlarmVolume.Size = new System.Drawing.Size(31, 13);
+            this.lblAlarmVolume.TabIndex = 14;
+            this.lblAlarmVolume.Text = "Vol %";
+            //
+            // nudAlarmVolume
+            //
+            this.nudAlarmVolume.Increment = new decimal(new int[] { 5, 0, 0, 0 });
+            this.nudAlarmVolume.Location = new System.Drawing.Point(785, 1);
+            this.nudAlarmVolume.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
+            this.nudAlarmVolume.Name = "nudAlarmVolume";
+            this.nudAlarmVolume.Size = new System.Drawing.Size(48, 20);
+            this.nudAlarmVolume.TabIndex = 15;
+            this.nudAlarmVolume.Value = new decimal(new int[] { 15, 0, 0, 0 });
+            this.nudAlarmVolume.ValueChanged += new System.EventHandler(this.nudAlarmVolume_ValueChanged);
+            //
+            // chkFollow
+            //
+            this.chkFollow.AutoSize = true;
+            this.chkFollow.Checked = true;
+            this.chkFollow.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkFollow.Location = new System.Drawing.Point(840, 2);
+            this.chkFollow.Name = "chkFollow";
+            this.chkFollow.Size = new System.Drawing.Size(58, 17);
+            this.chkFollow.TabIndex = 16;
+            this.chkFollow.Text = "Volgen";
+            this.chkFollow.UseVisualStyleBackColor = true;
+            this.chkFollow.CheckedChanged += new System.EventHandler(this.chkFollow_CheckedChanged);
+            //
+            // lblSpeed
+            //
+            this.lblSpeed.AutoSize = true;
+            this.lblSpeed.Location = new System.Drawing.Point(0, 44);
+            this.lblSpeed.Name = "lblSpeed";
+            this.lblSpeed.Size = new System.Drawing.Size(55, 13);
+            this.lblSpeed.TabIndex = 17;
+            this.lblSpeed.Text = "Snelheid:";
+            //
+            // tmrRefresh
+            //
+            this.tmrRefresh.Interval = 30000;
+            this.tmrRefresh.Tick += new System.EventHandler(this.tmrRefresh_Tick);
+            //
+            // tmrAlarmRepeat
+            //
+            this.tmrAlarmRepeat.Interval = 4000;
+            this.tmrAlarmRepeat.Tick += new System.EventHandler(this.tmrAlarmRepeat_Tick);
+            //
             // mapOverview
             //
             this.mapOverview.Bearing = 0F;
@@ -124,7 +250,17 @@ namespace WindowsMonitor
             //
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(823, 503);
+            this.ClientSize = new System.Drawing.Size(1100, 600);
+            this.Controls.Add(this.lblSpeed);
+            this.Controls.Add(this.chkFollow);
+            this.Controls.Add(this.lblAlarmState);
+            this.Controls.Add(this.nudAlarmVolume);
+            this.Controls.Add(this.lblAlarmVolume);
+            this.Controls.Add(this.btnAlarmTest);
+            this.Controls.Add(this.btnAlarmAck);
+            this.Controls.Add(this.lblAlarmMeters);
+            this.Controls.Add(this.nudAlarmDistance);
+            this.Controls.Add(this.chkAlarmArmed);
             this.Controls.Add(this.lblGeofence);
             this.Controls.Add(this.lblLastConnection);
             this.Controls.Add(this.lblLastLocation);
@@ -136,6 +272,8 @@ namespace WindowsMonitor
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Show;
             this.Text = "Admin live-view (TCP)";
             this.Load += new System.EventHandler(this.AdminMapViewer_Load);
+            ((System.ComponentModel.ISupportInitialize)(this.nudAlarmDistance)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudAlarmVolume)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -150,5 +288,17 @@ namespace WindowsMonitor
         private System.Windows.Forms.Label lblLastLocation;
         private System.Windows.Forms.Label lblLastConnection;
         private System.Windows.Forms.Label lblGeofence;
+        private System.Windows.Forms.CheckBox chkAlarmArmed;
+        private System.Windows.Forms.NumericUpDown nudAlarmDistance;
+        private System.Windows.Forms.Label lblAlarmMeters;
+        private System.Windows.Forms.Button btnAlarmAck;
+        private System.Windows.Forms.Button btnAlarmTest;
+        private System.Windows.Forms.Label lblAlarmState;
+        private System.Windows.Forms.Label lblAlarmVolume;
+        private System.Windows.Forms.NumericUpDown nudAlarmVolume;
+        private System.Windows.Forms.CheckBox chkFollow;
+        private System.Windows.Forms.Label lblSpeed;
+        private System.Windows.Forms.Timer tmrRefresh;
+        private System.Windows.Forms.Timer tmrAlarmRepeat;
     }
 }
